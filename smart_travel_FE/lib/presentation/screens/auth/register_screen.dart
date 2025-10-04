@@ -53,22 +53,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.mainGradient
+        decoration: BoxDecoration(
+          color: AppColors.background,
         ),
         child: SafeArea(
           child: Column(
             children: [
               // Back Button
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(8),
                 child: Row(
                   children: [
                     IconButton(
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.arrow_back),
                       style: IconButton.styleFrom(
-                        backgroundColor: Colors.white,
+                        backgroundColor: AppColors.textWhite,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -80,7 +80,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textWhite,
+                        color: AppColors.textGray,
                       ),
                     ),
                   ],
@@ -89,46 +89,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24.0),
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      // Logo & Title
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF9333EA), Color(0xFF2563EB)],
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'ST',
-                            style: TextStyle(
-                              color: AppColors.textWhite,
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
                       const Text(
                         'Tạo tài khoản',
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textWhite,
+                          color: AppColors.textGray,
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      // Logo & Title
+                      Container(
+                        width: MediaQuery.of(context).size.width * 0.9,   // 90% chiều rộng màn hình
+                        height: MediaQuery.of(context).size.height * 0.2, // 30% chiều cao màn hình
+                        decoration: BoxDecoration(
+                            border: Border.symmetric(),
+                            color: AppColors.accent,
+                            image: DecorationImage(
+                                image:AssetImage("assets/images/img_1.png"),
+                                fit: BoxFit.cover
+                            ),
+                            borderRadius: BorderRadius.circular(20)
+                        ),
+                      ),
+
+
                       const SizedBox(height: 8),
                       const Text(
                         'Bắt đầu hành trình khám phá của bạn',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.textWhite,
+                          color: AppColors.textGray,
                         ),
                       ),
                       const SizedBox(height: 32),
@@ -288,7 +283,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                           TextSpan(
                                             text: 'Điều khoản dịch vụ',
                                             style: TextStyle(
-                                              color: Color(0xFF9333EA),
+                                              color: AppColors.primary,
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
@@ -296,7 +291,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                           TextSpan(
                                             text: 'Chính sách bảo mật',
                                             style: TextStyle(
-                                              color: Color(0xFF9333EA),
+                                              color: AppColors.primary,
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
@@ -382,7 +377,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w600,
-                                          color: Color(0xFF9333EA),
+                                          color: AppColors.primary,
                                         ),
                                       ),
                                     ),

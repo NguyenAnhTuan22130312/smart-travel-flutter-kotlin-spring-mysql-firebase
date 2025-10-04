@@ -46,9 +46,10 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.mainGradient
+      body:
+      Container(
+        decoration: BoxDecoration(
+          color: AppColors.background,
         ),
         child: SafeArea(
           child: Center(
@@ -57,47 +58,40 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Text(
+                      'Chào mừng trở lại',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textGray,
+                      ),
+                    ),
+                  const SizedBox(height: 16),
                   // Logo & Title
                   Container(
-                    width: 80,
-                    height: 80,
+                    width: MediaQuery.of(context).size.width * 0.9,   // 90% chiều rộng màn hình
+                    height: MediaQuery.of(context).size.height * 0.2, // 30% chiều cao màn hình
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF2563EB), Color(0xFF9333EA)],
+                      border: Border.symmetric(),
+                      color: AppColors.accent,
+                      image: DecorationImage(
+                          image:AssetImage("assets/images/img_1.png"),
+                        fit: BoxFit.cover
                       ),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'ST',
-                        style: TextStyle(
-                          color: AppColors.textGray,
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      borderRadius: BorderRadius.circular(20)
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Chào mừng trở lại',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textWhite,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
                   const Text(
                     'Đăng nhập để khám phá những điểm đến tuyệt vời',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textWhite,
+                      color: AppColors.textGray,
                     ),
                   ),
-                  const SizedBox(height: 32),
 
+                  const SizedBox(height: 8),
                   // Login Form Card
                   Container(
                     padding: const EdgeInsets.all(24),
