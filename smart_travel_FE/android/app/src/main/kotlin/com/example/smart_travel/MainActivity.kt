@@ -1,4 +1,4 @@
-package com.example.smart_travel
+package com.example.smart_travel_FE
 
 import io.flutter.embedding.android.FlutterActivity
 

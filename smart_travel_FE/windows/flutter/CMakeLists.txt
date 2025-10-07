@@ -55,7 +55,7 @@ list(APPEND CPP_WRAPPER_SOURCES_APP
 )
 list(TRANSFORM CPP_WRAPPER_SOURCES_APP PREPEND "${WRAPPER_ROOT}/")
 
-# Wrapper sources needed for a plugin.
+# Wrapper data_sources needed for a plugin.
 add_library(flutter_wrapper_plugin STATIC
   ${CPP_WRAPPER_SOURCES_CORE}
   ${CPP_WRAPPER_SOURCES_PLUGIN}
@@ -71,7 +71,7 @@ target_include_directories(flutter_wrapper_plugin PUBLIC
 )
 add_dependencies(flutter_wrapper_plugin flutter_assemble)
 
-# Wrapper sources needed for the runner.
+# Wrapper data_sources needed for the runner.
 add_library(flutter_wrapper_app STATIC
   ${CPP_WRAPPER_SOURCES_CORE}
   ${CPP_WRAPPER_SOURCES_APP}

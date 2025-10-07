@@ -1,0 +1,777 @@
+import 'package:flutter/material.dart';
+import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
+import '../../theme/app_colors.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _selectedCategory = 'ALL';
+  int _selectedIndex = 0; // Index cho thanh điều hướng dưới
+
+  // Danh mục theo CSDL (category trong bảng destinations)
+  final List<Map<String, dynamic>> _categories = [
+    {'id': 'ALL', 'icon': Icons.explore, 'label': 'Tất cả'},
+    {'id': 'BEACH', 'icon': Icons.beach_access, 'label': 'Biển'},
+    {'id': 'MOUNTAIN', 'icon': Icons.terrain, 'label': 'Núi'},
+    {'id': 'CULTURE', 'icon': Icons.temple_buddhist, 'label': 'Văn hóa'},
+    {'id': 'CITY', 'icon': Icons.location_city, 'label': 'Thành phố'},
+    {'id': 'NATURE', 'icon': Icons.landscape, 'label': 'Thiên nhiên'},
+  ];
+
+  // Dữ liệu mẫu destinations với is_featured = true
+  final List<Map<String, dynamic>> _featuredDestinations = [
+    {
+      'id': 1,
+      'name': 'Phố cổ Hội An',
+      'province_name': 'Quảng Nam',
+      'category': 'CULTURE',
+      'average_rating': 4.8,
+      'review_count': 1250,
+      'view_count': 25000,
+      'entry_fee': 120000.0,
+      'primary_image': 'assets/images/hoian.jpg',
+      'is_featured': true,
+      'address': 'Phố cổ, Hội An, Quảng Nam',
+    },
+    {
+      'id': 2,
+      'name': 'Vịnh Hạ Long',
+      'province_name': 'Quảng Ninh',
+      'category': 'NATURE',
+      'average_rating': 4.9,
+      'review_count': 2100,
+      'view_count': 45000,
+      'entry_fee': 0.0,
+      'primary_image': 'assets/images/halong.jpg',
+      'is_featured': true,
+      'address': 'TP. Hạ Long, Quảng Ninh',
+    },
+    {
+      'id': 3,
+      'name': 'Đà Lạt',
+      'province_name': 'Lâm Đồng',
+      'category': 'CITY',
+      'average_rating': 4.7,
+      'review_count': 1800,
+      'view_count': 32000,
+      'entry_fee': 0.0,
+      'primary_image': 'assets/images/dalat.jpg',
+      'is_featured': true,
+      'address': 'Thành phố Đà Lạt, Lâm Đồng',
+    },
+    {
+      'id': 4,
+      'name': 'Phong Nha - Kẻ Bàng',
+      'province_name': 'Quảng Bình',
+      'category': 'NATURE',
+      'average_rating': 4.9,
+      'review_count': 980,
+      'view_count': 18000,
+      'entry_fee': 150000.0,
+      'primary_image': 'assets/images/phongnha.jpg',
+      'is_featured': true,
+      'address': 'Bố Trạch, Quảng Bình',
+    },
+  ];
+
+  // Dữ liệu mẫu provinces với is_popular = true
+  final List<Map<String, dynamic>> _popularProvinces = [
+    {
+      'id': 1,
+      'name': 'Hà Nội',
+      'code': 'HN',
+      'region': 'NORTH',
+      'image_url': 'assets/images/hanoi.jpg',
+      'is_popular': true,
+      'destination_count': 125,
+    },
+    {
+      'id': 2,
+      'name': 'TP. Hồ Chí Minh',
+      'code': 'HCM',
+      'region': 'SOUTH',
+      'image_url': 'assets/images/hcm.jpg',
+      'is_popular': true,
+      'destination_count': 158,
+    },
+    {
+      'id': 3,
+      'name': 'Đà Nẵng',
+      'code': 'DN',
+      'region': 'CENTRAL',
+      'image_url': 'assets/images/danang.jpg',
+      'is_popular': true,
+      'destination_count': 82,
+    },
+    {
+      'id': 4,
+      'name': 'Khánh Hòa',
+      'code': 'KH',
+      'region': 'SOUTH',
+      'image_url': 'assets/images/nhatrang.jpg',
+      'is_popular': true,
+      'destination_count': 95,
+    },
+  ];
+
+  // Dữ liệu user mẫu từ bảng users & user_profiles
+  final Map<String, dynamic> _currentUser = {
+    'id': 1,
+    'full_name': 'Nguyễn Văn A',
+    'email': 'nguyenvana@gmail.com',
+    'role': 'USER',
+    'profile': {
+      'avatar_url': null, // hoặc 'https://example.com/avatar.jpg'
+      'dark_mode_enabled': false,
+    }
+  };
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  // Xử lý khi chọn mục trong thanh điều hướng
+  void _onNavItemTapped(int index) {
+    if (index == _selectedIndex) return; // Tránh điều hướng lại nếu đang ở màn hình hiện tại
+    setState(() {
+      _selectedIndex = index;
+    });
+    // Điều hướng đến màn hình tương ứng
+    Navigator.pushReplacementNamed(context, [
+      '/home',
+      '/destination/list',
+      '/booking',
+      '/profile',
+      '/ai_chat',
+    ][index]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            _buildAppBar(),
+            _buildSearchBar(),
+            _buildAIChatBanner(),
+            _buildCategories(),
+            _buildFeaturedDestinations(),
+            _buildPopularProvinces(),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+          ],
+        ),
+      ),
+      bottomNavigationBar: AppBottomNavigationWithIndicator(
+        currentIndex: _selectedIndex,
+        onTap: _onNavItemTapped,
+      ),
+    );
+  }
+
+  // App Bar với thông tin user từ bảng users & user_profiles
+  Widget _buildAppBar() {
+    return SliverAppBar(
+      floating: true,
+      backgroundColor: Colors.white,
+      elevation: 0,
+      title: Row(
+        children: [
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: AppColors.primary.withOpacity(0.1),
+            backgroundImage: _currentUser['profile']['avatar_url'] != null
+                ? NetworkImage(_currentUser['profile']['avatar_url'])
+                : null,
+            child: _currentUser['profile']['avatar_url'] == null
+                ? Icon(Icons.person, color: AppColors.primary)
+                : null,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Xin chào 👋',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textGray,
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),
+                Text(
+                  _currentUser['full_name'],
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1F2937),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Stack(
+              children: [
+                const Icon(Icons.notifications_outlined,
+                    color: Color(0xFF374151)),
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            onPressed: () {
+              // TODO: Navigate to notifications
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Search Bar
+  Widget _buildSearchBar() {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: 'Tìm kiếm địa điểm, tour...',
+              hintStyle: TextStyle(color: AppColors.textGray, fontSize: 14),
+              prefixIcon: Icon(Icons.search, color: AppColors.primary),
+              suffixIcon: Container(
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.tune, color: Colors.white, size: 20),
+              ),
+              border: InputBorder.none,
+              contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            ),
+            onTap: () {
+              // TODO: Navigate to search screen
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  // AI Chat Banner - liên quan đến tính năng AI chatbot
+  Widget _buildAIChatBanner() {
+    return SliverToBoxAdapter(
+      child: GestureDetector(
+        onTap: () {
+          // TODO: Navigate to AI chat screen
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.primary, AppColors.accent],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child:
+                const Icon(Icons.smart_toy, color: Colors.white, size: 28),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'AI Trợ lý du lịch',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Để AI gợi ý tour phù hợp với bạn',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Categories - theo cột category trong bảng destinations
+  Widget _buildCategories() {
+    return SliverToBoxAdapter(
+      child: Container(
+        height: 100,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: _categories.length,
+          itemBuilder: (context, index) {
+            final category = _categories[index];
+            final isSelected = _selectedCategory == category['id'];
+
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedCategory = category['id'];
+                });
+                // TODO: Filter destinations by category
+              },
+              child: Container(
+                width: 80,
+                margin: const EdgeInsets.only(right: 12),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.primary : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      category['icon'],
+                      color: isSelected ? Colors.white : AppColors.primary,
+                      size: 28,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      category['label'],
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected
+                            ? Colors.white
+                            : const Color(0xFF374151),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  // Featured Destinations - từ bảng destinations với is_featured = true
+  Widget _buildFeaturedDestinations() {
+    return SliverToBoxAdapter(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Điểm đến nổi bật',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // TODO: Navigate to all featured destinations
+                  },
+                  child: Text(
+                    'Xem tất cả',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            height: 280,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: _featuredDestinations.length,
+              itemBuilder: (context, index) {
+                final destination = _featuredDestinations[index];
+                return _buildDestinationCard(destination);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Destination Card Widget
+  Widget _buildDestinationCard(Map<String, dynamic> destination) {
+    final entryFee = destination['entry_fee'] as double;
+    final priceText = entryFee == 0
+        ? 'Miễn phí'
+        : '${entryFee.toInt().toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]}.',
+    )}đ';
+
+    return GestureDetector(
+      onTap: () {
+        // TODO: Navigate to destination detail
+        // Navigator.pushNamed(context, '/destination/detail', arguments: destination['id']);
+      },
+      child: Container(
+        width: 220,
+        margin: const EdgeInsets.only(right: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                // Image placeholder
+                ClipRRect(
+                  borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+                  child: Container(
+                    height: 160,
+                    width: double.infinity,
+                    color: Colors.grey[300],
+                    child: Icon(Icons.image, size: 50, color: Colors.grey[400]),
+                  ),
+                ),
+                // Favorite button
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.favorite_border,
+                        size: 20, color: AppColors.primary),
+                  ),
+                ),
+                // Rating badge
+                Positioned(
+                  bottom: 12,
+                  left: 12,
+                  child: Container(
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.star, color: Colors.amber, size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          destination['average_rating'].toString(),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '(${destination['review_count']})',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: AppColors.textGray,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    destination['name'],
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1F2937),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on,
+                          size: 14, color: AppColors.textGray),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          destination['province_name'],
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textGray,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        priceText,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.arrow_forward,
+                          size: 16,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Popular Provinces - từ bảng provinces với is_popular = true
+  Widget _buildPopularProvinces() {
+    return SliverPadding(
+      padding: const EdgeInsets.all(16),
+      sliver: SliverToBoxAdapter(
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Tỉnh thành phổ biến',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // TODO: Navigate to all provinces
+                  },
+                  child: Text(
+                    'Xem tất cả',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 1.2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+              ),
+              itemCount: _popularProvinces.length,
+              itemBuilder: (context, index) {
+                final province = _popularProvinces[index];
+                return _buildProvinceCard(province);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Province Card Widget
+  Widget _buildProvinceCard(Map<String, dynamic> province) {
+    return GestureDetector(
+      onTap: () {
+        // TODO: Navigate to province destinations
+        // Navigator.pushNamed(context, '/province/destinations', arguments: province['id']);
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            children: [
+              // Image placeholder
+              Container(
+                color: Colors.grey[300],
+                child: Center(
+                  child: Icon(Icons.location_city,
+                      size: 40, color: Colors.grey[400]),
+                ),
+              ),
+              // Gradient overlay
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withOpacity(0.7),
+                    ],
+                  ),
+                ),
+              ),
+              // Province info
+              Positioned(
+                bottom: 12,
+                left: 12,
+                right: 12,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      province['name'],
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${province['destination_count']}+ địa điểm',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

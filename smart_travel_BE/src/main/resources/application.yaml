@@ -1,0 +1,35 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: smart-travel
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/smart_travel_db
+    username: root
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.MySQLDialect
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: tuansdev@gmail.com
+    password: uzfp jegb wese bgif
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+jwt:
+  signerKey: "TzmHFuheKNBQJ/bJ9NkUjvqPgDBRtKIklGADlbvjN+fjjx4ZVtuZkmwsR/k6PN+d"
+  valid-duration: 3600 #5p
+  refreshable-duration: 604800 #7 ngày
+

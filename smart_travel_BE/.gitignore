@@ -1,13 +1,24 @@
 HELP.md
-### Gradle ###
-.gradle/
+.gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
 ### IntelliJ IDEA ###
-.idea/
+.idea
 *.iws
 *.iml
 *.ipr
@@ -15,35 +26,12 @@ out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 
-### STS / Eclipse ###
-.apt_generated/
-.classpath
-.factorypath
-.project
-.settings/
-.springBeans/
-.sts4-cache/
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
 
 ### VS Code ###
 .vscode/
-
-### Kotlin ###
-.kotlin/          # cache của Kotlin compiler
-*.kotlin_module   # file metadata tự sinh
-
-### Logs ###
-*.log
-
-### OS ###
-.DS_Store
-Thumbs.db
-
-### Secrets / Env ###
-application-*.yml
-application-*.properties
-.env
-*.env
-
