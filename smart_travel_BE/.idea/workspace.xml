@@ -4,22 +4,169 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4053d797-8c9b-44e8-ba0e-294cb2202413" name="Changes" comment="" />
+    <list default="true" id="4053d797-8c9b-44e8-ba0e-294cb2202413" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../.idea/kotlinc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.idea/libraries/KotlinJavaRuntime.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../docker-compose.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/config/ApplicationInitConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/config/CustomAuthEntryPoint.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/config/SecurityConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/config/UserHeaderAuthenticationFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/controller/AuthController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/dto/user/request/EmailRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/dto/user/request/LoginRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/dto/user/request/RegisterRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/dto/user/response/APIResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/dto/user/response/LoginResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/dto/user/response/RegisterResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/entity/EmailVerificationToken.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/entity/RefreshToken.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/entity/User.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/entity/UserProfile.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/exception/AppException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/exception/ErrorCode.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/exception/GlobalExceptionHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/mapper/UserMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/repository/EmailVerificationTokenRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/repository/RefreshTokenRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/repository/UserRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/service/AuthService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/service/EmailService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/service/UserService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/smart_travel_BE/util/JwtUtil.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/verify-fail.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/verify-success.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/core/constants/api_constants.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/core/error/exceptions.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/core/error/failures.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/core/network/network_info.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/core/usecases/usecase.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/data/data_sources/remote/auth_remote_datasource.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/data/models/auth/login_request_modal.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/data/models/auth/login_response_modal.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/data/models/auth/register_request_model.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/data/models/auth/register_response_model.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/data/repositories/auth_repository_impl.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/domain/entities/auth/login_request.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/domain/entities/auth/login_response.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/domain/entities/auth/register_request.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/domain/entities/auth/register_response.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/domain/entities/user.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/domain/repositories/auth_repository.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/domain/usecases/auth/login_use_case.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/domain/usecases/auth/register_use_case.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/domain/usecases/auth/resend_verification.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/injection_container.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/presentation/blocs/auth/auth_bloc.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/presentation/blocs/auth/auth_event.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/presentation/blocs/auth/auth_state.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/SmartTravel.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/SmartTravel.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/caches/deviceStreaming.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/libraries/Dart_Packages.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Cấu trúc Dự án Du lịch Thông minh.docx" beforeDir="false" afterPath="$PROJECT_DIR$/../Cấu trúc Dự án Du lịch Thông minh.docx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/smart_travel_BE/.gitattributes" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/smart_travel_BE/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/smart_travel_BE/build.gradle" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/smart_travel_BE/gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/smart_travel_BE/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/smart_travel_BE/gradlew" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/smart_travel_BE/gradlew.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/smart_travel_BE/settings.gradle" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/smart_travel_BE/src/main/java/com/example/smart_travel_BE/SmartTravelBeApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/smart_travel_BE/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/smart_travel_BE/src/test/java/com/example/smart_travel_BE/SmartTravelBeApplicationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../smart_travel_FE/android/app/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../smart_travel_FE/android/app/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../smart_travel_FE/android/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../smart_travel_FE/android/app/src/main/AndroidManifest.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../smart_travel_FE/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/main.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../smart_travel_FE/lib/presentation/screens/auth/login_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/presentation/screens/auth/login_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../smart_travel_FE/lib/presentation/screens/auth/register_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/presentation/screens/auth/register_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../smart_travel_FE/lib/presentation/screens/splash/splash_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/presentation/screens/splash/splash_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../smart_travel_FE/lib/presentation/widgets/common/custom_button.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../smart_travel_FE/lib/presentation/widgets/common/custom_button.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../smart_travel_FE/macos/Flutter/GeneratedPluginRegistrant.swift" beforeDir="false" afterPath="$PROJECT_DIR$/../smart_travel_FE/macos/Flutter/GeneratedPluginRegistrant.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../smart_travel_FE/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../smart_travel_FE/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../smart_travel_FE/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/../smart_travel_FE/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../smart_travel_FE/windows/flutter/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../smart_travel_FE/windows/flutter/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../smart_travel_FE/windows/flutter/generated_plugin_registrant.cc" beforeDir="false" afterPath="$PROJECT_DIR$/../smart_travel_FE/windows/flutter/generated_plugin_registrant.cc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../smart_travel_FE/windows/flutter/generated_plugins.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/../smart_travel_FE/windows/flutter/generated_plugins.cmake" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../~$u trúc Dự án Du lịch Thông minh.docx" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "customColor": "",
-  "associatedIndex": 5
-}]]></component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="HTML File" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 5
+}</component>
   <component name="ProjectId" id="33bw47MnXvZhoRj5jDyGmKSUwZI" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "nodejs_package_manager_path": "npm"
+    "ASKED_MARK_IGNORED_FILES_AS_EXCLUDED": "true",
+    "DefaultHtmlFileTemplate": "HTML File",
+    "Gradle.Build smart_travel_BE.executor": "Run",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "Spring Boot.SmartTravelBeApplication.executor": "Run",
+    "git-widget-placeholder": "login-register-forgot",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/SmartTravel/smart_travel_BE",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\SmartTravel\smart_travel_BE\src\main\java\com\example\smart_travel_BE" />
+      <recent name="D:\SmartTravel\smart_travel_BE\src\main\java\com\example\smart_travel_BE\config" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.example.smart_travel_BE.repository" />
+      <recent name="com.example.smart_travel_BE.entity" />
+      <recent name="com.example.smart_travel_BE.dto.user.request" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="SmartTravelBeApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="smart_travel_BE.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.smart_travel_BE.SmartTravelBeApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -37,7 +184,14 @@
       <option name="presentableId" value="Default" />
       <updated>1759598890286</updated>
       <workItem from="1759598891132" duration="4000" />
+      <workItem from="1759642647134" duration="610000" />
+      <workItem from="1759645758225" duration="22105000" />
+      <workItem from="1759722912839" duration="20431000" />
+      <workItem from="1759844858779" duration="322000" />
     </task>
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
 </project>

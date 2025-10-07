@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Xác thực thất bại</title>
+</head>
+<body>
+<h1>❌ Xác thực email thất bại!</h1>
+<p id="error-msg"></p>
+<script>
+    const params = new URLSearchParams(window.location.search);
+    document.getElementById('error-msg').textContent = params.get('error') || "Xác thực thất bại!";
+</script>
+<p>Vui lòng thử lại hoặc liên hệ hỗ trợ.</p>
+
+<!-- Form gửi lại email xác thực -->
+<input type="email" id="email" placeholder="Nhập email của bạn" required>
+<button id="resend-btn">Gửi lại email xác thực</button>
+
+<p id="resend-msg" style="color:green;"></p>
+<p id="resend-error" style="color:red;"></p>
+
+<script>
+    document.getElementById('resend-btn').addEventListener('click', async () => {
+        const email = document.getElementById('email').value;
+        if (!email) return alert("Vui lòng nhập email");
+
+        try {
+            const response = await fetch('/api/v1/auth/resend-verification?email=' + encodeURIComponent(email), {
+                method: 'POST'
+            });
+            const data = await response.json();
+            if (response.ok) {
+                document.getElementById('resend-msg').textContent = data.msg || "Gửi thành công!";
+                document.getElementById('resend-error').textContent = '';
+            } else {
+                document.getElementById('resend-error').textContent = data.msg || "Gửi thất bại!";
+                document.getElementById('resend-msg').textContent = '';
+            }
+        } catch (e) {
+            document.getElementById('resend-error').textContent = "Lỗi server, vui lòng thử lại!";
+            document.getElementById('resend-msg').textContent = '';
+        }
+    });
+</script>
+</body>
+</html>

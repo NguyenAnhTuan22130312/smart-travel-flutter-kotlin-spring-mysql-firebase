@@ -1,0 +1,220 @@
+package com.example.smart_travel_BE.service;
+
+
+import com.example.smart_travel_BE.config.UserHeaderAuthenticationFilter;
+import com.example.smart_travel_BE.dto.user.request.EmailRequest;
+import com.example.smart_travel_BE.dto.user.request.LoginRequest;
+import com.example.smart_travel_BE.dto.user.request.RegisterRequest;
+import com.example.smart_travel_BE.dto.user.response.LoginResponse;
+import com.example.smart_travel_BE.dto.user.response.RegisterResponse;
+import com.example.smart_travel_BE.entity.EmailVerificationToken;
+import com.example.smart_travel_BE.entity.User;
+import com.example.smart_travel_BE.exception.AppException;
+import com.example.smart_travel_BE.exception.ErrorCode;
+import com.example.smart_travel_BE.mapper.UserMapper;
+import com.example.smart_travel_BE.repository.EmailVerificationTokenRepository;
+import com.example.smart_travel_BE.repository.UserRepository;
+import com.example.smart_travel_BE.util.JwtUtil;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class AuthService {
+    private final UserRepository userRepository;
+    private final EmailVerificationTokenRepository tokenRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
+    private final UserMapper userMapper;
+    private final JwtUtil jwtUtil;
+
+
+    /**
+     * Đăng ký người dùng mới
+     */
+    @Transactional
+    public RegisterResponse register(RegisterRequest request) {
+        // Validate mật khẩu khớp
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new AppException(ErrorCode.INVALID_PASSWORD);
+        }
+
+        // Kiểm tra email đã tồn tại
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new AppException(ErrorCode.EMAIL_EXISTED);
+        }
+
+        // Kiểm tra số điện thoại đã tồn tại (nếu có)
+        if (request.getPhone() != null && !request.getPhone().isEmpty()) {
+            if (userRepository.existsByPhone(request.getPhone())) {
+                throw new AppException(ErrorCode.PHONE_EXISTED);
+            }
+        }
+
+        // Tạo user mới
+        User user = userMapper.toUser(request);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole("USER");
+        user.setAuthProvider("EMAIL");
+        user.setIsActive(true);
+        user.setEmailVerified(false);
+
+        userRepository.save(user);
+
+        log.info("User created successfully: {}", user.getEmail());
+
+        // Tạo token xác thực email
+        String token = generateVerificationToken(user);
+
+        // Gửi email xác thực
+        try {
+            EmailRequest emailRequest = EmailRequest.builder()
+                    .email(user.getEmail())
+                    .to(request.getEmail())
+                    .token(token)
+                    .build();
+            emailService.sendVerificationEmail(emailRequest);
+            log.info("Verification email sent to: {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send verification email", e);
+            // Không throw exception để user vẫn được tạo
+        }
+
+        RegisterResponse response = userMapper.toRegisterResponse(user);
+        response.setMessage("Đăng kí tài khoản thành công, vui lòng xác thực tài khoản");
+
+        return response;
+    }
+
+    /**
+     * Tạo token xác thực email
+     */
+    private String generateVerificationToken(User user) {
+        // Xóa token cũ nếu có
+        tokenRepository.findByUser(user).ifPresent(tokenRepository::delete);
+        tokenRepository.flush();
+
+        // Tạo token mới
+        String token = UUID.randomUUID().toString();
+
+        EmailVerificationToken verificationToken = EmailVerificationToken.builder()
+                .token(token)
+                .user(user)
+                .expiryDate(LocalDateTime.now().plusHours(1)) // Hết hạn sau 1 giờ
+                .build();
+
+
+        tokenRepository.save(verificationToken);
+        return token;
+    }
+
+    /**
+     * Xác thực email
+     */
+    @Transactional
+    public void verifyEmail(String token) {
+        EmailVerificationToken verificationToken = tokenRepository.findByToken(token)
+                .orElseThrow(() -> new AppException(ErrorCode.TOKEN_INVALID));
+
+        if (verificationToken.isVerified()) {
+            throw new AppException(ErrorCode.EMAIL_ISVERIFIED);
+        }
+
+        if (verificationToken.isExpired()) {
+            throw new AppException(ErrorCode.TOKEN_ISEXPIRED);
+        }
+
+        // Cập nhật trạng thái xác thực
+        User user = verificationToken.getUser();
+        user.setEmailVerified(true);
+        userRepository.save(user);
+
+        verificationToken.setVerifiedAt(LocalDateTime.now());
+        tokenRepository.save(verificationToken);
+
+        // Gửi email chào mừng
+        try {
+            emailService.sendWelcomeEmail(user.getEmail(), user.getFullName());
+        } catch (Exception e) {
+            log.error("Failed to send welcome email", e);
+        }
+
+        log.info("Email verified successfully for user: {}", user.getEmail());
+    }
+
+    /**
+     * Gửi lại email xác thực
+     */
+    @Transactional
+    public void resendVerificationEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.EMAIL_NOT_EXISTED));
+
+        if (user.getEmailVerified()) {
+            throw new AppException(ErrorCode.EMAIL_ISVERIFIED);
+        }
+
+        // Tạo token mới
+        String token = generateVerificationToken(user);
+
+
+        // Gửi email
+        EmailRequest emailRequest = EmailRequest.builder()
+                .email(user.getEmail())
+                .to(email)
+                .token(token)
+                .build();
+        emailService.sendVerificationEmail(emailRequest);
+
+        log.info("Resent verification email to: {}", email);
+    }
+
+    /**
+     * Đăng nhập
+     */
+    public LoginResponse login(LoginRequest request) {
+
+        // Tìm user theo email
+        var user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.EMAIL_NOT_EXISTED));
+        if (!user.getEmailVerified()) {
+            throw new AppException(ErrorCode.ACCOUNT_NOT_CONFIRM);
+        }
+        if (!user.getIsActive()) {
+            throw new AppException(ErrorCode.ACCOUNT_NOT_CONFIRM);
+        }
+        // Kiểm tra mật khẩu
+        boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
+        if (!authenticated) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+
+        // Tạo token JWT
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("id", user.getId());
+        claims.put("role", user.getRole());
+        String token = jwtUtil.generateToken(user.getId(), claims);
+        String refreshToken = jwtUtil.generateRefreshToken(user.getId());
+
+        return LoginResponse.builder()
+                .token(token)
+                .refreshToken(refreshToken)
+                .role(String.valueOf(user.getRole()))
+                .build();
+
+
+    }
+
+
+
+}
