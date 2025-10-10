@@ -27,4 +27,12 @@ class LoginSubmitted extends AuthEvent {
   @override
   List<Object?> get props => [requestModal];
 }
+class ForgotPasswordSubmitted extends AuthEvent {
+  final String email;
+
+  const ForgotPasswordSubmitted(this.email);
+
+  @override
+  List<Object?> get props => [email];
+}
 

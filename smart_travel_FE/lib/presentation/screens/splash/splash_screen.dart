@@ -14,8 +14,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
-
-
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -23,7 +21,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    // Khi vào app, gửi sự kiện kiểm tra đăng nhập
+    // Gửi sự kiện kiểm tra đăng nhập
     context.read<AuthBloc>().add(AppStarted());
     _setupAnimations();
   }
@@ -51,28 +49,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     _controller.forward();
   }
 
-  Future<void> _navigateToLogin() async {
-    // TODO: Kiểm tra trạng thái đăng nhập với BLoC
-    // TODO: Kiểm tra token từ local storage
-    await Future.delayed(const Duration(seconds: 3));
-
-    if (mounted) {
-      Navigator.pushReplacementNamed(context, '/login');
-    }
-    BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is Authenticated) {
-          if (state.role == 'ADMIN') {
-            Navigator.pushReplacementNamed(context, '/admin');
-          } else {
-            Navigator.pushReplacementNamed(context, '/home');
-          }
-        } else if (state is Unauthenticated) {
-          Navigator.pushReplacementNamed(context, '/login');
-        }
-      },
-    );
-  }
 
   @override
   void dispose() {
@@ -83,7 +59,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) {
+
+        listener: (context, state) async {
+          await Future.delayed(const Duration(seconds: 3));
           if (state is Authenticated) {
             if (state.role == 'ADMIN') {
               Navigator.pushReplacementNamed(context, '/admin');

@@ -4,9 +4,7 @@ class UserEntity extends Equatable{
   final String email;
   final String fullName;
   final String? phone;
-  final bool emailVerified;
-
-
+  final bool? emailVerified;
 
   UserEntity({
     required this.email,

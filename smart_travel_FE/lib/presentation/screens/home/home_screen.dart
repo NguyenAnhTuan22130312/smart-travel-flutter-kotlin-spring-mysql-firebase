@@ -159,6 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
+
         child: CustomScrollView(
           slivers: [
             _buildAppBar(),

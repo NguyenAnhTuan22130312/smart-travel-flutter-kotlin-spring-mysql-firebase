@@ -8,4 +8,5 @@ import '../../core/error/failures.dart';
 abstract class AuthRepository {
   Future<Either<Failure, RegisterResponseModel>> register(RegisterRequestModel request);
   Future<Either<Failure, LoginResponseModal>> login(LoginRequestModal request );
+  Future<Either<Failure, String>> forgotPassword(String email );
 }

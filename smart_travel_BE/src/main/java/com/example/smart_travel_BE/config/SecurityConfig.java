@@ -26,7 +26,8 @@ import java.util.Arrays;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SecurityConfig {
     String[] PUBLIC_ENDPOINTS = new String[]{"/api/v1/auth/register", "/api/v1/auth/verify-email",
-            "/api/v1/auth/resend-verification","/api/v1/auth/login", };
+            "/api/v1/auth/resend-verification","/api/v1/auth/login", "/api/v1/auth/forgot-password",
+            "/api/v1/auth/reset-password","/api/v1/auth/check-reset-password"  };
 
     CustomAuthEntryPoint customAuthEntryPoint;
     UserHeaderAuthenticationFilter userHeaderAuthenticationFilter;
@@ -36,7 +37,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers("/verify-success.html", "/verify-fail.html").permitAll()
+                        .requestMatchers("/verify-success.html", "/verify-fail.html","/reset-password.html").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

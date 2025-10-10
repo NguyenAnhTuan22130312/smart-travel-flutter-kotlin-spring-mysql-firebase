@@ -1,3 +1,4 @@
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/data/models/auth/login_request_modal.dart';
@@ -110,12 +111,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         }
                       } else if (state is AuthError) {
                         //Hiển thị lỗi
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(state.message),
-                            backgroundColor: Colors.red,
+                        final snackBar =  SnackBar(
+                          elevation: 0,
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: Colors.transparent,
+                          content: AwesomeSnackbarContent(
+                            title: 'Lỗi',
+                            message: state.message,
+                            contentType: ContentType.failure,
                           ),
                         );
+                        ScaffoldMessenger.of(context)
+                          ..hideCurrentSnackBar()
+                          ..showSnackBar(snackBar);
                       }
                     },
 
@@ -283,11 +291,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               // Login Button
                               PrimaryButton(
                                 text:
-                                    isLoading ? "Đang đăng nhập" : "Đăng nhập",
-                                onPressed: _handleLogin,
+                                isLoading ?
+                                "Đang đăng nhập" : "Đăng nhập",
+                                onPressed: () {
+                                  if (!isLoading) _handleLogin();
+                                },
                               ),
-                              const SizedBox(height: 24),
 
+                              const SizedBox(height: 24),
                               // Divider
                               Row(
                                 children: [

@@ -3,9 +3,12 @@ abstract class AuthLocalDataSource {
   Future<void> saveToken(String token);
   Future<void> saveRefreshToken(String refreshToken);
   Future<void> saveRole(String role);
+  Future<void> saveFullName(String role);
   Future<String?> getToken();
   Future<String?> getRole();
+  Future<String?> getFullName();
   Future<void> clear();
+
 }
 
 class AuthLocalDataSourceImpl implements AuthLocalDataSource {
@@ -16,6 +19,8 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   static const _keyToken = 'token';
   static const _keyRefreshToken = 'refresh_token';
   static const _keyRole = 'role';
+  static const _keyFullName = 'fullName';
+
 
   @override
   Future<void> saveToken(String token) async =>
@@ -38,5 +43,14 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
       await storage.read(key: _keyRole);
 
   @override
+  Future<void> saveFullName(String fullName) async {
+    await storage.write(key: _keyFullName, value: fullName);
+  }
+  @override
+  Future<String?> getFullName() async =>
+      await storage.read(key: _keyFullName);
+
+  @override
   Future<void> clear() async => await storage.deleteAll();
+
 }
