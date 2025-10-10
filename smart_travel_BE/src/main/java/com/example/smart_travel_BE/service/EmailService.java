@@ -68,4 +68,31 @@ public class EmailService {
             throw new RuntimeException("Không thể gửi email xác thực", e);
         }
     }
+
+    public void sendResetPasswordEmail(EmailRequest emailRequest) {
+
+        // Gửi email kèm link reset
+        String resetLink = "http://localhost:8080/api/v1/auth/check-reset-password?token=" + emailRequest.getToken();
+        try{
+            String subjectUser = "Xác thực mật khẩu mới";
+            String messageUser = "<html><body>" +
+                    "Xin chào <b>" + emailRequest.getEmail() + "</b>,<br><br>" +
+                    "Bạn vui lòng nhấn vào nút bên dưới để tiến hành đặt lại mật khẩu mới:<br><br>" +
+                    "<a style='padding: 10px; background: pink; color: black; text-decoration: none; border-radius: 5px;' href='" + resetLink + "'>" +
+                    "Cập nhật mật khẩu mới</a><br><br>" +
+                    "Trân trọng,<br>Smart Travel" +
+                    "</body></html>";
+
+            MimeMessage userMail = mailSender.createMimeMessage();
+            MimeMessageHelper messageHelper = new MimeMessageHelper(userMail, true, "UTF-8");
+            messageHelper.setTo(emailRequest.getTo());
+            messageHelper.setSubject(subjectUser);
+            messageHelper.setText(messageUser, true);
+            mailSender.send(userMail);
+        } catch (MessagingException e) {
+            log.error("Failed to send verification email to: {}", emailRequest.getEmail(), e);
+            throw new RuntimeException("Không thể gửi email", e);
+        }
+
+    }
 }

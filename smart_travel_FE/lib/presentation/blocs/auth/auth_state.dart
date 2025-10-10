@@ -34,6 +34,15 @@ class LoginSuccess extends AuthState {
   List<Object?> get props => [response];
 }
 
+class ForgotPasswordSuccess extends AuthState {
+  final String response;
+
+  const ForgotPasswordSuccess(this.response);
+
+  @override
+  List<Object?> get props => [response];
+}
+
 class Authenticated extends AuthState {
   final String role;
   const Authenticated(this.role);

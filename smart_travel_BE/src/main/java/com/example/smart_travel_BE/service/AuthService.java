@@ -1,9 +1,8 @@
 package com.example.smart_travel_BE.service;
 
-
-import com.example.smart_travel_BE.config.UserHeaderAuthenticationFilter;
 import com.example.smart_travel_BE.dto.user.request.EmailRequest;
 import com.example.smart_travel_BE.dto.user.request.LoginRequest;
+import com.example.smart_travel_BE.dto.user.request.PasswordResetRequest;
 import com.example.smart_travel_BE.dto.user.request.RegisterRequest;
 import com.example.smart_travel_BE.dto.user.response.LoginResponse;
 import com.example.smart_travel_BE.dto.user.response.RegisterResponse;
@@ -69,6 +68,7 @@ public class AuthService {
         user.setEmailVerified(false);
 
         userRepository.save(user);
+
 
         log.info("User created successfully: {}", user.getEmail());
 
@@ -210,10 +210,81 @@ public class AuthService {
                 .token(token)
                 .refreshToken(refreshToken)
                 .role(String.valueOf(user.getRole()))
+                .fullName(user.getFullName())
                 .build();
 
 
     }
+
+    /**
+     * Quên mật khẩu
+     */
+    @Transactional
+    public void forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.EMAIL_NOT_EXISTED));
+
+        // Tạo token reset mật khẩu (thường khác token xác minh email)
+        String resetToken = generateVerificationToken(user);
+
+        EmailRequest emailRequest = EmailRequest.builder()
+                .to(user.getEmail())
+                .email("Đặt lại mật khẩu của bạn")
+                .token(resetToken)
+                .build();
+
+        emailService.sendResetPasswordEmail(emailRequest);
+
+        log.info("Sent reset password email to: {}", email);
+    }
+
+    /**
+     * Xác thực email quên mật khẩu
+     */
+    @Transactional
+    public void checkResetPassword(String token) {
+        EmailVerificationToken verificationToken = tokenRepository.findByToken(token)
+                .orElseThrow(() -> new AppException(ErrorCode.TOKEN_INVALID));
+
+        if (verificationToken.isVerified()) {
+            throw new AppException(ErrorCode.EMAIL_ISVERIFIED);
+        }
+
+        if (verificationToken.isExpired()) {
+            throw new AppException(ErrorCode.TOKEN_ISEXPIRED);
+        }
+
+        verificationToken.setVerifiedAt(LocalDateTime.now());
+        tokenRepository.save(verificationToken);
+    }
+
+    /**
+     * Xác thực email quên mật khẩu
+     */
+    @Transactional
+    public void resetPassword(PasswordResetRequest request) {
+        EmailVerificationToken verificationToken = tokenRepository.findByToken(request.getToken())
+                .orElseThrow(() -> new AppException(ErrorCode.TOKEN_INVALID));
+
+        if (verificationToken.isExpired()) {
+            throw new AppException(ErrorCode.TOKEN_ISEXPIRED);
+        }
+        if(!request.getPassword().equalsIgnoreCase(request.getPasswordConfirm())){
+            throw  new AppException(ErrorCode.INVALID_PASSWORD);
+        }
+        User user = verificationToken.getUser();
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        userRepository.save(user);
+
+        verificationToken.setVerifiedAt(LocalDateTime.now());
+        tokenRepository.save(verificationToken);
+
+
+
+    }
+
+
+
 
 
 

@@ -14,6 +14,9 @@ abstract class AuthDataSource {
 
   /// Đăng nhập
   Future<LoginResponseModal> login(LoginRequestModal request);
+
+  /// Quên mật khẩu
+  Future<String> forgotPassword(String email);
 }
 class AuthRemoteDataSourceImpl implements AuthDataSource{
   final http.Client client;
@@ -96,6 +99,32 @@ class AuthRemoteDataSourceImpl implements AuthDataSource{
       } else {
         throw ServerException(
             'Đăng nhập thất bại với mã lỗi: ${response.statusCode}');
+      }
+    } on http.ClientException catch (e) {
+      throw NetworkException('Lỗi kết nối: ${e.message}');
+    } catch (e) {
+      if (e is ServerException || e is NetworkException) {
+        rethrow;
+      }
+      throw ServerException('Đã xảy ra lỗi không mong muốn: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<String> forgotPassword(String email)async {
+    // TODO: implement login
+    try{
+      final response = await client
+          .post(Uri.parse('${ApiConstants.baseUrl}${ApiConstants.forgotPassword}?email=$email'),
+      ).timeout(ApiConstants.connectionTimeout);
+
+      final apiResponse = jsonDecode(response.body);
+      final msg = apiResponse['msg'] ?? 'Không có thông báo từ server';
+
+      if (response.statusCode == 200) {
+        return msg; // Trả message thành công
+      } else {
+        throw ServerException(msg);
       }
     } on http.ClientException catch (e) {
       throw NetworkException('Lỗi kết nối: ${e.message}');

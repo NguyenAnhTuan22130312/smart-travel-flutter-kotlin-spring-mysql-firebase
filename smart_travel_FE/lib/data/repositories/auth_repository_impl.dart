@@ -58,6 +58,7 @@ class AuthRepositoryImpl implements AuthRepository {
       await localDataSource.saveToken(result.token);
       await localDataSource.saveRefreshToken(result.refreshToken);
       await localDataSource.saveRole(result.role);
+      await localDataSource.saveFullName(result.fullName);
       return  Right(result);
     } on ServerException catch (e) {
     return Left(ServerFailure(e.message));
@@ -65,6 +66,24 @@ class AuthRepositoryImpl implements AuthRepository {
     return Left(NetworkFailure(e.message));
     } catch (e) {
     return Left(ServerFailure('Đã xảy ra lỗi không mong muốn: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> forgotPassword(String email) async{
+    if(!await networkInfo.isConnected){
+      return const Left(NetworkFailure('Không có kết nối internet. Vui lòng kiểm tra lại.'));
+    }
+    try{
+      // Gọi remote data source
+      final result = await dataSource.forgotPassword(email);
+      return  Right(result);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Đã xảy ra lỗi không mong muốn: ${e.toString()}'));
     }
   }
 }

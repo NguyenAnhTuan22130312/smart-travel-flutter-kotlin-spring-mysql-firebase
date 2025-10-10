@@ -1,8 +1,11 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
+import 'package:smart_travel/data/data_sources/local/auth_local_data_source.dart';
 import 'package:smart_travel/data/repositories/auth_repository_impl.dart';
 import 'package:smart_travel/domain/repositories/auth_repository.dart';
+import 'package:smart_travel/domain/usecases/auth/forgot_password_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/register_use_case.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
@@ -19,12 +22,14 @@ Future<void> init() async {
       registerUser: sl(),
       loginUseCase: sl(),
       authLocalDataSource: sl(),
+      forgotPasswordUseCase: sl(),
     ),
   );
 
   // Use cases
   sl.registerLazySingleton(() => RegisterUseCase(sl()));
   sl.registerLazySingleton(() => LoginUseCase(sl()));
+  sl.registerLazySingleton(() => ForgotPasswordUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(
@@ -39,12 +44,16 @@ Future<void> init() async {
   sl.registerLazySingleton<AuthDataSource>(
         () => AuthRemoteDataSourceImpl(client: sl()),
   );
+  sl.registerLazySingleton<AuthLocalDataSource>(
+        () => AuthLocalDataSourceImpl(storage: sl()),
+  );
 
   //Core
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
 
-  //! External
+  //External
   sl.registerLazySingleton(() => http.Client());
   sl.registerLazySingleton(() => Connectivity());
+  sl.registerLazySingleton(() => FlutterSecureStorage());
 
 }

@@ -1,6 +1,7 @@
 package com.example.smart_travel_BE.controller;
 
 import com.example.smart_travel_BE.dto.user.request.LoginRequest;
+import com.example.smart_travel_BE.dto.user.request.PasswordResetRequest;
 import com.example.smart_travel_BE.dto.user.request.RegisterRequest;
 import com.example.smart_travel_BE.dto.user.response.APIResponse;
 import com.example.smart_travel_BE.dto.user.response.LoginResponse;
@@ -106,6 +107,68 @@ public class AuthController {
             log.error("Đăng nhập thất bại:", e);
             return ResponseEntity.badRequest().body(
                     APIResponse.<LoginResponse>builder()
+                            .msg(e.getMessage())
+                            .build()
+            );
+        }
+    }
+    /**
+     * Quên mật khẩu
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<APIResponse<Void>> forgotPassword(
+            @RequestParam("email") String email) {
+        try {
+            authService.forgotPassword(email);
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    APIResponse.<Void>builder()
+                            .msg("Yêu cầu đã được gửi!")
+                            .build()
+            );
+        } catch (AppException e) {
+            log.error("Không th gửi yêu cầu quên mật khẩu:", e);
+            return ResponseEntity.badRequest().body(
+                    APIResponse.<Void>builder()
+                            .msg(e.getMessage())
+                            .build()
+            );
+        }
+    }
+
+    /**
+     * Verify Email quên mật khâu
+     */
+    @GetMapping("/check-reset-password")
+    public RedirectView  checkResetPassword(
+            @RequestParam("token") String token) {
+        try {
+            authService.checkResetPassword(token);
+            return new RedirectView("/reset-password.html?token=" + token);
+        } catch (AppException e) {
+            log.error("Xác thực thất bại", e);
+            // truyền message qua query param
+            String errorMsg = UriUtils.encode(e.getMessage(), StandardCharsets.UTF_8);
+            return new RedirectView("/verify-fail.html?error=" + errorMsg);
+        }
+    }
+
+    /**
+     * Verify Email quên mật khâu
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<APIResponse<Void>> resetPassword(
+            @RequestBody @Valid PasswordResetRequest request) {
+        try {
+            authService.resetPassword(request);
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    APIResponse.<Void>builder()
+                            .msg("Đặt lại mật khẩu thành công!. Vui lòng quay lại ứng dụng để đăng nhập")
+                            .build()
+            );
+        } catch (AppException e) {
+            log.error("Đặt mật khẩu thất bại:", e);
+            return ResponseEntity.badRequest().body(
+                    APIResponse.<Void>builder()
                             .msg(e.getMessage())
                             .build()
             );
