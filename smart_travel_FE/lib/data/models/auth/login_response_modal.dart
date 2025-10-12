@@ -1,3 +1,5 @@
+import 'package:smart_travel/domain/entities/auth.dart';
+
 class LoginResponseModal {
   final String token;
   final String refreshToken;
@@ -7,6 +9,8 @@ class LoginResponseModal {
   LoginResponseModal({required this.token,
     required this.refreshToken,required this.role, required this.fullName});
 
+
+  // Chuyển từ Json → Modal (data)
   factory LoginResponseModal.fromJson(Map<String, dynamic> json){
       return LoginResponseModal(
           token: json['token'] as String,
@@ -16,13 +20,13 @@ class LoginResponseModal {
       );
   }
 
-  Map<String, dynamic> toJson(){
-    return{
-      'token': token,
-      'refreshToken':  refreshToken,
-      'role': role,
-      'fullName': fullName,
-    };
+  // Chuyển từ Model → Entity (domain)
+  AuthEntity toEntity() {
+    return AuthEntity(
+      fullName: fullName,
+      token: token,
+      refreshToken: refreshToken,
+      role: role,
+    );
   }
-
 }

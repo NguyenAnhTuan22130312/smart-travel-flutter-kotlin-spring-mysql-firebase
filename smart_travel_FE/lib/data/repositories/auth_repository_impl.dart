@@ -8,7 +8,11 @@ import 'package:smart_travel/data/models/auth/login_request_modal.dart';
 import 'package:smart_travel/data/models/auth/login_response_modal.dart';
 import 'package:smart_travel/data/models/auth/register_request_model.dart';
 import 'package:smart_travel/data/models/auth/register_response_model.dart';
+import 'package:smart_travel/domain/entities/auth.dart';
+import 'package:smart_travel/domain/params/LoginParams.dart';
+import 'package:smart_travel/domain/params/RegisterParams.dart';
 import 'package:smart_travel/domain/repositories/auth_repository.dart';
+import 'package:smart_travel/domain/usecases/auth/login_use_case.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthDataSource dataSource;
@@ -23,8 +27,8 @@ class AuthRepositoryImpl implements AuthRepository {
 
 
   @override
-  Future<Either<Failure, RegisterResponseModel>> register(
-      RegisterRequestModel request) async {
+  Future<Either<Failure, AuthEntity>> register(
+      RegisterParams params) async {
     // Kiểm tra kết nối mạng
     if (!await networkInfo.isConnected) {
       return const Left(
@@ -32,10 +36,18 @@ class AuthRepositoryImpl implements AuthRepository {
     }
 
     try {
+      final requestModal = RegisterRequestModel(
+          fullName: params.fullName,
+          email: params.email,
+          phone: params.phone,
+          password: params.password,
+          confirmPassword: params.confirmPassword
+      );
       // Gọi remote data source
-      final result = await dataSource.register(request);
+      final responseModel = await dataSource.register(requestModal);
+      final entity = responseModel.toEntity();
       // Trả về kết quả thành công
-      return Right(result);
+      return Right(entity);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } on NetworkException catch (e) {
@@ -46,20 +58,29 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, LoginResponseModal>> login(LoginRequestModal request) async {
+  Future<Either<Failure, AuthEntity>> login(LoginParams params) async {
     // TODO: implement login
     if(!await networkInfo.isConnected){
       return const Left(NetworkFailure('Không có kết nối internet. Vui lòng kiểm tra lại.'));
     }
     try{
+      // Chuyển Domain → Data
+      final requestModel = LoginRequestModal(
+        email: params.email,
+        password: params.password,
+      );
+
       // Gọi remote data source
-      final result = await dataSource.login(request);
+      final responseModel = await dataSource.login(requestModel);
+
       // Lưu token sau khi login thành công
-      await localDataSource.saveToken(result.token);
-      await localDataSource.saveRefreshToken(result.refreshToken);
-      await localDataSource.saveRole(result.role);
-      await localDataSource.saveFullName(result.fullName);
-      return  Right(result);
+      await localDataSource.saveToken(responseModel.token);
+      await localDataSource.saveRefreshToken(responseModel.refreshToken);
+      await localDataSource.saveRole(responseModel.role);
+      await localDataSource.saveFullName(responseModel.fullName);
+      final entity = responseModel.toEntity();
+
+      return  Right(entity);
     } on ServerException catch (e) {
     return Left(ServerFailure(e.message));
     } on NetworkException catch (e) {

@@ -2,7 +2,7 @@ import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
-import 'package:smart_travel/data/models/auth/register_request_model.dart';
+import 'package:smart_travel/domain/params/RegisterParams.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_event.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_state.dart';
@@ -49,7 +49,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
 
       // Tạo RegisterRequest entity
-      final request = RegisterRequestModel(
+      final request = RegisterParams(
         fullName: _fullNameController.text.trim(),
         email: _emailController.text.trim(),
         phone: _phoneController.text.trim(),
@@ -89,7 +89,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(state.response.message),
+                    Text(state.response.message ?? ''),
                     const SizedBox(height: 16),
                     const Text(
                       'Chúng tôi đã gửi một email xác thực đến địa chỉ email của bạn. Vui lòng kiểm tra hộp thư và nhấn vào link xác thực.',

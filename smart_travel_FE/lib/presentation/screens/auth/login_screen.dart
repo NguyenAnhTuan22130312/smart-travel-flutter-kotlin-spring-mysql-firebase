@@ -2,6 +2,9 @@ import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/data/models/auth/login_request_modal.dart';
+import 'package:smart_travel/domain/entities/auth.dart';
+import 'package:smart_travel/domain/params/LoginParams.dart';
+import 'package:smart_travel/domain/usecases/auth/login_use_case.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_event.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_state.dart';
@@ -34,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleLogin() {
     if (_formKey.currentState!.validate()) {
       // TODO: Implement login logic with BLoC
-      final request = LoginRequestModal(
+      final request = LoginParams(
         email: _emailController.text.trim(),
         password:_passwordController.text,
       );

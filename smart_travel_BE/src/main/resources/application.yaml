@@ -33,3 +33,9 @@ jwt:
   valid-duration: 3600 #5p
   refreshable-duration: 604800 #7 ngày
 
+
+cloudinary:
+  cloud-name: dcwqv4rng
+  api-key: 528641466816236
+  api-secret: uvO6zERyFJd1brJLWt-a_KlCYn8
+

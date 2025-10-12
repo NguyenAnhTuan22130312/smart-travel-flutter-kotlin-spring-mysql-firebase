@@ -66,7 +66,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             if (state.role == 'ADMIN') {
               Navigator.pushReplacementNamed(context, '/admin');
             } else {
-              Navigator.pushReplacementNamed(context, '/home');
+              Navigator.pushReplacementNamed(context, '/login');
             }
           } else if (state is Unauthenticated) {
             Navigator.pushReplacementNamed(context, '/login');
