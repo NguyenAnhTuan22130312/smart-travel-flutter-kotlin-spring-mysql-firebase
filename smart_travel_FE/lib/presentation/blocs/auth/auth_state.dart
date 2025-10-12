@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:smart_travel/data/models/auth/login_response_modal.dart';
 import 'package:smart_travel/data/models/auth/register_response_model.dart';
+import 'package:smart_travel/domain/entities/auth.dart';
 
 abstract class AuthState extends Equatable {
   const AuthState();
@@ -14,7 +15,7 @@ class AuthInitial extends AuthState {}
 class AuthLoading extends AuthState {}
 
 class RegisterSuccess extends AuthState {
-  final RegisterResponseModel response;
+  final AuthEntity response;
 
   const RegisterSuccess(this.response);
 
@@ -26,7 +27,7 @@ class RegisterSuccess extends AuthState {
 class ResendVerificationSuccess extends AuthState {}
 
 class LoginSuccess extends AuthState {
-  final LoginResponseModal response;
+  final AuthEntity response;
 
   const LoginSuccess(this.response);
 

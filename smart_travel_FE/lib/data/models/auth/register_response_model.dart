@@ -1,4 +1,6 @@
 
+import 'package:smart_travel/domain/entities/auth.dart';
+
 class RegisterResponseModel {
   final  int userId;
   final String email;
@@ -17,13 +19,12 @@ class RegisterResponseModel {
       message: json['message'] as String,
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'userId': userId,
-      'email': email,
-      'fullName': fullName,
-      'message': message,
-    };
-  }
+  AuthEntity toEntity(){
+    return AuthEntity(
+      userId: userId,
+      email: email,
+      fullName: fullName,
+      message: message,
+      );
+}
 }

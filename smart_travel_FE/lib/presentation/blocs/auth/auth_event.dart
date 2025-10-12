@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
-import 'package:smart_travel/data/models/auth/login_request_modal.dart';
 import 'package:smart_travel/data/models/auth/register_request_model.dart';
+import 'package:smart_travel/domain/params/LoginParams.dart';
+import 'package:smart_travel/domain/params/RegisterParams.dart';
 
 abstract class AuthEvent extends Equatable {
   const AuthEvent();
@@ -11,21 +12,21 @@ abstract class AuthEvent extends Equatable {
 class AppStarted extends AuthEvent {}
 
 class RegisterSubmitted extends AuthEvent {
-  final RegisterRequestModel request;
+  final RegisterParams params;
 
-  const RegisterSubmitted(this.request);
+  const RegisterSubmitted(this.params);
 
   @override
-  List<Object?> get props => [request];
+  List<Object?> get props => [params];
 }
 
 class LoginSubmitted extends AuthEvent {
-  final LoginRequestModal requestModal;
+  final LoginParams params;
 
-  const LoginSubmitted(this.requestModal);
+  const LoginSubmitted(this.params);
 
   @override
-  List<Object?> get props => [requestModal];
+  List<Object?> get props => [params];
 }
 class ForgotPasswordSubmitted extends AuthEvent {
   final String email;
