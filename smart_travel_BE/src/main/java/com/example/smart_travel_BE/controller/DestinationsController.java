@@ -1,5 +1,6 @@
 package com.example.smart_travel_BE.controller;
 
+import com.example.smart_travel_BE.dto.destination.response.DestinationFeaturedResponse;
 import com.example.smart_travel_BE.dto.destination.response.DestinationResponse;
 import com.example.smart_travel_BE.dto.user.response.APIResponse;
 import com.example.smart_travel_BE.service.DestinationService;
@@ -26,9 +27,9 @@ public class DestinationsController {
      * Lấy danh sách địa điểm nổi bật
      */
     @GetMapping("/destination-featured")
-    public ResponseEntity<APIResponse<List<DestinationResponse>>>getAllDestinationsFeatured(){
+    public ResponseEntity<APIResponse<List<DestinationFeaturedResponse>>>getAllDestinationsFeatured(){
         return ResponseEntity.status(HttpStatus.OK).body(
-                 APIResponse.<List<DestinationResponse>>builder()
+                 APIResponse.<List<DestinationFeaturedResponse>>builder()
                          .data(destinationService.getAllDestinationsFeatured())
                          .build()
         );

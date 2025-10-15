@@ -78,3 +78,8 @@ Thumbs.db
 
 # Logs
 *.log
+
+
+
+# FakeDependency
+smart_travel_FE/android/FakeDependency.jar

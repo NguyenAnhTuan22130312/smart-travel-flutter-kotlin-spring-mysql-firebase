@@ -117,3 +117,16 @@ app.*.symbols
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
+
+# Gradle caches
+smart_travel_FE/caches/
+smart_travel_FE/daemon/
+smart_travel_FE/wrapper/dists/
+smart_travel_FE/android/FakeDependency.jar
+smart_travel_FE/kotlin-profile/
+
+
+# IDE / Editor files
+.idea/
+*.iml
+.vscode/

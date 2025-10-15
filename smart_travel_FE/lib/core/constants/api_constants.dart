@@ -8,6 +8,10 @@ class ApiConstants {
   static const String login = '/auth/login';
   static const String forgotPassword = '/auth/forgot-password';
 
+
+  //Destination
+  static const String destinationFeatured = '/destination/destination-featured';
+
   // Timeout
   static const Duration connectionTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);

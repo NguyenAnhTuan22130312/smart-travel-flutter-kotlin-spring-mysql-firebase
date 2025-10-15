@@ -1,0 +1,69 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:http/http.dart' as http;
+import 'package:smart_travel/core/constants/api_constants.dart';
+import 'package:smart_travel/core/error/exceptions.dart';
+import 'package:smart_travel/data/models/api_response_model.dart';
+import 'package:smart_travel/data/models/auth/destinations-featured-response-modal.dart';
+
+abstract class DestinationDataSource {
+
+  ///Lấy danh sách địa điểm nổi bật
+  Future<List<DestinationFeaturedResponseModel>> getAllDestinationFeatured();
+
+}
+class DestinationDataSourceImpl implements DestinationDataSource{
+  final http.Client client;
+
+  DestinationDataSourceImpl({required this.client});
+
+  @override
+  Future<List<DestinationFeaturedResponseModel>> getAllDestinationFeatured() async {
+    try {
+      final response = await client
+          .get(
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.destinationFeatured}'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      )
+          .timeout(ApiConstants.connectionTimeout);
+
+      if (response.statusCode == 200) {
+        // Parse JSON body
+        final apiResponse = ApiResponseModel<List<dynamic>>.fromJson(
+          jsonDecode(response.body),
+              (data) => data as List<dynamic>,
+        );
+
+        // Kiểm tra data null
+        if (apiResponse.data == null) {
+          throw const ServerException('Không nhận được dữ liệu từ server');
+        }
+
+        // Convert từng phần tử JSON trong list thành model
+        final destinations = apiResponse.data!
+            .map((item) => DestinationFeaturedResponseModel.fromJson(item))
+            .toList();
+
+        return destinations;
+      } else if (response.statusCode == 400) {
+        final apiResponse = ApiResponseModel.fromJson(
+          jsonDecode(response.body),
+          null,
+        );
+        throw ServerException(apiResponse.msg);
+      } else {
+        throw ServerException(
+            'Lỗi server: ${response.statusCode} - ${response.reasonPhrase}');
+      }
+    } on http.ClientException catch (e) {
+      throw NetworkException('Lỗi kết nối: ${e.message}');
+    } catch (e) {
+      if (e is ServerException || e is NetworkException) rethrow;
+      throw ServerException('Lỗi không mong muốn: ${e.toString()}');
+    }
+  }
+
+}

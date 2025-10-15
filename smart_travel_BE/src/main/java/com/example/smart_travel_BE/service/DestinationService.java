@@ -1,5 +1,6 @@
 package com.example.smart_travel_BE.service;
 
+import com.example.smart_travel_BE.dto.destination.response.DestinationFeaturedResponse;
 import com.example.smart_travel_BE.dto.destination.response.DestinationResponse;
 import com.example.smart_travel_BE.entity.Destination;
 import com.example.smart_travel_BE.mapper.DestinationMapper;
@@ -22,8 +23,9 @@ public class DestinationService {
     /**
      * Lấy danh sách địa điểm nổi bật
      */
-    public List<DestinationResponse> getAllDestinationsFeatured() {
+    public List<DestinationFeaturedResponse> getAllDestinationsFeatured() {
         List<Destination> destinations = destinationRepository.findByIsFeaturedTrue();
+
         return destinations.stream().map(destinationMapper::toDestinationResponse)
                 .collect(Collectors.toList());
     }

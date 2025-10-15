@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
+import 'package:smart_travel/presentation/widgets/destination/DestinationFeaturedCard.dart';
 import '../../theme/app_colors.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -24,61 +29,6 @@ class _HomeScreenState extends State<HomeScreen> {
     {'id': 'NATURE', 'icon': Icons.landscape, 'label': 'Thiên nhiên'},
   ];
 
-  // Dữ liệu mẫu destinations với is_featured = true
-  final List<Map<String, dynamic>> _featuredDestinations = [
-    {
-      'id': 1,
-      'name': 'Phố cổ Hội An',
-      'province_name': 'Quảng Nam',
-      'category': 'CULTURE',
-      'average_rating': 4.8,
-      'review_count': 1250,
-      'view_count': 25000,
-      'entry_fee': 120000.0,
-      'primary_image': 'assets/images/hoian.jpg',
-      'is_featured': true,
-      'address': 'Phố cổ, Hội An, Quảng Nam',
-    },
-    {
-      'id': 2,
-      'name': 'Vịnh Hạ Long',
-      'province_name': 'Quảng Ninh',
-      'category': 'NATURE',
-      'average_rating': 4.9,
-      'review_count': 2100,
-      'view_count': 45000,
-      'entry_fee': 0.0,
-      'primary_image': 'assets/images/halong.jpg',
-      'is_featured': true,
-      'address': 'TP. Hạ Long, Quảng Ninh',
-    },
-    {
-      'id': 3,
-      'name': 'Đà Lạt',
-      'province_name': 'Lâm Đồng',
-      'category': 'CITY',
-      'average_rating': 4.7,
-      'review_count': 1800,
-      'view_count': 32000,
-      'entry_fee': 0.0,
-      'primary_image': 'assets/images/dalat.jpg',
-      'is_featured': true,
-      'address': 'Thành phố Đà Lạt, Lâm Đồng',
-    },
-    {
-      'id': 4,
-      'name': 'Phong Nha - Kẻ Bàng',
-      'province_name': 'Quảng Bình',
-      'category': 'NATURE',
-      'average_rating': 4.9,
-      'review_count': 980,
-      'view_count': 18000,
-      'entry_fee': 150000.0,
-      'primary_image': 'assets/images/phongnha.jpg',
-      'is_featured': true,
-      'address': 'Bố Trạch, Quảng Bình',
-    },
-  ];
 
   // Dữ liệu mẫu provinces với is_popular = true
   final List<Map<String, dynamic>> _popularProvinces = [
@@ -129,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
     'profile': {
       'avatar_url': null, // hoặc 'https://example.com/avatar.jpg'
       'dark_mode_enabled': false,
-    }
+    },
   };
 
   @override
@@ -138,20 +88,26 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  @override
+  void initState() {
+    // TODO: implement initState
+
+    super.initState();
+    context.read<DestinationBloc>().add(LoadFeaturedDestinations());
+  }
+
   // Xử lý khi chọn mục trong thanh điều hướng
   void _onNavItemTapped(int index) {
-    if (index == _selectedIndex) return; // Tránh điều hướng lại nếu đang ở màn hình hiện tại
+    if (index == _selectedIndex)
+      return; // Tránh điều hướng lại nếu đang ở màn hình hiện tại
     setState(() {
       _selectedIndex = index;
     });
     // Điều hướng đến màn hình tương ứng
-    Navigator.pushReplacementNamed(context, [
-      '/home',
-      '/destination/list',
-      '/booking',
-      '/profile',
-      '/ai_chat',
-    ][index]);
+    Navigator.pushReplacementNamed(
+      context,
+      ['/home', '/destination/list', '/booking', '/profile', '/ai_chat'][index],
+    );
   }
 
   @override
@@ -159,7 +115,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-
         child: CustomScrollView(
           slivers: [
             _buildAppBar(),
@@ -190,12 +145,14 @@ class _HomeScreenState extends State<HomeScreen> {
           CircleAvatar(
             radius: 20,
             backgroundColor: AppColors.primary.withOpacity(0.1),
-            backgroundImage: _currentUser['profile']['avatar_url'] != null
-                ? NetworkImage(_currentUser['profile']['avatar_url'])
-                : null,
-            child: _currentUser['profile']['avatar_url'] == null
-                ? Icon(Icons.person, color: AppColors.primary)
-                : null,
+            backgroundImage:
+                _currentUser['profile']['avatar_url'] != null
+                    ? NetworkImage(_currentUser['profile']['avatar_url'])
+                    : null,
+            child:
+                _currentUser['profile']['avatar_url'] == null
+                    ? Icon(Icons.person, color: AppColors.primary)
+                    : null,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -226,8 +183,10 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: Stack(
               children: [
-                const Icon(Icons.notifications_outlined,
-                    color: Color(0xFF374151)),
+                const Icon(
+                  Icons.notifications_outlined,
+                  color: Color(0xFF374151),
+                ),
                 Positioned(
                   right: 0,
                   top: 0,
@@ -283,8 +242,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: const Icon(Icons.tune, color: Colors.white, size: 20),
               ),
               border: InputBorder.none,
-              contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
             ),
             onTap: () {
               // TODO: Navigate to search screen
@@ -328,8 +289,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child:
-                const Icon(Icons.smart_toy, color: Colors.white, size: 28),
+                child: const Icon(
+                  Icons.smart_toy,
+                  color: Colors.white,
+                  size: 28,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -347,15 +311,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     SizedBox(height: 4),
                     Text(
                       'Để AI gợi ý tour phù hợp với bạn',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+              const Icon(
+                Icons.arrow_forward_ios,
+                color: Colors.white,
+                size: 16,
+              ),
             ],
           ),
         ),
@@ -412,9 +377,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: isSelected
-                            ? Colors.white
-                            : const Color(0xFF374151),
+                        color:
+                            isSelected ? Colors.white : const Color(0xFF374151),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -430,217 +394,94 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Featured Destinations - từ bảng destinations với is_featured = true
   Widget _buildFeaturedDestinations() {
-    return SliverToBoxAdapter(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Điểm đến nổi bật',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1F2937),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    // TODO: Navigate to all featured destinations
-                  },
-                  child: Text(
-                    'Xem tất cả',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            height: 280,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _featuredDestinations.length,
-              itemBuilder: (context, index) {
-                final destination = _featuredDestinations[index];
-                return _buildDestinationCard(destination);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Destination Card Widget
-  Widget _buildDestinationCard(Map<String, dynamic> destination) {
-    final entryFee = destination['entry_fee'] as double;
-    final priceText = entryFee == 0
-        ? 'Miễn phí'
-        : '${entryFee.toInt().toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]}.',
-    )}đ';
-
-    return GestureDetector(
-      onTap: () {
-        // TODO: Navigate to destination detail
-        // Navigator.pushNamed(context, '/destination/detail', arguments: destination['id']);
-      },
-      child: Container(
-        width: 220,
-        margin: const EdgeInsets.only(right: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                // Image placeholder
-                ClipRRect(
-                  borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(20)),
-                  child: Container(
-                    height: 160,
-                    width: double.infinity,
-                    color: Colors.grey[300],
-                    child: Icon(Icons.image, size: 50, color: Colors.grey[400]),
-                  ),
-                ),
-                // Favorite button
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.favorite_border,
-                        size: 20, color: AppColors.primary),
-                  ),
-                ),
-                // Rating badge
-                Positioned(
-                  bottom: 12,
-                  left: 12,
-                  child: Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 16),
-                        const SizedBox(width: 4),
-                        Text(
-                          destination['average_rating'].toString(),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '(${destination['review_count']})',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: AppColors.textGray,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    destination['name'],
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1F2937),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(Icons.location_on,
-                          size: 14, color: AppColors.textGray),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          destination['province_name'],
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textGray,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        priceText,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.arrow_forward,
-                          size: 16,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+    return BlocBuilder<DestinationBloc, DestinationState>(
+      builder: (context, state) {
+        if (state is DestinationLoading) {
+          return SliverToBoxAdapter(
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: CircularProgressIndicator(),
               ),
             ),
-          ],
-        ),
-      ),
+          );
+        } else if (state is DestinationLoaded) {
+          final featuredDestinations = state.destinations;
+          if (featuredDestinations.isEmpty) {
+            return const SliverToBoxAdapter(
+              child: Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text("Không có điểm đến nổi bật"),
+                ),
+              ),
+            );
+          }
+
+          return SliverToBoxAdapter(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Điểm đến nổi bật',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          // TODO: Navigate to all featured destinations
+                        },
+                        child: Text(
+                          'Xem tất cả',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                Container(
+                  height: 280,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: featuredDestinations.length,
+                    itemBuilder: (context, index) {
+                      final destination = featuredDestinations[index];
+                      return DestinationFeatured(destination);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else if (state is DestinationError) {
+          return const SliverToBoxAdapter(
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Text("Không thể tải điểm đến nổi bật"),
+              ),
+            ),
+          );
+        } else {
+          return const SliverToBoxAdapter(child: SizedBox.shrink());
+        }
+      },
     );
   }
+
+
 
   // Popular Provinces - từ bảng provinces với is_popular = true
   Widget _buildPopularProvinces() {
@@ -723,8 +564,11 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 color: Colors.grey[300],
                 child: Center(
-                  child: Icon(Icons.location_city,
-                      size: 40, color: Colors.grey[400]),
+                  child: Icon(
+                    Icons.location_city,
+                    size: 40,
+                    color: Colors.grey[400],
+                  ),
                 ),
               ),
               // Gradient overlay
@@ -733,10 +577,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withOpacity(0.7),
-                    ],
+                    colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
                   ),
                 ),
               ),

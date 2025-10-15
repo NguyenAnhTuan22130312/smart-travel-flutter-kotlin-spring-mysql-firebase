@@ -87,4 +87,5 @@ public class Destination {
 
     @OneToMany(mappedBy = "destination", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Tour> tours = new ArrayList<>();
+
 }
