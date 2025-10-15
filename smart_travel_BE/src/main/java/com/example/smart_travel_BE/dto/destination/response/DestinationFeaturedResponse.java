@@ -27,5 +27,6 @@ public class DestinationFeaturedResponse {
     private Boolean isFeatured ;
 
     private BigDecimal entryFee;
+    private String imageUrl;
 
 }

@@ -5,14 +5,11 @@ import 'package:smart_travel/core/network/network_info.dart';
 import 'package:smart_travel/data/data_sources/local/auth_local_data_source.dart';
 import 'package:smart_travel/data/data_sources/remote/auth_remote_datasource.dart';
 import 'package:smart_travel/data/models/auth/login_request_modal.dart';
-import 'package:smart_travel/data/models/auth/login_response_modal.dart';
 import 'package:smart_travel/data/models/auth/register_request_model.dart';
-import 'package:smart_travel/data/models/auth/register_response_model.dart';
 import 'package:smart_travel/domain/entities/auth.dart';
 import 'package:smart_travel/domain/params/LoginParams.dart';
 import 'package:smart_travel/domain/params/RegisterParams.dart';
 import 'package:smart_travel/domain/repositories/auth_repository.dart';
-import 'package:smart_travel/domain/usecases/auth/login_use_case.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthDataSource dataSource;
