@@ -2,7 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:smart_travel/core/error/exceptions.dart';
 import 'package:smart_travel/core/error/failures.dart';
 import 'package:smart_travel/data/data_sources/remote/destination_data_source.dart';
-import 'package:smart_travel/data/models/auth/destinations-featured-response-modal.dart';
+import 'package:smart_travel/data/models/destination/destinations-featured-response-modal.dart';
 import 'package:smart_travel/domain/entities/destinations.dart';
 import 'package:smart_travel/domain/repositories/destination_repository.dart';
 

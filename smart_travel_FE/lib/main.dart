@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
+import 'package:smart_travel/presentation/blocs/province/province_bloc.dart';
 import 'package:smart_travel/router/app_router.dart';
 import 'package:smart_travel/router/route_names.dart';
 
@@ -27,6 +28,9 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) => di.sl<DestinationBloc>(),
+        ),
+        BlocProvider(
+          create: (_) => di.sl<ProvinceBloc>(),
         ),
       ],
       child: MaterialApp(

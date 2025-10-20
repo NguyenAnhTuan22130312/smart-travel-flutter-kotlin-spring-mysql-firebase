@@ -12,6 +12,9 @@ class ApiConstants {
   //Destination
   static const String destinationFeatured = '/destination/destination-featured';
 
+  //Province
+  static const String provinceIsPopular = '/province/popular';
+
   // Timeout
   static const Duration connectionTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);

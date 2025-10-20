@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_travel/domain/entities/province.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
+import 'package:smart_travel/presentation/blocs/province/province_bloc.dart';
+import 'package:smart_travel/presentation/blocs/province/province_event.dart';
+import 'package:smart_travel/presentation/blocs/province/province_state.dart';
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
 import 'package:smart_travel/presentation/widgets/destination/DestinationFeaturedCard.dart';
+import 'package:smart_travel/presentation/widgets/province/province_is_popular_card.dart';
 import '../../theme/app_colors.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -94,6 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     super.initState();
     context.read<DestinationBloc>().add(LoadFeaturedDestinations());
+    context.read<ProvinceBloc>().add(LoadProvinceIsPopular());
   }
 
   // Xử lý khi chọn mục trong thanh điều hướng
@@ -146,13 +152,13 @@ class _HomeScreenState extends State<HomeScreen> {
             radius: 20,
             backgroundColor: AppColors.primary.withOpacity(0.1),
             backgroundImage:
-                _currentUser['profile']['avatar_url'] != null
-                    ? NetworkImage(_currentUser['profile']['avatar_url'])
-                    : null,
+            _currentUser['profile']['avatar_url'] != null
+                ? NetworkImage(_currentUser['profile']['avatar_url'])
+                : null,
             child:
-                _currentUser['profile']['avatar_url'] == null
-                    ? Icon(Icons.person, color: AppColors.primary)
-                    : null,
+            _currentUser['profile']['avatar_url'] == null
+                ? Icon(Icons.person, color: AppColors.primary)
+                : null,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -378,7 +384,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color:
-                            isSelected ? Colors.white : const Color(0xFF374151),
+                        isSelected ? Colors.white : const Color(0xFF374151),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -405,7 +411,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           );
-        } else if (state is DestinationLoaded) {
+        }
+        else if (state is DestinationLoaded) {
           final featuredDestinations = state.destinations;
           if (featuredDestinations.isEmpty) {
             return const SliverToBoxAdapter(
@@ -474,7 +481,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           );
-        } else {
+        }
+        else {
           return const SliverToBoxAdapter(child: SizedBox.shrink());
         }
       },
@@ -482,138 +490,96 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
 
-
   // Popular Provinces - từ bảng provinces với is_popular = true
   Widget _buildPopularProvinces() {
-    return SliverPadding(
-      padding: const EdgeInsets.all(16),
-      sliver: SliverToBoxAdapter(
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Tỉnh thành phổ biến',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1F2937),
-                  ),
+    return BlocBuilder<ProvinceBloc, ProvinceState>(
+        builder: ( context,  state) {
+          if (state is ProvinceLoading) {
+            return SliverToBoxAdapter(
+              child: Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: CircularProgressIndicator(),
                 ),
-                TextButton(
-                  onPressed: () {
-                    // TODO: Navigate to all provinces
-                  },
-                  child: Text(
-                    'Xem tất cả',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 1.2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
               ),
-              itemCount: _popularProvinces.length,
-              itemBuilder: (context, index) {
-                final province = _popularProvinces[index];
-                return _buildProvinceCard(province);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Province Card Widget
-  Widget _buildProvinceCard(Map<String, dynamic> province) {
-    return GestureDetector(
-      onTap: () {
-        // TODO: Navigate to province destinations
-        // Navigator.pushNamed(context, '/province/destinations', arguments: province['id']);
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Stack(
-            children: [
-              // Image placeholder
-              Container(
-                color: Colors.grey[300],
+            );
+          }
+          else if (state is ProvinceLoaded) {
+            final provinceIsPopulars = state.province;
+            if (provinceIsPopulars.isEmpty) {
+              return const SliverToBoxAdapter(
                 child: Center(
-                  child: Icon(
-                    Icons.location_city,
-                    size: 40,
-                    color: Colors.grey[400],
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text("Không có tỉnh thành nổi bật"),
                   ),
                 ),
-              ),
-              // Gradient overlay
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
-                  ),
-                ),
-              ),
-              // Province info
-              Positioned(
-                bottom: 12,
-                left: 12,
-                right: 12,
+              );
+            }
+            return SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: SliverToBoxAdapter(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      province['name'],
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Tỉnh thành phổ biến',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1F2937),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            // TODO: Navigate to all provinces
+                          },
+                          child: Text(
+                            'Xem tất cả',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${province['destination_count']}+ địa điểm',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
+                    const SizedBox(height: 16),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 1.2,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
                       ),
+                      itemCount: provinceIsPopulars.length,
+                      itemBuilder: (context, index) {
+                        final province = provinceIsPopulars[index];
+                        return ProvinceIsPopular(province);
+                      },
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            );
+          } else if (state is DestinationError) {
+            return const SliverToBoxAdapter(
+              child: Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text("Không thể tải điểm đến nổi bật"),
+                ),
+              ),
+            );
+          }
+          else {
+            return const SliverToBoxAdapter(child: SizedBox.shrink());
+          }
+        }
     );
   }
 }
