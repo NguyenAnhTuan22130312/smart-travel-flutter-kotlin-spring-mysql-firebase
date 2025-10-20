@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:smart_travel/core/constants/api_constants.dart';
 import 'package:smart_travel/core/error/exceptions.dart';
 import 'package:smart_travel/data/models/api_response_model.dart';
-import 'package:smart_travel/data/models/auth/destinations-featured-response-modal.dart';
+import 'package:smart_travel/data/models/destination/destinations-featured-response-modal.dart';
 
 abstract class DestinationDataSource {
 

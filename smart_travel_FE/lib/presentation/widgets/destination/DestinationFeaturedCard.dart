@@ -68,11 +68,9 @@ class _DestinationFeaturedState extends State<DestinationFeatured> {
                       destination.imageUrl!,
                       fit: BoxFit.cover,
                     )
-                        : Icon(
-                      Icons.image,
-                      size: 50,
-                      color: Colors.grey[400],
-                    ),
+                        : Image.asset("assets/images/img.png",
+                    fit: BoxFit.cover,
+                    )
                   ),
                 ),
                 // Favorite button
