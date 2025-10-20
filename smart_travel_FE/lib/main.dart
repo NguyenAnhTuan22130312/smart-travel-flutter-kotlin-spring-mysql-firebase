@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/province_bloc.dart';
+import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import 'package:smart_travel/router/app_router.dart';
 import 'package:smart_travel/router/route_names.dart';
 
@@ -21,28 +22,37 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [
-        // Provide AuthBloc globally
-        BlocProvider(
-          create: (_) => di.sl<AuthBloc>(),
-        ),
-        BlocProvider(
-          create: (_) => di.sl<DestinationBloc>(),
-        ),
-        BlocProvider(
-          create: (_) => di.sl<ProvinceBloc>(),
-        ),
-      ],
-      child: MaterialApp(
-      debugShowCheckedModeBanner: false,
-      onGenerateRoute: AppRouter.generateRoute,
-      title: 'Flutter Demo',
-      initialRoute: RouteNames.splashScreen,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      )
-     );
+        providers: [
+          // Provide AuthBloc globally
+          BlocProvider(
+            create: (_) => di.sl<AuthBloc>(),
+          ),
+          BlocProvider(
+            create: (_) => di.sl<DestinationBloc>(),
+          ),
+          BlocProvider(
+            create: (_) => di.sl<ProvinceBloc>(),
+          ),
+        ],
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+
+          // --- SỬA ĐỔI ĐỂ TEST ---
+
+          // 1. Comment code route cũ của bạn
+          // onGenerateRoute: AppRouter.generateRoute,
+          // initialRoute: RouteNames.splashScreen,
+
+          // 2. Thêm dòng này để chạy thẳng vào BookingScreen
+          home: BookingScreen(),
+
+          // -----------------------
+
+          title: 'Flutter Demo',
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          ),
+        )
+    );
   }
 }
-
