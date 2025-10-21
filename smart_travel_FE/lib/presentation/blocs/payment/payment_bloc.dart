@@ -1,20 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'payment_event.dart';
 import 'payment_state.dart';
-// TODO: Import UseCase và DTO khi kết nối API
-// import 'package:smart_travel/domain/usecases/payment/process_payment_usecase.dart';
+// TODO: Import UseCase
 
 class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
-  // TODO: Thêm UseCase
+  // TODO:
   // final ProcessPaymentUseCase processPaymentUseCase;
+  // final ConfirmCashBookingUseCase confirmCashBookingUseCase;
 
-  PaymentBloc(
-      // {required this.processPaymentUseCase}
-      ) : super(PaymentInitial()) {
+  PaymentBloc() : super(PaymentInitial()) {
     on<ProcessPaymentSubmitted>(_onProcessPaymentSubmitted);
+    // THÊM MỚI:
+    on<ConfirmCashPayment>(_onConfirmCashPayment);
   }
 
   Future<void> _onProcessPaymentSubmitted(
@@ -22,31 +19,36 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       Emitter<PaymentState> emit,
       ) async {
     emit(PaymentLoading());
-
-    // --- GIẢ LẬP GỌI API ---
-    // (Đây là nơi bạn sẽ gọi UseCase)
     await Future.delayed(Duration(seconds: 2));
 
-    // Giả lập thành công:
-    // API backend của bạn trả về { "paymentUrl": "..." }
-    const mockUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?mock=true";
-    emit(PaymentSuccess(mockUrl));
+    // Giả lập API trả về URL
+    if (event.paymentMethod == 'VNPAY') {
+      emit(PaymentSuccess("https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?mock=true"));
+    } else if (event.paymentMethod == 'MOMO') {
+      emit(PaymentSuccess("https://test-payment.momo.vn/gw_payment/payment/qr?mock=true"));
+    } else {
+      emit(PaymentFailure("Phương thức không được hỗ trợ"));
+    }
+  }
 
-    // Giả lập thất bại (bạn có thể test bằng cách đổi sang dòng này)
-    // emit(PaymentFailure("Không thể tạo link thanh toán."));
+  // HÀM MỚI: Xử lý thanh toán tiền mặt
+  Future<void> _onConfirmCashPayment(
+      ConfirmCashPayment event,
+      Emitter<PaymentState> emit,
+      ) async {
+    emit(PaymentLoading());
 
-    /* --- Code thật sẽ như thế này ---
-    final request = ProcessPaymentRequest( // DTO từ domain
-      bookingId: event.bookingId,
-      amount: event.amount,
-      paymentMethod: event.paymentMethod,
-    );
-    final result = await processPaymentUseCase(request);
+    // Giả lập gọi API để cập nhật trạng thái đơn hàng
+    await Future.delayed(Duration(seconds: 1));
 
-    result.fold(
-      (failure) => emit(PaymentFailure(failure.message)),
-      (paymentResponse) => emit(PaymentSuccess(paymentResponse.paymentUrl)),
-    );
-    */
+    // TODO: Gọi confirmCashBookingUseCase
+    // final result = await confirmCashBookingUseCase(event.bookingId);
+    // result.fold(
+    //   (failure) => emit(PaymentFailure(failure.message)),
+    //   (_) => emit(PaymentCashSuccess()),
+    // );
+
+    // Giả lập thành công
+    emit(PaymentCashSuccess());
   }
 }
