@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'; // Import BLoC
-import 'package:smart_travel/presentation/blocs/booking/booking_bloc.dart'; // Import BLoC
-import 'package:smart_travel/presentation/blocs/booking/booking_event.dart'; // Import BLoC
-import 'package:smart_travel/presentation/blocs/booking/booking_state.dart'; // Import BLoC
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_travel/presentation/blocs/booking/booking_bloc.dart';
+import 'package:smart_travel/presentation/blocs/booking/booking_event.dart';
+import 'package:smart_travel/presentation/blocs/booking/booking_state.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
 import 'package:smart_travel/domain/entities/destinations.dart';
 import 'package:smart_travel/presentation/widgets/common/custom_button.dart'; // Đây là file 'PrimaryButton'
+import 'package:smart_travel/presentation/screens/payment/payment_screen.dart';
 
-// ... Dữ liệu giả (Mock Data) ...
+// Dữ liệu giả (Mock Data)
 final DestinationEntity mockDestination = DestinationEntity(
   id: 1,
   name: 'Vé tham quan Vịnh Hạ Long',
@@ -34,24 +35,23 @@ class _BookingScreenState extends State<BookingScreen> {
   DateTime _startDate = DateTime.now();
   int _numberOfPeople = 1;
 
-  // HÀM MỚI: Để chọn ngày
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _startDate,
-      firstDate: DateTime.now(), // Không cho chọn ngày quá khứ
+      firstDate: DateTime.now(),
       lastDate: DateTime(2101),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: AppColors.primary, // Màu nút OK
+              primary: AppColors.primary,
               onPrimary: Colors.white,
-              onSurface: AppColors.textGray, // Màu các ngày
+              onSurface: AppColors.textGray,
             ),
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
-                foregroundColor: AppColors.primary, // Màu nút OK/Cancel
+                foregroundColor: AppColors.primary,
               ),
             ),
           ),
@@ -66,7 +66,6 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
-  // HÀM MỚI: Để chọn số lượng vé
   void _selectNumberOfPeople(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -74,7 +73,6 @@ class _BookingScreenState extends State<BookingScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
-        // Dùng StatefulBuilder để bottom sheet tự cập nhật
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
             return Container(
@@ -101,7 +99,6 @@ class _BookingScreenState extends State<BookingScreen> {
                             setModalState(() {
                               _numberOfPeople--;
                             });
-                            // Cập nhật luôn UI chính
                             setState(() {});
                           }
                         },
@@ -118,7 +115,6 @@ class _BookingScreenState extends State<BookingScreen> {
                           setModalState(() {
                             _numberOfPeople++;
                           });
-                          // Cập nhật luôn UI chính
                           setState(() {});
                         },
                       ),
@@ -127,7 +123,7 @@ class _BookingScreenState extends State<BookingScreen> {
                   PrimaryButton(
                     text: 'Xác nhận',
                     onPressed: () {
-                      Navigator.pop(context); // Đóng bottom sheet
+                      Navigator.pop(context);
                     },
                   ),
                 ],
@@ -142,7 +138,7 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => BookingBloc(),
+      create: (context) => BookingBloc(), // TODO: Sẽ inject UseCase sau
       child: Scaffold(
         appBar: AppBar(
           title: Text('Xác nhận Đặt chỗ'),
@@ -154,10 +150,17 @@ class _BookingScreenState extends State<BookingScreen> {
         body: BlocConsumer<BookingBloc, BookingState>(
           listener: (context, state) {
             if (state is BookingCreationSuccess) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Đặt chỗ thành công!'),
-                  backgroundColor: Colors.green,
+              // **SỬA LỖI:** Chuyển sang PaymentScreen khi thành công
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => PaymentScreen(
+                    // Lấy ID và TỔNG GIÁ từ mock data và state
+                    // TODO: Khi có API thật, sẽ dùng state.booking.id
+                    bookingId: mockDestination.id.toString(),
+                    // TODO: Khi có API thật, sẽ dùng state.booking.finalPrice
+                    amount: (mockDestination.entryFee ?? 0) * _numberOfPeople,
+                  ),
                 ),
               );
             } else if (state is BookingFailure) {
@@ -198,7 +201,6 @@ class _BookingScreenState extends State<BookingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Widget hiển thị ảnh
           if (destination.imageUrl != null && destination.imageUrl!.isNotEmpty)
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
@@ -207,7 +209,6 @@ class _BookingScreenState extends State<BookingScreen> {
                 width: double.infinity,
                 height: 200,
                 fit: BoxFit.cover,
-                // Hiển thị lỗi nếu không tìm thấy ảnh
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     height: 200,
@@ -228,7 +229,6 @@ class _BookingScreenState extends State<BookingScreen> {
             ),
           SizedBox(height: 24),
 
-          // Thông tin địa điểm
           Text(destination.name, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textGray)),
           SizedBox(height: 16),
           _buildInfoRow(icon: Icons.location_on_outlined, title: 'Địa điểm', value: destination.province),
@@ -236,23 +236,18 @@ class _BookingScreenState extends State<BookingScreen> {
           _buildInfoRow(icon: Icons.price_change_outlined, title: 'Giá vé', value: '$priceString / người'),
           SizedBox(height: 24),
 
-          // Chi tiết đặt chỗ
           Text('Chi tiết đặt chỗ', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textGray)),
           SizedBox(height: 16),
 
-          // SỬA: Chọn ngày
           _buildInfoRow(
             icon: Icons.date_range,
             title: 'Ngày sử dụng',
-            // Hiển thị ngày đã chọn
             value: DateFormat('dd/MM/yyyy').format(_startDate),
             isSelectable: true,
-            // Gọi hàm _selectDate khi nhấn
             onTap: () => _selectDate(context),
           ),
           SizedBox(height: 16),
 
-          // SỬA: Chọn số lượng
           _buildInfoRow(
             icon: Icons.people_outline,
             title: 'Số lượng vé',
@@ -262,7 +257,6 @@ class _BookingScreenState extends State<BookingScreen> {
           ),
           SizedBox(height: 16),
 
-          // Mã giảm giá
           TextFormField(
             controller: _couponController,
             decoration: InputDecoration(
@@ -276,7 +270,6 @@ class _BookingScreenState extends State<BookingScreen> {
           ),
           SizedBox(height: 32),
 
-          // Chi tiết giá
           _buildPriceDetailRow('Giá tạm tính (1 người)', priceString),
           SizedBox(height: 8),
           _buildPriceDetailRow('Giảm giá', '0 VND'),
@@ -287,7 +280,6 @@ class _BookingScreenState extends State<BookingScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Tổng cộng:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textGray)),
-              // SỬA: Tự động cập nhật tổng giá
               Text(
                 '$totalPrice VND',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary),
@@ -296,7 +288,6 @@ class _BookingScreenState extends State<BookingScreen> {
           ),
           SizedBox(height: 24),
 
-          // Nút bấm
           PrimaryButton(
             text: 'Tiến hành Thanh toán',
             isLoading: state is BookingLoading,
@@ -314,7 +305,6 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  // (Không thay đổi 2 hàm _buildInfoRow và _buildPriceDetailRow)
   Widget _buildInfoRow({ required IconData icon, required String title, required String value, bool isSelectable = false, VoidCallback? onTap }) {
     return InkWell(
       onTap: onTap,
