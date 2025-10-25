@@ -1,9 +1,6 @@
 package com.example.smart_travel_BE.service;
 
-import com.example.smart_travel_BE.dto.user.request.EmailRequest;
-import com.example.smart_travel_BE.dto.user.request.LoginRequest;
-import com.example.smart_travel_BE.dto.user.request.PasswordResetRequest;
-import com.example.smart_travel_BE.dto.user.request.RegisterRequest;
+import com.example.smart_travel_BE.dto.user.request.*;
 import com.example.smart_travel_BE.dto.user.response.LoginResponse;
 import com.example.smart_travel_BE.dto.user.response.RegisterResponse;
 import com.example.smart_travel_BE.entity.EmailVerificationToken;
@@ -14,12 +11,19 @@ import com.example.smart_travel_BE.mapper.UserMapper;
 import com.example.smart_travel_BE.repository.EmailVerificationTokenRepository;
 import com.example.smart_travel_BE.repository.UserRepository;
 import com.example.smart_travel_BE.util.JwtUtil;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseToken;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -283,6 +287,58 @@ public class AuthService {
 
     }
 
+
+    /**
+     * Đăng nhập bằng gg
+     */
+
+    public LoginResponse loginWithGoogle(GoogleLoginRequest request) {
+
+        try {
+            if (FirebaseApp.getApps().isEmpty()) {
+                InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream("firebase-service-account.json");
+                FirebaseOptions options = FirebaseOptions.builder()
+                        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                        .build();
+                FirebaseApp.initializeApp(options);
+            }
+            //  Xác minh token với Firebase
+            FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(request.getIdToken());
+            String email = decodedToken.getEmail();
+            String name = request.getDisplayName() != null ? request.getDisplayName() : email;
+
+            // Tìm user theo email hoặc tạo mới
+            User user = userRepository.findByEmail(email).orElseGet(() -> {
+                User newUser = new User();
+                newUser.setEmail(email);
+                newUser.setFullName(name);
+                newUser.setEmailVerified(true);
+                newUser.setIsActive(true);
+                newUser.setRole("USER");
+                newUser.setAuthProvider("GOOGLE");
+                return userRepository.save(newUser);
+            });
+
+            // Sinh JWT cho backend
+            Map<String, Object> claims = new HashMap<>();
+            claims.put("id", user.getId());
+            claims.put("role", user.getRole());
+            String token = jwtUtil.generateToken(user.getId(), claims);
+            String refreshToken = jwtUtil.generateRefreshToken(user.getId());
+
+
+            return LoginResponse.builder()
+                    .token(token)
+                    .refreshToken(refreshToken)
+                    .fullName(user.getFullName())
+                    .role(user.getRole())
+                    .build();
+
+        } catch (Exception e) {
+            log.info(e.toString());
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+    }
 
 
 

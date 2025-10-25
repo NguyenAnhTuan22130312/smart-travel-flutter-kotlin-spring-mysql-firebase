@@ -1,6 +1,8 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:smart_travel/data/data_sources/local/auth_local_data_source.dart';
 import 'package:smart_travel/data/data_sources/remote/destination_data_source.dart';
@@ -12,6 +14,7 @@ import 'package:smart_travel/domain/repositories/auth_repository.dart';
 import 'package:smart_travel/domain/repositories/destination_repository.dart';
 import 'package:smart_travel/domain/repositories/province_repository.dart';
 import 'package:smart_travel/domain/usecases/auth/forgot_password_use_case.dart';
+import 'package:smart_travel/domain/usecases/auth/google_login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/register_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_featured_use_case.dart';
@@ -33,6 +36,7 @@ Future<void> init() async {
       loginUseCase: sl(),
       authLocalDataSource: sl(),
       forgotPasswordUseCase: sl(),
+      googleLoginUseCase: sl(),
     ),
   );
   sl.registerFactory(
@@ -51,6 +55,8 @@ Future<void> init() async {
   sl.registerLazySingleton(() => RegisterUseCase(sl()));
   sl.registerLazySingleton(() => LoginUseCase(sl()));
   sl.registerLazySingleton(() => ForgotPasswordUseCase(sl()));
+  sl.registerLazySingleton(()=> GoogleLoginUseCase(sl()));
+
   //  destination
   sl.registerLazySingleton(() => GetAllDestinationFeaturedUseCase(sl()));
 
@@ -63,6 +69,9 @@ Future<void> init() async {
       dataSource: sl(),
       networkInfo: sl(),
       localDataSource: sl(),
+      firebaseAuth: sl(),
+      googleSignIn: sl(),
+
     ),
   );
   sl.registerLazySingleton<DestinationRepository>(
@@ -96,10 +105,12 @@ Future<void> init() async {
 
   //Core
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
+  sl.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
 
   //External
   sl.registerLazySingleton(() => http.Client());
   sl.registerLazySingleton(() => Connectivity());
   sl.registerLazySingleton(() => FlutterSecureStorage());
+  sl.registerLazySingleton<GoogleSignIn>(() => GoogleSignIn());
 
 }
