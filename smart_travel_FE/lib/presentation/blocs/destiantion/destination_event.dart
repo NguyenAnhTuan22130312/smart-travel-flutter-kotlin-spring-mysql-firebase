@@ -7,3 +7,9 @@ abstract class DestinationEvent extends Equatable {
 }
 // load danh sách điểm đến nổi bật
 class LoadFeaturedDestinations extends DestinationEvent {}
+
+class FilterDestinationsByCategory extends DestinationEvent {
+  final String category;
+  FilterDestinationsByCategory(this.category);
+}
+class LoadAllDestinations extends DestinationEvent {}

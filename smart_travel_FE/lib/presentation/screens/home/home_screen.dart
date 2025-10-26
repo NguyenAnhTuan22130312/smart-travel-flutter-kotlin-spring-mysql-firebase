@@ -34,47 +34,6 @@ class _HomeScreenState extends State<HomeScreen> {
     {'id': 'NATURE', 'icon': Icons.landscape, 'label': 'Thiên nhiên'},
   ];
 
-
-  // Dữ liệu mẫu provinces với is_popular = true
-  final List<Map<String, dynamic>> _popularProvinces = [
-    {
-      'id': 1,
-      'name': 'Hà Nội',
-      'code': 'HN',
-      'region': 'NORTH',
-      'image_url': 'assets/images/hanoi.jpg',
-      'is_popular': true,
-      'destination_count': 125,
-    },
-    {
-      'id': 2,
-      'name': 'TP. Hồ Chí Minh',
-      'code': 'HCM',
-      'region': 'SOUTH',
-      'image_url': 'assets/images/hcm.jpg',
-      'is_popular': true,
-      'destination_count': 158,
-    },
-    {
-      'id': 3,
-      'name': 'Đà Nẵng',
-      'code': 'DN',
-      'region': 'CENTRAL',
-      'image_url': 'assets/images/danang.jpg',
-      'is_popular': true,
-      'destination_count': 82,
-    },
-    {
-      'id': 4,
-      'name': 'Khánh Hòa',
-      'code': 'KH',
-      'region': 'SOUTH',
-      'image_url': 'assets/images/nhatrang.jpg',
-      'is_popular': true,
-      'destination_count': 95,
-    },
-  ];
-
   // Dữ liệu user mẫu từ bảng users & user_profiles
   final Map<String, dynamic> _currentUser = {
     'id': 1,
@@ -98,6 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
     // TODO: implement initState
 
     super.initState();
+    _selectedCategory = 'ALL';
+    context.read<DestinationBloc>().add(LoadAllDestinations());
     context.read<DestinationBloc>().add(LoadFeaturedDestinations());
     context.read<ProvinceBloc>().add(LoadProvinceIsPopular());
   }
@@ -127,6 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildSearchBar(),
             _buildAIChatBanner(),
             _buildCategories(),
+            _buildDestinationsListByCategory(),
             _buildFeaturedDestinations(),
             _buildPopularProvinces(),
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
@@ -334,7 +296,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Categories - theo cột category trong bảng destinations
+  // _buildCategories() để tải tất cả destinations lần đầu:
   Widget _buildCategories() {
     return SliverToBoxAdapter(
       child: Container(
@@ -353,7 +315,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 setState(() {
                   _selectedCategory = category['id'];
                 });
-                // TODO: Filter destinations by category
+                // Dispatch event dựa vào category được chọn
+                if (category['id'] == 'ALL') {
+                  context.read<DestinationBloc>().add(LoadAllDestinations());
+                } else {
+                  context.read<DestinationBloc>().add(
+                    FilterDestinationsByCategory(category['id']),
+                  );
+                }
               },
               child: Container(
                 width: 80,
@@ -383,8 +352,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color:
-                        isSelected ? Colors.white : const Color(0xFF374151),
+                        color: isSelected ? Colors.white : const Color(0xFF374151),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -398,11 +366,125 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+
+  //NEW: Hiển thị danh sách destinations được lọc theo category
+  Widget _buildDestinationsListByCategory() {
+    return BlocBuilder<DestinationBloc, DestinationState>(
+      buildWhen: (previous, current) {
+        // Chỉ rebuild khi state là FilterDestination*
+        return current is FilterDestinationLoading ||
+            current is FilterDestinationLoaded ||
+            current is FilterDestinationError;
+      },
+      builder: (context, state) {
+        if (state is FilterDestinationLoading) {
+          return SliverToBoxAdapter(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: const CircularProgressIndicator(),
+              ),
+            ),
+          );
+        } else if (state is FilterDestinationLoaded) {
+          final destinations = state.destinations;
+
+          if (destinations.isEmpty) {
+            return SliverToBoxAdapter(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Không có điểm đến cho danh mục này',
+                    style: TextStyle(
+                      color: AppColors.textGray,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return SliverToBoxAdapter(
+            child: Column(
+              children: [
+                //
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Điểm đến du lịch',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          // TODO: Navigate to all destinations (full screen)
+                        },
+                        child: Text(
+                          'Xem tất cả',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Horizontal Scroll List
+                Container(
+                  height: 280,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: destinations.length,
+                    itemBuilder: (context, index) {
+                      final destination = destinations[index];
+                      return DestinationFeatured(destination);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else if (state is FilterDestinationError) {
+          return SliverToBoxAdapter(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Lỗi: ${state.message}',
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+            ),
+          );
+        }
+
+        return const SliverToBoxAdapter(child: SizedBox.shrink());
+      },
+    );
+  }
+
   // Featured Destinations - từ bảng destinations với is_featured = true
   Widget _buildFeaturedDestinations() {
     return BlocBuilder<DestinationBloc, DestinationState>(
+      buildWhen: (previous, current) {
+        //Chỉ rebuild khi state là FeaturedDestination*
+        return current is FeaturedDestinationLoading ||
+            current is FeaturedDestinationLoaded ||
+            current is FeaturedDestinationError;
+      },
       builder: (context, state) {
-        if (state is DestinationLoading) {
+        if (state is FeaturedDestinationLoading) {
           return SliverToBoxAdapter(
             child: Center(
               child: Padding(
@@ -412,7 +494,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         }
-        else if (state is DestinationLoaded) {
+        else if (state is FeaturedDestinationLoaded) {
           final featuredDestinations = state.destinations;
           if (featuredDestinations.isEmpty) {
             return const SliverToBoxAdapter(
@@ -472,7 +554,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           );
-        } else if (state is DestinationError) {
+        } else if (state is FeaturedDestinationError) {
           return const SliverToBoxAdapter(
             child: Center(
               child: Padding(
@@ -511,7 +593,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Center(
                   child: Padding(
                     padding: EdgeInsets.all(16),
-                    child: Text("Không có tỉnh thành nổi bật"),
+                    child: Text("Không có tỉnh thành phổ biến"),
                   ),
                 ),
               );
@@ -566,12 +648,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             );
-          } else if (state is DestinationError) {
+          } else if (state is ProvinceError) {
             return const SliverToBoxAdapter(
               child: Center(
                 child: Padding(
                   padding: EdgeInsets.all(16),
-                  child: Text("Không thể tải điểm đến nổi bật"),
+                  child: Text("Không thể tải tỉnh thành phổ biến"),
                 ),
               ),
             );

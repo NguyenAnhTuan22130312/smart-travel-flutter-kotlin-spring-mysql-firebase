@@ -41,4 +41,50 @@ class DestinationRepositoryImpl extends DestinationRepository {
       );
     }
   }
+  @override
+  Future<Either<Failure, List<DestinationEntity>>> getAllDestinations() async {
+    // Kiểm tra kết nối mạng
+    if (!await networkInfo.isConnected) {
+      return const Left(
+        NetworkFailure('Không có kết nối internet. Vui lòng kiểm tra lại.'),
+      );
+    }
+    try {
+      final responseModals = await destinationDataSource.getAllDestination();
+      final entity = responseModals.map((model) => model.toEntity()).toList();
+      return Right(entity);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } catch (e) {
+      return Left(
+        ServerFailure('Đã xảy ra lỗi không mong muốn: ${e.toString()}'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<DestinationEntity>>> filterDestinationsByCategory(
+      String category) async {
+    // Kiểm tra kết nối mạng
+    if (!await networkInfo.isConnected) {
+      return const Left(
+        NetworkFailure('Không có kết nối internet. Vui lòng kiểm tra lại.'),
+      );
+    }
+    try {
+      final responseModals = await destinationDataSource.filterDestinationsByCategory(category);
+      final entity = responseModals.map((model) => model.toEntity()).toList();
+      return Right(entity);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } catch (e) {
+      return Left(
+        ServerFailure('Đã xảy ra lỗi không mong muốn: ${e.toString()}'),
+      );
+    }
+  }
 }

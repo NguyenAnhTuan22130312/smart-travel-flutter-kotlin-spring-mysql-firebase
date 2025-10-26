@@ -1,11 +1,13 @@
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:smart_travel/core/error/exceptions.dart';
 import 'package:smart_travel/core/error/failures.dart';
 import 'package:smart_travel/core/network/network_info.dart';
 import 'package:smart_travel/data/data_sources/local/auth_local_data_source.dart';
 import 'package:smart_travel/data/data_sources/remote/auth_remote_datasource.dart';
+import 'package:smart_travel/data/models/auth/facebook_login_request.dart';
 import 'package:smart_travel/data/models/auth/google_login_request.dart';
 import 'package:smart_travel/data/models/auth/login_request_modal.dart';
 import 'package:smart_travel/data/models/auth/register_request_model.dart';
@@ -20,6 +22,9 @@ class AuthRepositoryImpl implements AuthRepository {
   final FirebaseAuth firebaseAuth;
   final GoogleSignIn googleSignIn;
   final AuthLocalDataSource localDataSource;
+  final FacebookAuth facebookAuth;
+
+
 
   AuthRepositoryImpl({
     required this.dataSource,
@@ -27,6 +32,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required this.firebaseAuth,
     required this.googleSignIn,
     required this.localDataSource,
+    required this.facebookAuth,
   });
 
 
@@ -123,6 +129,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
     try {
       //Google Sign In
+      await googleSignIn.signOut();
       final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
         return const Left(ServerFailure('Đăng nhập Google đã bị hủy!'));
@@ -173,6 +180,81 @@ class AuthRepositoryImpl implements AuthRepository {
       // Unexpected error
       await googleSignIn.signOut();
       return Left(ServerFailure('Google login failed: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, AuthEntity>> facebookLogin() async {
+    // Kiểm tra kết nối mạng
+    if (!await networkInfo.isConnected) {
+      return const Left(
+          NetworkFailure('Không có kết nối internet. Vui lòng kiểm tra lại.'));
+    }
+
+    try {
+      // Facebook Sign In
+      final loginResult = await facebookAuth.login(
+        permissions: ['email', 'public_profile'],
+      );
+
+      if (loginResult.status != LoginStatus.success) {
+        return const Left(ServerFailure('Đăng nhập Facebook đã bị hủy hoặc thất bại!'));
+      }
+
+      // Lấy access token từ Facebook
+      final accessToken = loginResult.accessToken!.token;
+
+      // Firebase Authentication
+      final credential = FacebookAuthProvider.credential(accessToken);
+      final userCredential = await firebaseAuth.signInWithCredential(credential);
+
+      // Lấy thông tin user từ Firebase
+      final user = userCredential.user;
+      if (user == null) {
+        await facebookAuth.logOut();
+        return const Left(ServerFailure('Không lấy được thông tin người dùng từ Firebase!'));
+      }
+
+      // Lấy ID Token từ Firebase
+      final idToken = await user.getIdToken() ?? '';
+
+      // Lấy thông tin người dùng từ Facebook (nếu cần thêm thông tin)
+      final userData = await facebookAuth.getUserData(fields: 'email,name');
+
+      // Chuẩn bị request model cho Spring Backend
+      final requestModel = FacebookLoginRequest(
+        idToken: idToken,
+        email: userData['email'] ?? user.email ?? '',
+        displayName: userData['name'] ?? user.displayName ?? '',
+      );
+
+      // Gửi tới Spring Backend qua Remote Data Source
+      final responseModel = await dataSource.facebookLogin(requestModel);
+
+      // Lưu token, refresh token và thông tin user vào local storage
+      await localDataSource.saveToken(responseModel.token);
+      await localDataSource.saveRefreshToken(responseModel.refreshToken);
+      await localDataSource.saveRole(responseModel.role);
+      await localDataSource.saveFullName(responseModel.fullName);
+
+      // Chuyển đổi Model sang Entity
+      final entity = responseModel.toEntity();
+
+      return Right(entity);
+    } on FirebaseAuthException catch (e) {
+      // Firebase error
+      await facebookAuth.logOut();
+      return Left(ServerFailure('Firebase error: ${e.message}'));
+    } on ServerException catch (e) {
+      await facebookAuth.logOut();
+      return Left(ServerFailure(e.message));
+    } on NetworkException catch (e) {
+      await facebookAuth.logOut();
+      return Left(NetworkFailure(e.message));
+    } catch (e) {
+      // Unexpected error
+      await facebookAuth.logOut();
+      return Left(ServerFailure('Đăng nhập Facebook thất bại: ${e.toString()}'));
     }
   }
 
