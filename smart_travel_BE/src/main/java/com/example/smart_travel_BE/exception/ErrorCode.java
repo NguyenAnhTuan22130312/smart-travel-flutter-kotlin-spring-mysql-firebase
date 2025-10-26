@@ -30,6 +30,12 @@ public enum ErrorCode {
     UNAUTHENTICATED(1006, "Tài khoản không chính xác", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(1007, "Unauthorized", HttpStatus.UNAUTHORIZED),
 
+    // CHECKING URL PAYMENT
+    BOOKING_NOT_FOUND(1010, "Không tìm thấy đơn đặt chỗ", HttpStatus.NOT_FOUND),
+    PAYMENT_AMOUNT_MISMATCH(1011, "Số tiền thanh toán không khớp", HttpStatus.BAD_REQUEST),
+    PAYMENT_METHOD_NOT_SUPPORTED(1012, "Phương thức thanh toán không được hỗ trợ", HttpStatus.BAD_REQUEST),
+    PAYMENT_NOT_FOUND(1013, "Không tìm thấy giao dịch thanh toán", HttpStatus.NOT_FOUND),
+
     //VALID USER
     NOT_BLANK_FULL_NAME(1020, "Họ tên không được để trống", HttpStatus.BAD_REQUEST),
     SIZE_NAME(1030, "Họ tên phải từ 2-100 ký tự",HttpStatus.BAD_REQUEST),
