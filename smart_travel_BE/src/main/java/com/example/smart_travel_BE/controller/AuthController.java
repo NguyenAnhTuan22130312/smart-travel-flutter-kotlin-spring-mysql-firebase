@@ -1,5 +1,6 @@
 package com.example.smart_travel_BE.controller;
 
+import com.example.smart_travel_BE.dto.user.request.GoogleLoginRequest;
 import com.example.smart_travel_BE.dto.user.request.LoginRequest;
 import com.example.smart_travel_BE.dto.user.request.PasswordResetRequest;
 import com.example.smart_travel_BE.dto.user.request.RegisterRequest;
@@ -173,5 +174,15 @@ public class AuthController {
                             .build()
             );
         }
+    }
+
+    @PostMapping("/google-login")
+    public ResponseEntity<APIResponse<LoginResponse>> googleLogin(@RequestBody GoogleLoginRequest request) {
+        LoginResponse response = authService.loginWithGoogle(request);
+        return ResponseEntity.ok().body(
+                APIResponse.<LoginResponse>builder()
+                        .data(response)
+                        .build()
+        );
     }
 }

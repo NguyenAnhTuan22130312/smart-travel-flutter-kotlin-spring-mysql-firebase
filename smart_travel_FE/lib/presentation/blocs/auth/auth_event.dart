@@ -36,4 +36,10 @@ class ForgotPasswordSubmitted extends AuthEvent {
   @override
   List<Object?> get props => [email];
 }
+class GoogleLoginSubmitted extends AuthEvent {
+  const GoogleLoginSubmitted();
+
+  @override
+  List<Object?> get props => [];
+}
 

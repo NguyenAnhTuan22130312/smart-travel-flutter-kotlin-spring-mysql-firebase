@@ -6,6 +6,7 @@ class ApiConstants {
   static const String verifyEmail = '/auth/verify-email';
   static const String resendVerification = '/auth/resend-verification';
   static const String login = '/auth/login';
+  static const String googleLogin = '/auth/google-login';
   static const String forgotPassword = '/auth/forgot-password';
 
 

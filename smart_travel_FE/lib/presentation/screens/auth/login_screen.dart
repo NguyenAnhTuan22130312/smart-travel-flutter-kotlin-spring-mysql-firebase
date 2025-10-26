@@ -1,6 +1,7 @@
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:smart_travel/data/models/auth/login_request_modal.dart';
 import 'package:smart_travel/domain/entities/auth.dart';
 import 'package:smart_travel/domain/params/LoginParams.dart';
@@ -46,9 +47,8 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _handleGoogleLogin() {
-    // TODO: Implement Google Sign In
-    print('Google Login');
+  void _handleGoogleLogin() async{
+    context.read<AuthBloc>().add(GoogleLoginSubmitted());
   }
 
   void _handleFacebookLogin() {
@@ -332,14 +332,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                 children: [
                                   Expanded(
                                     child: OutlinedButton.icon(
-                                      onPressed: _handleGoogleLogin,
+                                      onPressed:
+                                      isLoading ? null : _handleGoogleLogin,
                                       icon: Image.asset(
                                         'assets/icons/google.png', // Thêm icon Google vào assets
                                         width: 20,
                                         height: 20,
                                       ),
-                                      label: const Text(
-                                        'Google',
+                                      label: Text(
+                                        isLoading
+                                            ? 'Đang xử lý...'
+                                            : 'Google',
                                         style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
