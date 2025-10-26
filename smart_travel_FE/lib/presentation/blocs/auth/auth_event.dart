@@ -43,3 +43,10 @@ class GoogleLoginSubmitted extends AuthEvent {
   List<Object?> get props => [];
 }
 
+class FacebookLoginSubmitted extends AuthEvent {
+  const FacebookLoginSubmitted();
+
+  @override
+  List<Object?> get props => [];
+}
+

@@ -7,25 +7,47 @@ abstract class DestinationState extends Equatable {
   @override
   List<Object?> get props => [];
 }
+class FeaturedDestinationInitial extends DestinationState {}
 // State khi đang load
-class DestinationLoading extends DestinationState {}
+class FeaturedDestinationLoading extends DestinationState {}
 
 // State khi load thành công
-class DestinationLoaded extends DestinationState {
+class FeaturedDestinationLoaded extends DestinationState {
   final List<DestinationEntity> destinations;
 
-  const DestinationLoaded(this.destinations);
+  const FeaturedDestinationLoaded(this.destinations);
 
   @override
   List<Object?> get props => [destinations];
 }
-
 // State khi có lỗi
-class DestinationError extends DestinationState {
+class FeaturedDestinationError extends DestinationState {
   final String message;
 
-  const DestinationError(this.message);
+  const FeaturedDestinationError(this.message);
 
   @override
   List<Object?> get props => [message];
 }
+
+// ============================================================
+// Filter Destinations States (by category)
+// ============================================================
+
+class FilterDestinationInitial extends DestinationState {}
+
+class FilterDestinationLoading extends DestinationState {}
+
+class FilterDestinationLoaded extends DestinationState {
+  final List<DestinationEntity> destinations;
+  FilterDestinationLoaded(this.destinations);
+}
+
+class FilterDestinationError extends DestinationState {
+  final String message;
+  FilterDestinationError(this.message);
+}
+
+
+
+

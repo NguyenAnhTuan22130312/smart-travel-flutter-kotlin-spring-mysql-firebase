@@ -9,4 +9,5 @@ abstract class AuthRepository {
   Future<Either<Failure, AuthEntity>> login(LoginParams  request );
   Future<Either<Failure, String>> forgotPassword(String email );
   Future<Either<Failure, AuthEntity>> googleLogin();
+  Future<Either<Failure, AuthEntity>> facebookLogin();
 }

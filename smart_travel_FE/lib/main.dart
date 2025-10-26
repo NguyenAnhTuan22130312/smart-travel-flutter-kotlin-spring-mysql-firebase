@@ -5,6 +5,7 @@ import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/province_bloc.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
+import 'package:smart_travel/presentation/screens/splash/splash_screen.dart';
 import 'package:smart_travel/router/app_router.dart';
 import 'package:smart_travel/router/route_names.dart';
 
@@ -39,18 +40,9 @@ class MyApp extends StatelessWidget {
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
-
-          // --- SỬA ĐỔI ĐỂ TEST ---
-
-          // 1. Comment code route cũ của bạn
-          // onGenerateRoute: AppRouter.generateRoute,
-          // initialRoute: RouteNames.splashScreen,
-
-          // 2. Thêm dòng này để chạy thẳng vào BookingScreen
-          home: BookingScreen(),
-
+          onGenerateRoute: AppRouter.generateRoute,
+          initialRoute: RouteNames.splashScreen,
           // -----------------------
-
           title: 'Flutter Demo',
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),

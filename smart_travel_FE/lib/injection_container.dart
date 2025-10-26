@@ -1,5 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -13,14 +14,18 @@ import 'package:smart_travel/data/repositories/province_repository_impl.dart';
 import 'package:smart_travel/domain/repositories/auth_repository.dart';
 import 'package:smart_travel/domain/repositories/destination_repository.dart';
 import 'package:smart_travel/domain/repositories/province_repository.dart';
+import 'package:smart_travel/domain/usecases/auth/facebook_login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/forgot_password_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/google_login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/register_use_case.dart';
+import 'package:smart_travel/domain/usecases/destination/filter_destinations_by_category_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_featured_use_case.dart';
+import 'package:smart_travel/domain/usecases/destination/get_all_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/get_all_province_is_popular_use_case.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
 import 'package:smart_travel/presentation/blocs/province/province_bloc.dart';
 
 import 'core/network/network_info.dart';
@@ -37,11 +42,14 @@ Future<void> init() async {
       authLocalDataSource: sl(),
       forgotPasswordUseCase: sl(),
       googleLoginUseCase: sl(),
+      facebookLoginUseCase: sl(),
     ),
   );
   sl.registerFactory(
         () => DestinationBloc(
           destinationFeaturedUseCase : sl(),
+          getAllDestinationUseCase: sl(),
+          filterByCategoryUseCase: sl(),
     ),
   );
   sl.registerFactory(
@@ -56,10 +64,12 @@ Future<void> init() async {
   sl.registerLazySingleton(() => LoginUseCase(sl()));
   sl.registerLazySingleton(() => ForgotPasswordUseCase(sl()));
   sl.registerLazySingleton(()=> GoogleLoginUseCase(sl()));
+  sl.registerLazySingleton(()=> FacebookLoginUseCase(sl()));
 
   //  destination
   sl.registerLazySingleton(() => GetAllDestinationFeaturedUseCase(sl()));
-
+  sl.registerLazySingleton(() => GetAllDestinationsUseCase(sl()));
+  sl.registerLazySingleton(() => FilterDestinationsByCategoryUseCase(sl()));
   //  province
   sl.registerLazySingleton(() => GetAllProvinceIsPopularUseCase(sl()));
 
@@ -71,7 +81,7 @@ Future<void> init() async {
       localDataSource: sl(),
       firebaseAuth: sl(),
       googleSignIn: sl(),
-
+      facebookAuth: sl(),
     ),
   );
   sl.registerLazySingleton<DestinationRepository>(
@@ -106,6 +116,7 @@ Future<void> init() async {
   //Core
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
   sl.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
+  sl.registerLazySingleton<FacebookAuth>(() => FacebookAuth.instance);
 
   //External
   sl.registerLazySingleton(() => http.Client());

@@ -4,4 +4,6 @@ import 'package:smart_travel/domain/entities/destinations.dart';
 
 abstract class DestinationRepository {
   Future<Either<Failure, List<DestinationEntity>>> getAllDestinationsFeatured();
+  Future<Either<Failure, List<DestinationEntity>>> getAllDestinations();
+  Future<Either<Failure, List<DestinationEntity>>> filterDestinationsByCategory( String category);
 }

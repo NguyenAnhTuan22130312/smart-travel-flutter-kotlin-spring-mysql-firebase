@@ -1,11 +1,7 @@
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:smart_travel/data/models/auth/login_request_modal.dart';
-import 'package:smart_travel/domain/entities/auth.dart';
 import 'package:smart_travel/domain/params/LoginParams.dart';
-import 'package:smart_travel/domain/usecases/auth/login_use_case.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_event.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_state.dart';
@@ -52,8 +48,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _handleFacebookLogin() {
-    // TODO: Implement Facebook Login
-    print('Facebook Login');
+    context.read<AuthBloc>().add(FacebookLoginSubmitted());
+
   }
 
   @override
@@ -340,9 +336,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         height: 20,
                                       ),
                                       label: Text(
-                                        isLoading
-                                            ? 'Đang xử lý...'
-                                            : 'Google',
+                                       'Google',
                                         style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
@@ -368,13 +362,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: OutlinedButton.icon(
-                                      onPressed: _handleFacebookLogin,
+                                      onPressed: isLoading ? null : _handleFacebookLogin,
                                       icon: const Icon(
                                         Icons.facebook,
                                         color: Color(0xFF1877F2),
                                         size: 20,
                                       ),
-                                      label: const Text(
+                                      label:  Text(
                                         'Facebook',
                                         style: TextStyle(
                                           fontSize: 14,
