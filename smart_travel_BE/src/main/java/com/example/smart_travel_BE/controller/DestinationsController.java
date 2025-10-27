@@ -9,9 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -22,6 +20,17 @@ import java.util.List;
 public class DestinationsController {
     private final DestinationService destinationService;
 
+    /**
+     * Lấy danh sách địa điểm
+     */
+    @GetMapping("/destination-all")
+    public ResponseEntity<APIResponse<List<DestinationResponse>>>getAllDestinations(){
+        return ResponseEntity.status(HttpStatus.OK).body(
+                APIResponse.<List<DestinationResponse>>builder()
+                        .data(destinationService.getAllDestinations())
+                        .build()
+        );
+    }
 
     /**
      * Lấy danh sách địa điểm nổi bật
@@ -34,4 +43,19 @@ public class DestinationsController {
                          .build()
         );
     }
+
+
+    /**
+     * Lấy danh sách địa điểm
+     */
+    @GetMapping("/destination-filter")
+    public ResponseEntity<APIResponse<List<DestinationResponse>>>filterDestinationsByCategory(@RequestParam String category){
+        return ResponseEntity.status(HttpStatus.OK).body(
+                APIResponse.<List<DestinationResponse>>builder()
+                        .data(destinationService.filterDestinationsByCategory(category))
+                        .build()
+        );
+    }
+
+
 }

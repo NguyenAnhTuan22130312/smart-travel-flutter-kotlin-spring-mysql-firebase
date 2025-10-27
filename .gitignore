@@ -128,5 +128,9 @@ smart_travel_FE/kotlin-profile/
 
 # IDE / Editor files
 .idea/
+.idea/misc.xml
+.idea/libraries/Dart_Packages.xml
+.idea/libraries/Dart_SDK.xml
+
 *.iml
 .vscode/

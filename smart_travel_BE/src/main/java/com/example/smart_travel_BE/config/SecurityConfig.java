@@ -28,7 +28,8 @@ public class SecurityConfig {
     String[] PUBLIC_ENDPOINTS = new String[]{"/api/v1/auth/register", "/api/v1/auth/verify-email",
             "/api/v1/auth/resend-verification","/api/v1/auth/login", "/api/v1/auth/forgot-password",
             "/api/v1/auth/reset-password","/api/v1/auth/check-reset-password", "/api/v1/destination/destination-featured",
-            "/api/v1/province/popular", "/api/v1/auth/google-login","/api/v1/payment/vnpay-return"};
+            "/api/v1/destination/destination-all", "/api/v1/destination/destination-filter",
+            "/api/v1/province/popular", "/api/v1/auth/google-login", "/api/v1/auth/facebook-login", "/api/v1/payment/vnpay-return"};
 
 
     CustomAuthEntryPoint customAuthEntryPoint;

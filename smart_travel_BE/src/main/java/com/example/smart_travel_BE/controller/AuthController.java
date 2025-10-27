@@ -1,9 +1,6 @@
 package com.example.smart_travel_BE.controller;
 
-import com.example.smart_travel_BE.dto.user.request.GoogleLoginRequest;
-import com.example.smart_travel_BE.dto.user.request.LoginRequest;
-import com.example.smart_travel_BE.dto.user.request.PasswordResetRequest;
-import com.example.smart_travel_BE.dto.user.request.RegisterRequest;
+import com.example.smart_travel_BE.dto.user.request.*;
 import com.example.smart_travel_BE.dto.user.response.APIResponse;
 import com.example.smart_travel_BE.dto.user.response.LoginResponse;
 import com.example.smart_travel_BE.dto.user.response.RegisterResponse;
@@ -179,6 +176,16 @@ public class AuthController {
     @PostMapping("/google-login")
     public ResponseEntity<APIResponse<LoginResponse>> googleLogin(@RequestBody GoogleLoginRequest request) {
         LoginResponse response = authService.loginWithGoogle(request);
+        return ResponseEntity.ok().body(
+                APIResponse.<LoginResponse>builder()
+                        .data(response)
+                        .build()
+        );
+    }
+
+    @PostMapping("/facebook-login")
+    public ResponseEntity<APIResponse<LoginResponse>> facebookLogin(@RequestBody FacebookLoginRequest request) {
+        LoginResponse response = authService.loginWithFacebook(request);
         return ResponseEntity.ok().body(
                 APIResponse.<LoginResponse>builder()
                         .data(response)

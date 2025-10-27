@@ -341,6 +341,58 @@ public class AuthService {
     }
 
 
+    /**
+     * Đăng nhập bằng fb
+     */
+
+    public LoginResponse loginWithFacebook(FacebookLoginRequest request) {
+
+        try {
+            if (FirebaseApp.getApps().isEmpty()) {
+                InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream("firebase-service-account.json");
+                FirebaseOptions options = FirebaseOptions.builder()
+                        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                        .build();
+                FirebaseApp.initializeApp(options);
+            }
+            //  Xác minh token với Firebase
+            FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(request.getIdToken());
+            String email = decodedToken.getEmail();
+            String name = request.getDisplayName() != null ? request.getDisplayName() : email;
+
+            // Tìm user theo email hoặc tạo mới
+            User user = userRepository.findByEmail(email).orElseGet(() -> {
+                User newUser = new User();
+                newUser.setEmail(email);
+                newUser.setFullName(name);
+                newUser.setEmailVerified(true);
+                newUser.setIsActive(true);
+                newUser.setRole("USER");
+                newUser.setAuthProvider("GOOGLE");
+                return userRepository.save(newUser);
+            });
+
+            // Sinh JWT cho backend
+            Map<String, Object> claims = new HashMap<>();
+            claims.put("id", user.getId());
+            claims.put("role", user.getRole());
+            String token = jwtUtil.generateToken(user.getId(), claims);
+            String refreshToken = jwtUtil.generateRefreshToken(user.getId());
+
+
+            return LoginResponse.builder()
+                    .token(token)
+                    .refreshToken(refreshToken)
+                    .fullName(user.getFullName())
+                    .role(user.getRole())
+                    .build();
+
+        } catch (Exception e) {
+            log.info(e.toString());
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+    }
+
 
 
 

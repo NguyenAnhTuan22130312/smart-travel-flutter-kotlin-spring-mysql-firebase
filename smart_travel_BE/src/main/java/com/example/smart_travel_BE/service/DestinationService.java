@@ -21,12 +21,33 @@ public class DestinationService {
 
 
     /**
+     * Lấy tất cả danh sách địa điểm
+     */
+    public List<DestinationResponse> getAllDestinations() {
+        List<Destination> destinations = destinationRepository.findAll();
+
+        return destinations.stream().map(destinationMapper::toDestinationResponse)
+                .collect(Collectors.toList());
+    }
+    /**
      * Lấy danh sách địa điểm nổi bật
      */
     public List<DestinationFeaturedResponse> getAllDestinationsFeatured() {
         List<Destination> destinations = destinationRepository.findByIsFeaturedTrue();
 
-        return destinations.stream().map(destinationMapper::toDestinationResponse)
+        return destinations.stream().map(destinationMapper::toDestinationFeaturedResponse)
+                .collect(Collectors.toList());
+    }
+    /**
+     * Lấy danh sách địa điểm nổi bật
+     */
+    public List<DestinationResponse> filterDestinationsByCategory(String category) {
+        List<Destination> destinations = destinationRepository.findAll();
+        // Lọc và map sang DTO
+        return destinations.stream()
+                .filter(d -> d.getCategory() != null &&
+                        d.getCategory().equalsIgnoreCase(category))
+                .map(destinationMapper::toDestinationResponse)
                 .collect(Collectors.toList());
     }
 

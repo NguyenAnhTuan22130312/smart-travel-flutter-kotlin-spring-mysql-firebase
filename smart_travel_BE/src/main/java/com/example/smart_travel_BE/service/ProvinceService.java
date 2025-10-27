@@ -1,8 +1,6 @@
 package com.example.smart_travel_BE.service;
 
-import com.example.smart_travel_BE.dto.destination.response.DestinationFeaturedResponse;
 import com.example.smart_travel_BE.dto.province.response.ProvinceIsPopularResponse;
-import com.example.smart_travel_BE.entity.Destination;
 import com.example.smart_travel_BE.entity.Province;
 import com.example.smart_travel_BE.mapper.ProvinceMapper;
 import com.example.smart_travel_BE.repository.ProvinceRepository;
