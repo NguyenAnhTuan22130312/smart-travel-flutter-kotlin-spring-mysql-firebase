@@ -10,6 +10,7 @@ import com.example.smart_travel_BE.repository.BookingRepository;
 import com.example.smart_travel_BE.repository.PaymentRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j; // THÊM IMPORT NÀY
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,12 +19,13 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor // Tự động inject các dependency (final)
+@Slf4j // THÊM ANNOTATION NÀY ĐỂ DÙNG 'log'
 public class PaymentService { // Đây là class, không phải interface
 
     private final BookingRepository bookingRepository;
     private final PaymentRepository paymentRepository;
-    private final VnPayService vnPayService; // Inject VnPayService
-    // private final MoMoService moMoService; // Sẽ thêm sau
+    private final VnPayService vnPayService;
+    private final MoMoService moMoService; // Inject MoMoService
 
     @Transactional
     public PaymentUrlResponse createOnlinePayment(PaymentRequest request, HttpServletRequest httpServletRequest) {
@@ -47,8 +49,12 @@ public class PaymentService { // Đây là class, không phải interface
         if ("VNPAY".equalsIgnoreCase(request.getPaymentMethod())) {
             paymentUrl = vnPayService.createPaymentUrl(savedPayment, httpServletRequest);
         } else if ("MOMO".equalsIgnoreCase(request.getPaymentMethod())) {
-            // paymentUrl = moMoService.createPaymentUrl(savedPayment, httpServletRequest);
-            throw new AppException(ErrorCode.PAYMENT_METHOD_NOT_SUPPORTED);
+
+            // --- SỬA LẠI CHỖ NÀY ---
+            // Bỏ comment và gọi MoMoService
+            paymentUrl = moMoService.createPaymentUrl(savedPayment);
+            // ---------------------
+
         } else {
             throw new AppException(ErrorCode.PAYMENT_METHOD_NOT_SUPPORTED);
         }
@@ -108,6 +114,61 @@ public class PaymentService { // Đây là class, không phải interface
             payment.setStatus("FAILED");
             paymentRepository.save(payment);
             return "Thanh toán thất bại. Mã lỗi: " + vnp_ResponseCode;
+        }
+    }
+
+    // --- THÊM CÁC HÀM XỬ LÝ MOMO CÒN THIẾU ---
+
+    /**
+     * Xử lý MoMo IPN (Server-to-Server)
+     */
+    @Transactional
+    public void handleMomoIPN(Map<String, String> momoParams) {
+        log.info("Received MoMo IPN: {}", momoParams);
+
+        String orderId = momoParams.get("orderId"); // Đây là Payment ID
+        String resultCode = momoParams.get("resultCode");
+        String signature = momoParams.get("signature");
+
+        // TODO: 1. Tạo rawSignature từ momoParams (trừ 'signature')
+        // TODO: 2. Tính toán signature của riêng bạn
+        // TODO: 3. So sánh 2 signature
+
+        // Giả sử signature hợp lệ
+        Payment payment = paymentRepository.findById(Long.parseLong(orderId))
+                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        if ("0".equals(resultCode)) {
+            payment.setStatus("COMPLETED");
+            payment.setPaidAt(LocalDateTime.now());
+            payment.setTransactionId(momoParams.get("transId")); // Lưu mã GD của MoMo
+            paymentRepository.save(payment);
+
+            Booking booking = payment.getBooking();
+            booking.setStatus("CONFIRMED");
+            bookingRepository.save(booking);
+
+            log.info("MoMo IPN: Payment {} completed successfully.", orderId);
+        } else {
+            payment.setStatus("FAILED");
+            paymentRepository.save(payment);
+            log.warn("MoMo IPN: Payment {} failed with resultCode {}", orderId, resultCode);
+        }
+    }
+
+    /**
+     * Xử lý MoMo Redirect URL (Client)
+     */
+    public String handleMomoReturn(Map<String, String> momoParams) {
+        log.info("Received MoMo Return: {}", momoParams);
+        String resultCode = momoParams.get("resultCode");
+
+        // TODO: Xác thực chữ ký (giống IPN) để tăng bảo mật
+
+        if ("0".equals(resultCode)) {
+            return "Giao dịch MoMo thành công!";
+        } else {
+            return "Giao dịch MoMo thất bại: " + momoParams.get("message");
         }
     }
 }

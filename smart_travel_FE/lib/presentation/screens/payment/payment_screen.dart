@@ -35,24 +35,39 @@ class PaymentScreen extends StatelessWidget {
         backgroundColor: AppColors.background,
         body: BlocConsumer<PaymentBloc, PaymentState>(
           listener: (context, state) {
+
+            // --- SỬA 1: LOGIC KHI THANH TOÁN THÀNH CÔNG ---
             if (state is PaymentSuccess) {
-              // Mở WebView cho VNPay/MoMo
+              // Xác định URL trả về để WebView lắng nghe
+              String returnUrlPath;
+              if (state.paymentUrl.contains('momo.vn')) {
+                // Dựa trên MoMoConfig.java (phải khớp với URL ngrok)
+                returnUrlPath = "/momo-return";
+              } else {
+                // Dựa trên VnPayConfig.java (phải khớp với URL ngrok)
+                returnUrlPath = "/vnpay-return";
+              }
+
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => PaymentWebView(url: state.paymentUrl),
+                  builder: (context) => PaymentWebView(
+                    url: state.paymentUrl,
+                    returnUrlPath: returnUrlPath, // Gửi URL cần lắng nghe
+                  ),
                 ),
               );
+              // ------------------------------------------
+
             } else if (state is PaymentCashSuccess) {
-              // SỬA LỖI: Xử lý khi thanh toán tiền mặt thành công
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Đặt chỗ thành công! Bạn sẽ thanh toán sau.'),
                   backgroundColor: Colors.green,
                 ),
               );
-              // Quay về màn hình Home (đóng cả BookingScreen và PaymentScreen)
               Navigator.popUntil(context, (route) => route.isFirst);
+
             } else if (state is PaymentFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -99,7 +114,7 @@ class PaymentScreen extends StatelessWidget {
 
                       _buildPaymentMethodTile(
                         context: context,
-                        logoAsset: 'assets/images/vnpay_logo.png', // CẦN THÊM ẢNH
+                        logoAsset: 'assets/images/vnpay_logo.png',
                         title: 'Thanh toán qua VNPay',
                         onTap: () {
                           context.read<PaymentBloc>().add(
@@ -113,10 +128,9 @@ class PaymentScreen extends StatelessWidget {
                       ),
                       SizedBox(height: 12),
 
-                      // THÊM MỚI: Nút MoMo
                       _buildPaymentMethodTile(
                         context: context,
-                        logoAsset: 'assets/images/momo_logo.png', // CẦN THÊM ẢNH
+                        logoAsset: 'assets/images/momo_logo.png',
                         title: 'Thanh toán qua MoMo',
                         onTap: () {
                           context.read<PaymentBloc>().add(
@@ -130,10 +144,9 @@ class PaymentScreen extends StatelessWidget {
                       ),
                       SizedBox(height: 12),
 
-                      // THÊM MỚI: Nút Thanh toán trực tiếp
                       _buildPaymentMethodTile(
                         context: context,
-                        logoAsset: 'assets/images/cash_logo.png', // CẦN THÊM ẢNH
+                        logoAsset: 'assets/images/cash_logo.png',
                         title: 'Thanh toán trực tiếp',
                         onTap: () {
                           context.read<PaymentBloc>().add(
@@ -206,10 +219,16 @@ class PaymentScreen extends StatelessWidget {
   }
 }
 
-// Màn hình WebView (Không đổi)
+// --- SỬA 2: NÂNG CẤP WEBVIEW ---
 class PaymentWebView extends StatefulWidget {
   final String url;
-  const PaymentWebView({Key? key, required this.url}) : super(key: key);
+  final String returnUrlPath; // Ví dụ: "/vnpay-return" hoặc "/momo-return"
+
+  const PaymentWebView({
+    Key? key,
+    required this.url,
+    required this.returnUrlPath,
+  }) : super(key: key);
 
   @override
   State<PaymentWebView> createState() => _PaymentWebViewState();
@@ -233,13 +252,20 @@ class _PaymentWebViewState extends State<PaymentWebView> {
             setState(() { _isLoading = false; });
           },
           onNavigationRequest: (NavigationRequest request) {
-            // Đây là URL backend của bạn
-            if (request.url.startsWith('http://localhost:8080/api/v1/payment/vnpay-return')) {
-              print('Thanh toán hoàn tất, quay về app');
+
+            // SỬA: Lắng nghe URL trả về động
+            // URL này phải khớp với URL bạn cấu hình ngrok
+            if (request.url.contains(widget.returnUrlPath)) {
+              print('Thanh toán hoàn tất (${widget.returnUrlPath}), quay về app');
+
+              // TODO: Phân tích URL (request.url) để kiểm tra mã lỗi
+              // và hiển thị SnackBar thông báo thành công/thất bại
+
               // Quay về màn hình Home
               Navigator.popUntil(context, (route) => route.isFirst);
-              return NavigationDecision.prevent;
+              return NavigationDecision.prevent; // Ngăn không cho WebView đi tiếp
             }
+
             return NavigationDecision.navigate;
           },
         ),

@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/payment")
@@ -24,7 +26,6 @@ public class PaymentController {
     public ResponseEntity<APIResponse<PaymentUrlResponse>> createOnlinePayment(
             @Valid @RequestBody PaymentRequest request,
             HttpServletRequest httpServletRequest) {
-
         try {
             PaymentUrlResponse response = paymentService.createOnlinePayment(request, httpServletRequest);
             return ResponseEntity.ok(APIResponse.<PaymentUrlResponse>builder()
@@ -43,7 +44,6 @@ public class PaymentController {
     @PostMapping("/confirm-cash-payment")
     public ResponseEntity<APIResponse<String>> confirmCashPayment(
             @Valid @RequestBody PaymentRequest request) {
-
         try {
             String bookingId = paymentService.confirmCashPayment(request);
             return ResponseEntity.ok(APIResponse.<String>builder()
@@ -67,6 +67,38 @@ public class PaymentController {
         } catch (AppException e) {
             log.error("Lỗi khi xử lý VNPay return: {}", e.getMessage());
             return ResponseEntity.status(e.getErrorCode().getStatusCode()).body(e.getMessage());
+        }
+    }
+    /**
+     * API để MoMo gọi lại server-to-server (IPN)
+     * Quan trọng nhất để xác nhận thanh toán
+     */
+    @PostMapping("/momo-ipn")
+    public ResponseEntity<Void> momoIPN(@RequestBody Map<String, String> momoParams) {
+        try {
+            paymentService.handleMomoIPN(momoParams);
+            // MoMo yêu cầu trả về HTTP 204 khi xử lý IPN thành công
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        } catch (Exception e) {
+            log.error("Lỗi khi xử lý MoMo IPN", e);
+            // Trả về lỗi để MoMo biết và gửi lại IPN
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * API để MoMo gọi lại sau khi user thanh toán trên app MoMo (Redirect URL)
+     * Chủ yếu để hiển thị thông báo cho user
+     */
+    @GetMapping("/momo-return")
+    public ResponseEntity<String> momoReturn(@RequestParam Map<String, String> momoParams) {
+        try {
+            String message = paymentService.handleMomoReturn(momoParams);
+            // Trả về 1 trang HTML/Text đơn giản
+            return ResponseEntity.ok(message);
+        } catch (Exception e) {
+            log.error("Lỗi khi xử lý MoMo return", e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 }
