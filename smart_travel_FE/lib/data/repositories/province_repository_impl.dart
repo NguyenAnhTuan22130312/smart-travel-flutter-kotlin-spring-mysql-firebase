@@ -23,8 +23,31 @@ class ProvinceRepositoryImpl implements ProvinceRepository {
       );
     }
     try {
-      final responseModal = await provinceDataSource.getAllProvinceIsPopular();
+      final responseModal = await provinceDataSource.getAllProvince();
       final entity = responseModal.map((modal) => modal.toEntity()).toList();
+      return Right(entity);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } catch (e) {
+      return Left(
+        ServerFailure('Đã xảy ra lỗi không mong muốn: ${e.toString()}'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, ProvinceEntity>> getProvinceDetail(int provinceId) async {
+    //Kiểm tra kết nối mạng
+    if (!await networkInfo.isConnected) {
+      return const Left(
+        NetworkFailure('Không có kết nối internet. Vui lòng kiểm tra lại.'),
+      );
+    }
+    try {
+      final responseModal = await provinceDataSource.getProvinceDetail(provinceId);
+      final entity = responseModal.toEntity();
       return Right(entity);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));

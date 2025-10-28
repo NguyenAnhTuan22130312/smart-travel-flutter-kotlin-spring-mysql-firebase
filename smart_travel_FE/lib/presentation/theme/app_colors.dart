@@ -5,7 +5,11 @@ class AppColors {
   static const Color primary = Color(0xFF2196F3); // Blue
 
   // Màu phụ (Secondary)
+  static const Color green = Color(0xFF5BEDD2); // green
+
+  // Màu phụ (Secondary)
   static const Color secondary = Color(0xFFFF9800); // Orange
+
 
   // Accent
   static const Color accent = Color(0xFF4CAF50); // Green

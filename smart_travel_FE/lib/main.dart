@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
+import 'package:smart_travel/presentation/blocs/province/provicne_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/province_bloc.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import 'package:smart_travel/presentation/screens/splash/splash_screen.dart';
@@ -36,6 +37,9 @@ class MyApp extends StatelessWidget {
           ),
           BlocProvider(
             create: (_) => di.sl<ProvinceBloc>(),
+          ),
+          BlocProvider(
+            create: (_) => di.sl<ProvinceDetailBloc>(),
           ),
         ],
         child: MaterialApp(

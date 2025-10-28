@@ -59,7 +59,10 @@ public enum ErrorCode {
     NOT_BLANK_WEBSITE(1053, "Website không được để trống", HttpStatus.BAD_REQUEST),
     INVALID_WEBSITE_FORMAT(1054, "Website không đúng định dạng URL", HttpStatus.BAD_REQUEST),
 
-    FILE_NOT_FOUND(1055, "File không tồn tại", HttpStatus.NOT_FOUND);
+    FILE_NOT_FOUND(1055, "File không tồn tại", HttpStatus.NOT_FOUND),
+
+    //PROVINCE
+    PROVINCE_NOT_EXISTED(1060, "Tỉnh thành không tồn tại", HttpStatus.NOT_FOUND),
     ;
 
 

@@ -4,14 +4,14 @@ import 'package:smart_travel/core/usecases/usecase.dart';
 import 'package:smart_travel/domain/entities/province.dart';
 import 'package:smart_travel/domain/repositories/province_repository.dart';
 
-class GetAllProvinceIsPopularUseCase extends UseCase<List<ProvinceEntity>, NoParams> {
+class ProvinceDetailUseCase extends UseCase<ProvinceEntity, int>{
   final ProvinceRepository provinceRepository;
 
-  GetAllProvinceIsPopularUseCase( this.provinceRepository);
+  ProvinceDetailUseCase(this.provinceRepository);
+
   @override
-  Future<Either<Failure, List<ProvinceEntity>>> call(NoParams params) {
-    // TODO: implement call
-    return provinceRepository.getAllProvinceIsPopular();
+  Future<Either<Failure, ProvinceEntity>> call(int provinceId) {
+    return provinceRepository.getProvinceDetail(provinceId);
   }
 
 }
