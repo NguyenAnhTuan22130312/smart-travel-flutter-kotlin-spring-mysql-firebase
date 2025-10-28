@@ -2,15 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:smart_travel/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:smart_travel/presentation/screens/auth/login_screen.dart';
 import 'package:smart_travel/presentation/screens/auth/register_screen.dart';
+import 'package:smart_travel/presentation/screens/explore/explore_screen.dart';
 import 'package:smart_travel/presentation/screens/home/home_screen.dart';
+import 'package:smart_travel/presentation/screens/province/province_detail_screen.dart';
 import 'package:smart_travel/presentation/screens/splash/splash_screen.dart';
 import 'package:smart_travel/router/route_names.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case RouteNames.provinceDetail:
+        return MaterialPageRoute(
+          builder: (context) => const ProvinceDetailScreen(),
+          settings: settings,
+        );
       case RouteNames.home:
         return MaterialPageRoute(builder: (_) => const HomeScreen());
+      case RouteNames.explore:
+        return MaterialPageRoute(builder: (_) => const ExploreScreen());
       case RouteNames.splashScreen:
         return MaterialPageRoute(builder: (_) => const SplashScreen());
       case RouteNames.login:

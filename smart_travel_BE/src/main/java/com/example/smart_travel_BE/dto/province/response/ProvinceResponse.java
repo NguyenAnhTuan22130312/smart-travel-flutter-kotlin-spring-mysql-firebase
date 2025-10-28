@@ -4,7 +4,7 @@ package com.example.smart_travel_BE.dto.province.response;
 import lombok.Data;
 
 @Data
-public class ProvinceIsPopularResponse {
+public class ProvinceResponse {
 
     private Long id;
 

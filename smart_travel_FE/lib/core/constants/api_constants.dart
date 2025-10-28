@@ -17,7 +17,9 @@ class ApiConstants {
   static const String destinationFilter = '/destination/destination-filter';
 
   //Province
-  static const String provinceIsPopular = '/province/popular';
+  static const String provinceAll = '/province/all';
+  static const String provinceDetail = '/province/detail/';
+
 
   // Timeout
   static const Duration connectionTimeout = Duration(seconds: 30);

@@ -20,9 +20,11 @@ class _ProvinceIsPopularState extends State<ProvinceIsPopular> {
 
   Widget _buildProvinceIsPopular(ProvinceEntity provinceEntity) {
     return GestureDetector(
+
       onTap: () {
         // TODO: Navigate to province destinations
-        // Navigator.pushNamed(context, '/province/destinations', arguments: province['id']);
+        Navigator.pushNamed(context, '/province/detail', arguments: provinceEntity.id
+        );
       },
       child: Container(
         decoration: BoxDecoration(
