@@ -10,6 +10,7 @@ import 'package:smart_travel/presentation/blocs/province/province_state.dart';
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
 import 'package:smart_travel/presentation/widgets/destination/DestinationFeaturedCard.dart';
 import 'package:smart_travel/presentation/widgets/province/province_is_popular_card.dart';
+import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import '../../theme/app_colors.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -63,18 +64,26 @@ class _HomeScreenState extends State<HomeScreen> {
     context.read<ProvinceBloc>().add(LoadProvinceIsPopular());
   }
 
-  // Xử lý khi chọn mục trong thanh điều hướng
   void _onNavItemTapped(int index) {
-    if (index == _selectedIndex)
-      return; // Tránh điều hướng lại nếu đang ở màn hình hiện tại
-    setState(() {
-      _selectedIndex = index;
-    });
-    // Điều hướng đến màn hình tương ứng
-    Navigator.pushReplacementNamed(
-      context,
-      ['/home', '/destination/list', '/booking', '/profile', '/ai_chat'][index],
-    );
+
+    if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const BookingScreen()),
+      );
+    } else {
+      if (index == _selectedIndex) {
+        return; // Tránh điều hướng lại
+      }
+
+      setState(() {
+        _selectedIndex = index;
+      });
+      Navigator.pushReplacementNamed(
+        context,
+        ['/home', '/destination/list', '/booking', '/profile', '/ai_chat'][index],
+      );
+    }
   }
 
   @override
