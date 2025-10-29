@@ -22,10 +22,11 @@ import 'package:smart_travel/domain/usecases/auth/register_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/filter_destinations_by_category_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_featured_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_use_case.dart';
-import 'package:smart_travel/domain/usecases/province/get_all_province_is_popular_use_case.dart';
+import 'package:smart_travel/domain/usecases/province/get_all_province_use_case.dart';
+import 'package:smart_travel/domain/usecases/province/province_detail_use_case.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
-import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
+import 'package:smart_travel/presentation/blocs/province/provicne_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/province_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
@@ -102,6 +103,8 @@ Future<void> init() async {
       facebookLoginUseCase: sl(),
     ),
   );
+
+  //destination
   sl.registerFactory(
         () => DestinationBloc(
       destinationFeaturedUseCase : sl(),
@@ -109,9 +112,16 @@ Future<void> init() async {
       filterByCategoryUseCase: sl(),
     ),
   );
+
+  //province
   sl.registerFactory(
         () => ProvinceBloc(
-      getAllProvinceIsPopularUseCase : sl(),
+          getAllProvinceUseCase : sl(),
+    ),
+  );
+  sl.registerFactory(
+        () => ProvinceDetailBloc(
+          provinceDetailUseCase : sl(),
     ),
   );
 
@@ -127,8 +137,10 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetAllDestinationFeaturedUseCase(sl()));
   sl.registerLazySingleton(() => GetAllDestinationsUseCase(sl()));
   sl.registerLazySingleton(() => FilterDestinationsByCategoryUseCase(sl()));
+
   //  province
-  sl.registerLazySingleton(() => GetAllProvinceIsPopularUseCase(sl()));
+  sl.registerLazySingleton(() => GetAllProvinceUseCase(sl()));
+  sl.registerLazySingleton(()=> ProvinceDetailUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(

@@ -7,6 +7,7 @@ import 'package:smart_travel/presentation/blocs/destiantion/destination_state.da
 import 'package:smart_travel/presentation/blocs/province/province_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/province_event.dart';
 import 'package:smart_travel/presentation/blocs/province/province_state.dart';
+import 'package:smart_travel/presentation/widgets/category/custom_category.dart';
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
 import 'package:smart_travel/presentation/widgets/destination/DestinationFeaturedCard.dart';
 import 'package:smart_travel/presentation/widgets/province/province_is_popular_card.dart';
@@ -22,18 +23,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _selectedCategory = 'ALL';
   int _selectedIndex = 0; // Index cho thanh điều hướng dưới
 
-  // Danh mục theo CSDL (category trong bảng destinations)
-  final List<Map<String, dynamic>> _categories = [
-    {'id': 'ALL', 'icon': Icons.explore, 'label': 'Tất cả'},
-    {'id': 'BEACH', 'icon': Icons.beach_access, 'label': 'Biển'},
-    {'id': 'MOUNTAIN', 'icon': Icons.terrain, 'label': 'Núi'},
-    {'id': 'CULTURE', 'icon': Icons.temple_buddhist, 'label': 'Văn hóa'},
-    {'id': 'CITY', 'icon': Icons.location_city, 'label': 'Thành phố'},
-    {'id': 'NATURE', 'icon': Icons.landscape, 'label': 'Thiên nhiên'},
-  ];
 
   // Dữ liệu user mẫu từ bảng users & user_profiles
   final Map<String, dynamic> _currentUser = {
@@ -56,16 +47,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     // TODO: implement initState
-
     super.initState();
-    _selectedCategory = 'ALL';
     context.read<DestinationBloc>().add(LoadAllDestinations());
     context.read<DestinationBloc>().add(LoadFeaturedDestinations());
     context.read<ProvinceBloc>().add(LoadProvinceIsPopular());
   }
 
   void _onNavItemTapped(int index) {
-
     if (index == 2) {
       Navigator.push(
         context,
@@ -96,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildAppBar(),
             _buildSearchBar(),
             _buildAIChatBanner(),
-            _buildCategories(),
+            const CustomCategory(),
             _buildDestinationsListByCategory(),
             _buildFeaturedDestinations(),
             _buildPopularProvinces(),
@@ -305,76 +293,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // _buildCategories() để tải tất cả destinations lần đầu:
-  Widget _buildCategories() {
-    return SliverToBoxAdapter(
-      child: Container(
-        height: 100,
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: _categories.length,
-          itemBuilder: (context, index) {
-            final category = _categories[index];
-            final isSelected = _selectedCategory == category['id'];
-
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedCategory = category['id'];
-                });
-                // Dispatch event dựa vào category được chọn
-                if (category['id'] == 'ALL') {
-                  context.read<DestinationBloc>().add(LoadAllDestinations());
-                } else {
-                  context.read<DestinationBloc>().add(
-                    FilterDestinationsByCategory(category['id']),
-                  );
-                }
-              },
-              child: Container(
-                width: 80,
-                margin: const EdgeInsets.only(right: 12),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary : Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      category['icon'],
-                      color: isSelected ? Colors.white : AppColors.primary,
-                      size: 28,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      category['label'],
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: isSelected ? Colors.white : const Color(0xFF374151),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
 
   //NEW: Hiển thị danh sách destinations được lọc theo category
   Widget _buildDestinationsListByCategory() {
@@ -457,7 +375,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemCount: destinations.length,
                     itemBuilder: (context, index) {
                       final destination = destinations[index];
-                      return DestinationFeatured(destination);
+                      return Padding(
+                        padding: EdgeInsets.only(right: index == destinations.length - 1 ? 0 : 12),
+                        child: DestinationFeatured(destination),
+                      );
                     },
                   ),
                 ),
@@ -556,7 +477,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemCount: featuredDestinations.length,
                     itemBuilder: (context, index) {
                       final destination = featuredDestinations[index];
-                      return DestinationFeatured(destination);
+                      return Padding(
+                        padding: EdgeInsets.only(right: index == featuredDestinations.length - 1 ? 0 : 12),
+                        child: DestinationFeatured(destination),
+                      );
                     },
                   ),
                 ),
@@ -595,7 +519,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             );
           }
-          else if (state is ProvinceLoaded) {
+          else if (state is ProvincePopularLoaded) {
             final provinceIsPopulars = state.province;
             if (provinceIsPopulars.isEmpty) {
               return const SliverToBoxAdapter(
