@@ -31,7 +31,7 @@ class _DestinationFeaturedState extends State<DestinationFeatured> {
     return GestureDetector(
       onTap: () {
         // TODO: Navigate to destination detail
-        // Navigator.pushNamed(context, '/destination/detail', arguments: destination['id']);
+        Navigator.pushNamed(context, '/destination-detail',);
       },
       child: Container(
         width: 220,

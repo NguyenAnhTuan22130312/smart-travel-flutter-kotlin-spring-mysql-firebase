@@ -52,7 +52,7 @@ Future<void> init() async {
         () => DestinationBloc(
           destinationFeaturedUseCase : sl(),
           getAllDestinationUseCase: sl(),
-          filterByCategoryUseCase: sl(),
+          filterByCategoryUseCase: sl()
     ),
   );
 

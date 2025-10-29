@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:smart_travel/domain/entities/province.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
@@ -207,6 +206,11 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () {
               // TODO: Navigate to search screen
             },
+            onChanged: (value) {
+              context.read<DestinationBloc>().add(SearchDestinationEvent(
+                  value
+              ));
+            },
           ),
         ),
       ),
@@ -334,8 +338,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Điểm đến du lịch',
+                       Text(
+                        'Điểm đến du lịch (${destinations.length})',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -344,7 +348,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       TextButton(
                         onPressed: () {
-                          // TODO: Navigate to all destinations (full screen)
+                          context.read<DestinationBloc>().add(LoadAllDestinations(loadAll: true));
                         },
                         child: Text(
                           'Xem tất cả',
@@ -437,8 +441,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Điểm đến nổi bật',
+                       Text(
+                        'Điểm đến nổi bật (${featuredDestinations.length})',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -447,7 +451,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       TextButton(
                         onPressed: () {
-                          // TODO: Navigate to all featured destinations
+                          context.read<DestinationBloc>().add(LoadFeaturedDestinations(loadAll: true));
                         },
                         child: Text(
                           'Xem tất cả',
@@ -531,8 +535,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Tỉnh thành phổ biến',
+                         Text(
+                          'Tỉnh thành phổ biến (${provinceIsPopulars.length})',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

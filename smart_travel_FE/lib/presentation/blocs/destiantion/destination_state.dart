@@ -14,8 +14,9 @@ class FeaturedDestinationLoading extends DestinationState {}
 // State khi load thành công
 class FeaturedDestinationLoaded extends DestinationState {
   final List<DestinationEntity> destinations;
+  final bool isLimited;
 
-  const FeaturedDestinationLoaded(this.destinations);
+  const FeaturedDestinationLoaded(this.destinations, {this.isLimited = false});
 
   @override
   List<Object?> get props => [destinations];
@@ -40,7 +41,10 @@ class FilterDestinationLoading extends DestinationState {}
 
 class FilterDestinationLoaded extends DestinationState {
   final List<DestinationEntity> destinations;
-  FilterDestinationLoaded(this.destinations);
+  final bool isLimited;
+
+  FilterDestinationLoaded(this.destinations, {this.isLimited = false}); // true = chỉ load 6, có thể hiện "Xem tất cả"
+
 }
 
 class FilterDestinationError extends DestinationState {

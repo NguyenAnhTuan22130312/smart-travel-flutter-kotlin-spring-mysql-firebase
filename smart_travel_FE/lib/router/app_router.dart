@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:smart_travel/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:smart_travel/presentation/screens/auth/login_screen.dart';
 import 'package:smart_travel/presentation/screens/auth/register_screen.dart';
+import 'package:smart_travel/presentation/screens/destination/detail_destination_screen.dart';
 import 'package:smart_travel/presentation/screens/explore/explore_screen.dart';
 import 'package:smart_travel/presentation/screens/home/home_screen.dart';
 import 'package:smart_travel/presentation/screens/province/province_detail_screen.dart';
@@ -28,6 +29,9 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const RegisterScreen());
       case RouteNames.forgotPassword:
         return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
+
+      case RouteNames.destinationDetail:
+        return MaterialPageRoute(builder: (_) => const DetailDestinationScreen());
         default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(
