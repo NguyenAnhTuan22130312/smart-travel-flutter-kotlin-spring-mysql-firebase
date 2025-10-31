@@ -35,7 +35,7 @@ class _DestinationFeaturedState extends State<DestinationFeatured> {
       },
       child: Container(
         width: 220,
-        margin: const EdgeInsets.only(right: 16),
+        margin: const EdgeInsets.all(0),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),

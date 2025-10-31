@@ -16,7 +16,7 @@ class DestinationEntity {
   final double? entryFee;
   final DateTime? createdAt;
   final DateTime? updatedAt;
-  final String? imageUrl ;
+  final String imageUrl ;
 
 
   DestinationEntity({
@@ -37,6 +37,6 @@ class DestinationEntity {
     this.entryFee,
     this.createdAt,
     this.updatedAt,
-    this.imageUrl
+    required this.imageUrl
   });
 }

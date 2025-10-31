@@ -10,3 +10,6 @@ class ProvinceEvent extends Equatable{
 class LoadProvinceIsPopular extends ProvinceEvent{
 
 }
+class LoadProvince extends ProvinceEvent{
+
+}

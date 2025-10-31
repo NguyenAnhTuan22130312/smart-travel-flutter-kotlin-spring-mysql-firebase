@@ -1,6 +1,6 @@
 import 'package:smart_travel/domain/entities/province.dart';
 
-class ProvinceIsPopularModal {
+class ProvinceModal {
   final int id;
 
   final String name;
@@ -16,7 +16,7 @@ class ProvinceIsPopularModal {
   final bool isPopular;
   final int destinationCount;
 
-  const ProvinceIsPopularModal({
+  const ProvinceModal({
     required this.id,
     required this.name,
     required this.code,
@@ -28,8 +28,8 @@ class ProvinceIsPopularModal {
   });
 
   //Chuyển từ json sang modal
-  factory ProvinceIsPopularModal.formJson(Map<String, dynamic> json) {
-    return ProvinceIsPopularModal(
+  factory ProvinceModal.formJson(Map<String, dynamic> json) {
+    return ProvinceModal(
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
       code: json['code'] ?? '',

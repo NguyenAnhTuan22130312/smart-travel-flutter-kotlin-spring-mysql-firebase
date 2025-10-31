@@ -6,4 +6,6 @@ abstract class ProvinceRepository{
   ///Lấy danh sách tỉnh thành phổ biến
   Future<Either<Failure, List<ProvinceEntity>>> getAllProvinceIsPopular();
 
+  Future<Either<Failure, ProvinceEntity>> getProvinceDetail(int provinceId);
+
 }

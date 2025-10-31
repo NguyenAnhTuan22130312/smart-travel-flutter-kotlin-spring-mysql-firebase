@@ -7,12 +7,21 @@ class ProvinceState extends Equatable{
   // TODO: implement props
   @override
   List<Object?> get props => [];
-
-
-
 }
+
 //State khi loading
 class ProvinceLoading extends ProvinceState{
+}
+
+
+//State khi loading thành công
+class ProvincePopularLoaded extends ProvinceState{
+  final List<ProvinceEntity> province;
+
+  const ProvincePopularLoaded(this.province);
+
+  @override
+  List<Object?> get props => [province];
 
 }
 //State khi loading thành công
@@ -23,8 +32,8 @@ class ProvinceLoaded extends ProvinceState{
 
   @override
   List<Object?> get props => [province];
-
 }
+
 // State khi có lỗi
 class ProvinceError extends ProvinceState{
   final String message;
