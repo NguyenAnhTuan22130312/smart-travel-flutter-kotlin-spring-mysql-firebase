@@ -29,6 +29,9 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
 
+  # THÊM 2 DÒNG NÀY VÀO:
+  dio: ^5.4.3+1
+
   flutter:
     sdk: flutter
 
@@ -45,6 +48,8 @@ dependencies:
 
   # Functional Programming
   dartz: ^0.10.1
+
+  shared_preferences: ^2.2.3
 
   #Bảo mật token
   flutter_secure_storage: ^9.0.0

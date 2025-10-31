@@ -10,6 +10,9 @@ class ApiConstants {
   static const String facebookLogin = '/auth/facebook-login';
   static const String forgotPassword = '/auth/forgot-password';
 
+  static const String createOnlinePayment = '/payment/create-online-payment';
+  static const String confirmCashPayment = '/payment/confirm-cash-payment';
+  static const String createBooking = '/bookings';
 
   //Destination
   static const String destinationFeatured = '/destination/destination-featured';
