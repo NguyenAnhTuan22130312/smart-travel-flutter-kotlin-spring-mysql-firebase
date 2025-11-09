@@ -1,16 +1,22 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'payment_event.dart';
 import 'payment_state.dart';
-// TODO: Import UseCase
+// Import các file mới
+import 'package:smart_travel/data/repositories/payment_repository_impl.dart';
+import 'package:smart_travel/domain/usecases/payment/process_payment_usecase.dart';
+import 'package:smart_travel/domain/usecases/payment/confirm_cash_usecase.dart';
 
 class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
-  // TODO:
-  // final ProcessPaymentUseCase processPaymentUseCase;
-  // final ConfirmCashBookingUseCase confirmCashBookingUseCase;
+  // SỬA: Bỏ comment
+  final ProcessPaymentUseCase processPaymentUseCase;
+  final ConfirmCashBookingUseCase confirmCashBookingUseCase;
 
-  PaymentBloc() : super(PaymentInitial()) {
+  // SỬA: Inject UseCases
+  PaymentBloc({
+    required this.processPaymentUseCase,
+    required this.confirmCashBookingUseCase,
+  }) : super(PaymentInitial()) {
     on<ProcessPaymentSubmitted>(_onProcessPaymentSubmitted);
-    // THÊM MỚI:
     on<ConfirmCashPayment>(_onConfirmCashPayment);
   }
 
@@ -19,36 +25,39 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       Emitter<PaymentState> emit,
       ) async {
     emit(PaymentLoading());
-    await Future.delayed(Duration(seconds: 2));
 
-    // Giả lập API trả về URL
-    if (event.paymentMethod == 'VNPAY') {
-      emit(PaymentSuccess("https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?mock=true"));
-    } else if (event.paymentMethod == 'MOMO') {
-      emit(PaymentSuccess("https://test-payment.momo.vn/gw_payment/payment/qr?mock=true"));
-    } else {
-      emit(PaymentFailure("Phương thức không được hỗ trợ"));
-    }
+    // --- GỌI API THẬT ---
+    final request = PaymentApiRequest(
+      bookingId: event.bookingId,
+      amount: event.amount,
+      paymentMethod: event.paymentMethod,
+    );
+    // Gọi UseCase
+    final result = await processPaymentUseCase(request);
+
+    result.fold(
+          (failure) => emit(PaymentFailure(failure.message)), // Lỗi (1007 hoặc 1000)
+          (paymentUrl) => emit(PaymentSuccess(paymentUrl)), // Thành công
+    );
   }
 
-  // HÀM MỚI: Xử lý thanh toán tiền mặt
   Future<void> _onConfirmCashPayment(
       ConfirmCashPayment event,
       Emitter<PaymentState> emit,
       ) async {
     emit(PaymentLoading());
 
-    // Giả lập gọi API để cập nhật trạng thái đơn hàng
-    await Future.delayed(Duration(seconds: 1));
+    // --- GỌI API THẬT ---
+    final request = CashApiRequest(
+      bookingId: event.bookingId,
+      amount: event.amount,
+    );
 
-    // TODO: Gọi confirmCashBookingUseCase
-    // final result = await confirmCashBookingUseCase(event.bookingId);
-    // result.fold(
-    //   (failure) => emit(PaymentFailure(failure.message)),
-    //   (_) => emit(PaymentCashSuccess()),
-    // );
+    final result = await confirmCashBookingUseCase(request);
 
-    // Giả lập thành công
-    emit(PaymentCashSuccess());
+    result.fold(
+          (failure) => emit(PaymentFailure(failure.message)),
+          (_) => emit(PaymentCashSuccess()), // Thành công
+    );
   }
 }

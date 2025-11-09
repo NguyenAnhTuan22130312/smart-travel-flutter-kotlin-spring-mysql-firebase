@@ -14,7 +14,7 @@ class AppRouter {
     switch (settings.name) {
       case RouteNames.provinceDetail:
         return MaterialPageRoute(
-          builder: (context) => const ProvinceDetailScreen(),
+          builder: (context) =>  ProvinceDetailScreen(),
           settings: settings,
         );
       case RouteNames.home:
@@ -31,7 +31,10 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
 
       case RouteNames.destinationDetail:
-        return MaterialPageRoute(builder: (_) => const DetailDestinationScreen());
+        return MaterialPageRoute(
+            builder: (context) =>  DetailDestinationScreen(),
+            settings: settings,
+        );
         default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

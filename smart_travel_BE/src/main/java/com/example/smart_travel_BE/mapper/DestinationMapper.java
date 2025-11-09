@@ -28,6 +28,7 @@ public interface DestinationMapper {
     @Mapping(source = "province.name", target = "provinceName")
     DestinationFeaturedResponse toDestinationFeaturedResponse(Destination destination);
 
+
     DestinationDetailResponse toDestinationDetailResponse(Destination destination);
 
     // Chuyển Tour -> TourSummaryResponse (ảnh đầu tiên)
@@ -91,5 +92,27 @@ public interface DestinationMapper {
         return images.stream()
                 .map(ReviewImage::getImageUrl)
                 .collect(Collectors.toList());
+    }
+
+    @AfterMapping
+    default void mapDestinationImages(Destination destination, @MappingTarget DestinationDetailResponse response) {
+        if (destination.getImages() != null && !destination.getImages().isEmpty()) {
+            // Lấy danh sách URL ảnh
+            List<String> imageUrls = destination.getImages()
+                    .stream()
+                    .map(DestinationImage::getImageUrl)
+                    .collect(Collectors.toList());
+            response.setImageUrls(imageUrls);
+        } else {
+            response.setImageUrls(new ArrayList<>());
+        }
+    }
+    @AfterMapping
+    default void mapUserFullName(Review review, @MappingTarget ReviewResponse response) {
+        if (review.getUser() != null && review.getUser().getFullName() != null) {
+            response.setUserFullName(review.getUser().getFullName());
+        } else {
+            response.setUserFullName("Ẩn danh"); // hoặc để null tùy yêu cầu
+        }
     }
 }

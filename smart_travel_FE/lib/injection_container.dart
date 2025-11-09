@@ -22,18 +22,76 @@ import 'package:smart_travel/domain/usecases/auth/register_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/filter_destinations_by_category_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_featured_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_use_case.dart';
+import 'package:smart_travel/domain/usecases/destination/get_detail_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/get_all_province_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/province_detail_use_case.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/provicne_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/province_bloc.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
+import 'package:smart_travel/core/network/dio_client.dart';
+import 'package:smart_travel/data/repositories/payment_repository_impl.dart';
+import 'package:smart_travel/domain/repositories/payment_repository.dart';
+import 'package:smart_travel/domain/usecases/payment/confirm_cash_usecase.dart';
+import 'package:smart_travel/domain/usecases/payment/process_payment_usecase.dart';
+import 'package:smart_travel/presentation/blocs/payment/payment_bloc.dart';
+import 'package:smart_travel/presentation/blocs/booking/booking_bloc.dart';
 import 'core/network/network_info.dart';
 import 'data/data_sources/remote/auth_remote_datasource.dart';
+import 'package:smart_travel/data/data_sources/remote/booking_data_source.dart';
+import 'package:smart_travel/data/repositories/booking_repository_impl.dart';
+import 'package:smart_travel/domain/repositories/booking_repository.dart';
+import 'package:smart_travel/domain/usecases/booking/create_booking_usecase.dart';
 final sl = GetIt.instance;
 
 Future<void> init() async {
+
+  // --- BẮT ĐẦU: THÊM CÁC DỊCH VỤ BOOKING ---
+  // Bloc
+  sl.registerFactory(
+        () => BookingBloc(createBookingUseCase: sl()), // Sửa dòng này
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => CreateBookingUseCase(sl()));
+
+  // Repository
+  sl.registerLazySingleton<BookingRepository>(
+        () => BookingRepositoryImpl(
+      bookingDataSource: sl(),
+      networkInfo: sl(),
+    ),
+  );
+
+  // Data sources
+  sl.registerLazySingleton<BookingDataSource>(
+        () => BookingDataSourceImpl(client: sl()),
+  );
+
+  // Bloc
+  sl.registerFactory(
+        () => PaymentBloc(
+      processPaymentUseCase: sl(),
+      confirmCashBookingUseCase: sl(),
+    ),
+  );
+
+// Use cases
+  sl.registerLazySingleton(() => ProcessPaymentUseCase(sl()));
+  sl.registerLazySingleton(() => ConfirmCashBookingUseCase(sl()));
+
+// Repository
+  sl.registerLazySingleton<PaymentRepository>(
+        () => PaymentRepositoryImpl(
+      dioClient: sl(),
+      networkInfo: sl(),
+    ),
+  );
+
+
+
   // Features - Authentication
   // Bloc
   sl.registerFactory(
@@ -47,16 +105,18 @@ Future<void> init() async {
     ),
   );
 
-  //destination
+  //bloc destination
   sl.registerFactory(
         () => DestinationBloc(
           destinationFeaturedUseCase : sl(),
           getAllDestinationUseCase: sl(),
-          filterByCategoryUseCase: sl()
+          filterByCategoryUseCase: sl(),
+          getDetailDestinationUseCase: sl(),
+
     ),
   );
 
-  //province
+  //bloc province
   sl.registerFactory(
         () => ProvinceBloc(
           getAllProvinceUseCase : sl(),
@@ -80,6 +140,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetAllDestinationFeaturedUseCase(sl()));
   sl.registerLazySingleton(() => GetAllDestinationsUseCase(sl()));
   sl.registerLazySingleton(() => FilterDestinationsByCategoryUseCase(sl()));
+  sl.registerLazySingleton(() => GetDetailDestinationUseCase(sl()));
 
   //  province
   sl.registerLazySingleton(() => GetAllProvinceUseCase(sl()));
@@ -109,7 +170,6 @@ Future<void> init() async {
       networkInfo: sl(),
     ),
   );
-
   // Data sources
   sl.registerLazySingleton<AuthDataSource>(
         () => AuthRemoteDataSourceImpl(client: sl()),
@@ -135,5 +195,10 @@ Future<void> init() async {
   sl.registerLazySingleton(() => Connectivity());
   sl.registerLazySingleton(() => FlutterSecureStorage());
   sl.registerLazySingleton<GoogleSignIn>(() => GoogleSignIn());
+
+  final sharedPreferences = await SharedPreferences.getInstance();
+  sl.registerLazySingleton(() => sharedPreferences);
+  sl.registerLazySingleton(() => Dio());
+  sl.registerLazySingleton(() => DioClient(sl(), sl()));
 
 }

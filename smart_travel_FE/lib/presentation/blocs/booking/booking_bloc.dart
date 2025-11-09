@@ -1,15 +1,18 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'booking_event.dart';
 import 'booking_state.dart';
-// Bạn sẽ cần tạo UseCase này ở bước sau
-// import 'package:smart_travel/domain/usecases/booking/create_booking_usecase.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:equatable/equatable.dart';
+import 'package:smart_travel/data/models/booking/booking_request_model.dart';
+import 'package:smart_travel/domain/usecases/booking/create_booking_usecase.dart';
 
 class BookingBloc extends Bloc<BookingEvent, BookingState> {
-  // final CreateBookingUseCase createBookingUseCase; // Sẽ dùng sau
+  // --- SỬA: Inject UseCase thật ---
+  final CreateBookingUseCase createBookingUseCase;
 
-  BookingBloc(
-      // {required this.createBookingUseCase} // Sẽ dùng sau
-      ) : super(BookingInitial()) {
+  BookingBloc({
+    required this.createBookingUseCase, // Sửa constructor
+  }) : super(BookingInitial()) {
     on<CreateBookingSubmitted>(_onCreateBookingSubmitted);
   }
 
@@ -19,21 +22,33 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
       ) async {
     emit(BookingLoading());
 
-    // TODO: Tạm thời giả lập gọi API
-    await Future.delayed(Duration(seconds: 2));
+    // --- SỬA: Ngừng giả lập, gọi API thật ---
 
-    // Giả lập thành công
-    emit(BookingCreationSuccess());
-
-    // Giả lập thất bại (bạn có thể test bằng cách đổi sang dòng này)
-    // emit(BookingFailure("Đã có lỗi xảy ra, vui lòng thử lại."));
-
-    /* --- Code thật sẽ như thế này ---
-    final result = await createBookingUseCase(event.request);
-    result.fold(
-      (failure) => emit(BookingFailure(failure.message)),
-      (booking) => emit(BookingCreationSuccess(booking)),
+    // 1. Tạo Request DTO từ Event
+    final request = BookingRequestModel(
+      tourId: event.tourId, // Gửi tourId
+      startDate: event.startDate,
+      numberOfPeople: event.numberOfPeople,
+      totalPrice: event.totalPrice,
+      couponCode: null,
     );
-    */
+
+    // 2. Gọi UseCase thật
+    final result = await createBookingUseCase(request);
+
+    // 3. Xử lý kết quả
+    result.fold(
+          (failure) {
+        // Nếu thất bại (Lỗi 404, 500,...)
+        emit(BookingFailure(failure.message));
+      },
+          (response) {
+        // Nếu thành công (Backend trả về ID thật)
+        emit(BookingCreationSuccess(
+          bookingId: response.bookingId, // ID thật từ Backend
+          amount: response.amount,     // Amount thật từ Backend
+        ));
+      },
+    );
   }
 }

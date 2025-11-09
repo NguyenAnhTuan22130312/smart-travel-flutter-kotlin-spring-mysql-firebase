@@ -87,4 +87,27 @@ class DestinationRepositoryImpl extends DestinationRepository {
       );
     }
   }
+
+  @override
+  Future<Either<Failure, DestinationEntity>> getDestinationDetail(int id) async {
+    // Kiểm tra kết nối mạng
+    if (!await networkInfo.isConnected) {
+      return const Left(
+        NetworkFailure('Không có kết nối internet. Vui lòng kiểm tra lại.'),
+      );
+    }
+    try {
+      final responseModals = await destinationDataSource.getDestinationDetail(id);
+      return Right(responseModals.toEntity());
+
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } catch (e) {
+      return Left(
+        ServerFailure('Đã xảy ra lỗi không mong muốn: ${e.toString()}'),
+      );
+    }
+  }
 }

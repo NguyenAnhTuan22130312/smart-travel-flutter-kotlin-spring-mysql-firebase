@@ -8,7 +8,7 @@ import 'package:smart_travel/presentation/blocs/province/province_event.dart';
 import 'package:smart_travel/presentation/blocs/province/province_state.dart';
 import 'package:smart_travel/presentation/widgets/category/custom_category.dart';
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
-import 'package:smart_travel/presentation/widgets/destination/DestinationFeaturedCard.dart';
+import 'package:smart_travel/presentation/widgets/destination/destination_card.dart';
 import 'package:smart_travel/presentation/widgets/province/province_is_popular_card.dart';
 import '../../theme/app_colors.dart';
 
@@ -681,7 +681,7 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                   ),
                   itemCount: destinations.length,
                   itemBuilder: (context, index) {
-                    return DestinationFeatured(destinations[index]);
+                    return DestinationCart(destinations[index]);
                   },
                 ),
 

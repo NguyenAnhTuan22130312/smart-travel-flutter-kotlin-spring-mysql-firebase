@@ -4,6 +4,7 @@ import 'package:smart_travel/domain/entities/destinations.dart';
 import 'package:smart_travel/domain/usecases/destination/filter_destinations_by_category_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_featured_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_use_case.dart';
+import 'package:smart_travel/domain/usecases/destination/get_detail_destination_use_case.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
 
@@ -11,9 +12,10 @@ class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
   final GetAllDestinationFeaturedUseCase destinationFeaturedUseCase;
   final GetAllDestinationsUseCase getAllDestinationUseCase;
   final FilterDestinationsByCategoryUseCase filterByCategoryUseCase;
+  final GetDetailDestinationUseCase getDetailDestinationUseCase;
 
   DestinationBloc({required this.destinationFeaturedUseCase,
-    required this.filterByCategoryUseCase, required this.getAllDestinationUseCase})
+    required this.filterByCategoryUseCase, required this.getAllDestinationUseCase, required this.getDetailDestinationUseCase})
       : super(FeaturedDestinationInitial()) {
     on<LoadFeaturedDestinations>(_onLoadFeaturedDestinations);
 
@@ -21,6 +23,7 @@ class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
     on<FilterDestinationsByCategory>(_onFilterDestinationsByCategory);
     on<FilterDestinationsEvent>(_onFilterDestinationsEvent);
     on<SearchDestinationEvent>(_onSearchDestinationEvent);
+    on<GetDetailDestinationEvent> (_onGetDetailDestinationEvent);
   }
 
   //Lấy danh sách địa điểm nổi bật
@@ -181,4 +184,22 @@ class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
       emit(FilterDestinationError(e.toString()));
     }
   }
+
+  //Xem chi tiết địa điểm
+  Future<void> _onGetDetailDestinationEvent(
+      GetDetailDestinationEvent event,
+      Emitter<DestinationState> emit) async{
+    emit(GetDetailDestinationLoading());
+    try{
+      final result = await getDetailDestinationUseCase(event.id);
+      result.fold(
+          (failure)=> emit(GetDetailDestinationError(failure.message)),
+          (destinationDetail)=> emit(GetDetailDestinationLoaded(destinationDetail))
+      );
+    }catch(e){
+      emit(GetDetailDestinationError(e.toString()));
+    }
+
+  }
+
 }

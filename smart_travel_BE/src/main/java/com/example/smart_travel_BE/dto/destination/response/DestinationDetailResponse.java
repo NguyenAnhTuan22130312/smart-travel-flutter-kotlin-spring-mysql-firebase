@@ -20,7 +20,6 @@ public class DestinationDetailResponse {
     private Double latitude;
     private Double longitude;
 
-    private Long provinceId;
     private ProvinceResponse province;
 
     private BigDecimal averageRating;

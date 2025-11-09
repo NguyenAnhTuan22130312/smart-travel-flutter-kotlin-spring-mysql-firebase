@@ -13,16 +13,20 @@ class LoadFeaturedDestinations extends DestinationEvent {
 
 }
 
+//Lọc địa điểm theo danh mục
 class FilterDestinationsByCategory extends DestinationEvent {
   final String category;
   FilterDestinationsByCategory(this.category);
 }
+
+// Lấy danh sách địa điểm
 class LoadAllDestinations extends DestinationEvent {
   final bool? loadAll;
 
   LoadAllDestinations({this.loadAll = false});
 }
 
+//lọc địa điểm theo giá trị
 class FilterDestinationsEvent extends DestinationEvent {
   final String? sortBy;
   final double? minPrice;
@@ -38,9 +42,16 @@ class FilterDestinationsEvent extends DestinationEvent {
 
 }
 
+//Tìm kiếm địa điểm
 class SearchDestinationEvent extends DestinationEvent{
   final String query;
 
   SearchDestinationEvent(this.query);
 
+}
+
+//Xem chi tiết địa điểm
+class GetDetailDestinationEvent extends DestinationEvent{
+  final int id;
+  GetDetailDestinationEvent(this.id);
 }

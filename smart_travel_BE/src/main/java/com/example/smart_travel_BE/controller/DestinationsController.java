@@ -62,7 +62,7 @@ public class DestinationsController {
      * xem chi tiết địa điểm
      */
     @GetMapping("/detail/{id}")
-    public ResponseEntity<APIResponse<DestinationDetailResponse>>filterDestinationsByCategory(@PathVariable("id") long id){
+    public ResponseEntity<APIResponse<DestinationDetailResponse>>getDestinationDetail(@PathVariable("id") long id){
         return ResponseEntity.status(HttpStatus.OK).body(
                 APIResponse.<DestinationDetailResponse>builder()
                         .data(destinationService.getDestinationDetail(id))

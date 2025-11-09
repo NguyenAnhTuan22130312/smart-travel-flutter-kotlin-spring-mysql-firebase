@@ -1,8 +1,19 @@
-import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
-import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' as gmap;
+import 'package:lottie/lottie.dart';
+import 'package:smart_travel/domain/entities/destinations.dart';
+import 'package:smart_travel/domain/entities/hotel.dart';
+import 'package:smart_travel/domain/entities/review.dart';
+import 'package:smart_travel/domain/entities/tour.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../theme/app_colors.dart';
 
 class DetailDestinationScreen extends StatefulWidget {
   const DetailDestinationScreen({Key? key}) : super(key: key);
@@ -16,110 +27,18 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
   late TabController _tabController;
   late AnimationController _fadeController;
   late PageController _pageController;
-  late Timer _timer;
+  Timer? _timer;
   int _currentImageIndex = 0;
-
-  final Map<String, dynamic> mockData = {
-    "id": 2,
-    "name": "Bà Nà Hills",
-    "description":
-    "Bà Nà Hills là khu du lịch nổi tiếng với cáp treo kỷ lục, cầu Vàng độc đáo và khí hậu mát mẻ như châu Âu.",
-    "category": "MOUNTAIN",
-    "address": "Xã Hòa Ninh, Huyện Hòa Vang, Đà Nẵng",
-    "latitude": 15.9972,
-    "longitude": 107.9965,
-    "province": {
-      "id": 2,
-      "name": "Đà Nẵng",
-      "imageUrl":
-      "https://res.cloudinary.com/dcwqv4rng/image/upload/v1760535538/tdjci9thdvu6wkpaznw5.jpg"
-    },
-    "averageRating": 4.65,
-    "reviewCount": 950,
-    "viewCount": 32000,
-    "entryFee": 750000.00,
-    "openingHours":
-    "{\"monday\": \"07:00-21:00\", \"tuesday\": \"07:00-21:00\", \"wednesday\": \"07:00-21:00\", \"thursday\": \"07:00-21:00\", \"friday\": \"07:00-21:00\", \"saturday\": \"07:00-21:00\", \"sunday\": \"07:00-21:00\"}",
-    "imageUrls": [
-      "https://res.cloudinary.com/dcwqv4rng/image/upload/v1760535538/tdjci9thdvu6wkpaznw5.jpg",
-      "https://res.cloudinary.com/demo/image/upload/v1720535538/tour_banahills_main.jpg",
-      "https://example.com/review-bana-tour1.jpg",
-      "https://example.com/review-bana-hotel1.jpg",
-      "https://images.unsplash.com/photo-1519985176271-0a9a33d7f6e8?w=800"
-    ],
-    "hotels": [
-      {
-        "id": 1,
-        "name": "Mercure Ba Na Hills French Village",
-        "address": "Khu du lịch Bà Nà Hills, Hòa Ninh, Hòa Vang, Đà Nẵng",
-        "pricePerNight": 2800000.00,
-        "starRating": 5,
-        "averageRating": 4.70,
-        "images": ["https://example.com/hotel-bana1-1.jpg"]
-      },
-      {
-        "id": 2,
-        "name": "Debay Hotel Ba Na Hills",
-        "address": "Bà Nà Hills, Hòa Ninh, Hòa Vang, Đà Nẵng",
-        "pricePerNight": 1900000.00,
-        "starRating": 4,
-        "averageRating": 4.50,
-        "images": ["https://example.com/hotel-bana2-1.jpg"]
-      }
-    ],
-    "tours": [
-      {
-        "id": 1,
-        "name": "Tour Bà Nà Hills 1 Ngày",
-        "durationDays": 1,
-        "pricePerPerson": 850000.00,
-        "averageRating": 4.80,
-        "images": [
-          "https://res.cloudinary.com/demo/image/upload/v1720535538/tour_banahills_main.jpg"
-        ]
-      },
-      {
-        "id": 2,
-        "name": "Tour Bà Nà Hills - Hội An 2N1Đ",
-        "durationDays": 2,
-        "pricePerPerson": 1900000.00,
-        "averageRating": 4.70,
-        "images": [
-          "https://res.cloudinary.com/demo/image/upload/v1720535541/tour_hoian_main.jpg"
-        ]
-      }
-    ],
-    "reviews": [
-      {
-        "id": 1,
-        "rating": 5,
-        "comment": "Tour tuyệt vời! Cầu Vàng và khí hậu trên đỉnh núi rất đáng nhớ.",
-        "likesCount": 12,
-        "createdAt": "2025-10-11T22:10:00",
-        "images": ["https://example.com/review-bana-tour1.jpg"]
-      },
-      {
-        "id": 2,
-        "rating": 4,
-        "comment": "Khách sạn sạch đẹp, nhân viên thân thiện. Ăn sáng ngon và phong cảnh đẹp.",
-        "likesCount": 8,
-        "createdAt": "2025-10-11T22:12:00",
-        "images": ["https://example.com/review-bana-hotel1.jpg"]
-      },
-      {
-        "id": 3,
-        "rating": 5,
-        "comment": "Tour kết hợp Bà Nà Hills và Hội An rất hợp lý, giá tốt, dịch vụ chu đáo.",
-        "likesCount": 5,
-        "createdAt": "2025-10-11T22:15:00",
-        "images": ["https://example.com/review-bana-tour2.jpg"]
-      }
-    ]
-  };
 
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final id = ModalRoute.of(context)!.settings.arguments as int ;
+      context.read<DestinationBloc>().add(GetDetailDestinationEvent(id));
+    });
+
     _tabController = TabController(length: 4, vsync: this);
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 800),
@@ -127,15 +46,12 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
     )..forward();
 
     _pageController = PageController();
-    _startAutoPlay();
   }
 
-  void _startAutoPlay() {
+  void _startAutoPlay(List<String> images) {
     _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
-      if (_pageController.hasClients) {
-        final imageCount = mockData['imageUrls'].length as int; // Ép kiểu an toàn
-        int nextPage = (_currentImageIndex + 1) % imageCount;
-
+      if (_pageController.hasClients && images.isNotEmpty) {
+        final nextPage = (_currentImageIndex + 1) % images.length;
         _pageController.animateToPage(
           nextPage,
           duration: const Duration(milliseconds: 600),
@@ -150,37 +66,84 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
     _tabController.dispose();
     _fadeController.dispose();
     _pageController.dispose();
-    _timer.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          _buildImageCarouselSliver(),
-          SliverToBoxAdapter(child: _buildInfoSection()),
-          SliverToBoxAdapter(child: _buildTabBar()),
-          SliverFillRemaining(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildOverviewTab(),
-                _buildHotelsTab(),
-                _buildToursTab(),
-                _buildReviewsTab(),
+      body: BlocConsumer<DestinationBloc, DestinationState>(
+        listener: (context, state) {
+
+          // Không cần setState ở đây vì BlocBuilder sẽ rebuild
+        },
+        builder: (context, state) {
+          if (state is GetDetailDestinationLoading) {
+            return Center(
+              child: Lottie.asset(
+                'assets/lottie/travel_is_fun.json',
+                width: 200,
+                height: 500,
+                repeat: true,
+
+              ),
+            );
+          }
+
+          if (state is GetDetailDestinationError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error, size: 64, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(state.message, textAlign: TextAlign.center),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      final id = ModalRoute.of(context)!.settings.arguments as int;
+                      context.read<DestinationBloc>().add(GetDetailDestinationEvent(id));
+                    },
+                    child: const Text('Thử lại'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (state is GetDetailDestinationLoaded) {
+            final destination = state.destinationEntity;
+            final images = destination.imageUrls ?? [];
+            _startAutoPlay(images);
+
+            return CustomScrollView(
+              slivers: [
+                _buildImageCarouselSliver(images, destination),
+                SliverToBoxAdapter(child: _buildInfoSection(destination)),
+                SliverToBoxAdapter(child: _buildTabBar(destination)),
+                SliverFillRemaining(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildOverviewTab(destination),
+                      _buildHotelsTab(destination.hotels ?? []),
+                      _buildToursTab(destination.tours ?? []),
+                      _buildReviewsTab(destination.reviews ?? []),
+                    ],
+                  ),
+                ),
               ],
-            ),
-          ),
-        ],
+            );
+          }
+
+          return const SizedBox.shrink();
+        },
       ),
     );
   }
 
-  Widget _buildImageCarouselSliver() {
-    final images = mockData['imageUrls'] as List;
-
+  Widget _buildImageCarouselSliver(List<String> images, DestinationEntity destination) {
     return SliverAppBar(
       expandedHeight: 340,
       floating: false,
@@ -261,7 +224,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    mockData['name'],
+                    destination.name,
                     style: const TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -276,7 +239,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          mockData['address'],
+                          destination.address ?? 'Không có địa chỉ',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 13,
@@ -297,7 +260,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
     );
   }
 
-  Widget _buildInfoSection() {
+  Widget _buildInfoSection(DestinationEntity destination) {
     return FadeTransition(
       opacity: _fadeController,
       child: Padding(
@@ -311,22 +274,22 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildRatingRow(
-                        (mockData['averageRating'] as num).toDouble(),
-                        mockData['reviewCount'] as int,
+                        destination.averageRating,
+                        destination.reviewCount,
                       ),
                       const SizedBox(height: 12),
-                      _buildViewCount(mockData['viewCount'] as int),
+                      _buildViewCount(destination.viewCount),
                     ],
                   ),
                 ),
                 const SizedBox(width: 12),
-                _buildActionButtons(),
+                _buildActionButtons(destination),
               ],
             ),
             const SizedBox(height: 20),
             _buildPriceAndHours(
-              (mockData['entryFee'] as num).toDouble(),
-              _parseOpeningHours(),
+              destination.entryFee ?? 0,
+              _parseOpeningHours(destination.openingHours),
             ),
           ],
         ),
@@ -350,7 +313,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '$rating / 5.0',
+              '${rating.toStringAsFixed(1)} / 5.0',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
             Text(
@@ -376,25 +339,19 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(DestinationEntity destination) {
     return Column(
       children: [
         Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: () => _openMap(
-              (mockData['latitude'] as num).toDouble(),
-              (mockData['longitude'] as num).toDouble(),
-            ),
+            onTap: () => _openMap(destination.latitude!, destination.longitude!),
             borderRadius: BorderRadius.circular(14),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF00C853), Color(0xFF00BF4F)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+
+                color: AppColors.button,
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
@@ -429,22 +386,22 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
             onTap: _share,
             borderRadius: BorderRadius.circular(14),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
               decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xFF2196F3), width: 2),
+                border: Border.all(color:  AppColors.primary, width: 2),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.share, size: 18, color: Color(0xFF2196F3)),
+                  Icon(Icons.share, size: 18, color: AppColors.primary),
                   SizedBox(width: 6),
                   Text(
                     'Chia sẻ',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF2196F3),
+                      color: AppColors.primary,
                     ),
                   ),
                 ],
@@ -457,19 +414,20 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
   }
 
   Widget _buildPriceAndHours(double fee, Map<String, String> hours) {
+    final hourText = hours.values.isNotEmpty ? hours.values.first : 'Không có thông tin';
     return Row(
       children: [
         Expanded(
           child: _infoCard(
             Icons.local_offer,
             'Giá vé',
-            '${_formatPrice(fee  )}đ',
-            Colors.orange,
+            fee > 0 ? '${_formatPrice(fee)}đ' : 'Miễn phí',
+            AppColors.button,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: _infoCard(Icons.access_time, 'Giờ mở cửa', '07:00 - 21:00', Colors.blue),
+          child: _infoCard(Icons.access_time, 'Giờ mở cửa', hourText, Colors.blue),
         ),
       ],
     );
@@ -510,7 +468,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
     );
   }
 
-  Widget _buildTabBar() {
+  Widget _buildTabBar(DestinationEntity destination) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: TabBar(
@@ -522,15 +480,15 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
         labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
         tabs: [
           const Tab(text: 'Tổng quan'),
-          Tab(text: 'Khách sạn (${mockData['hotels'].length})'),
-          Tab(text: 'Tour (${mockData['tours'].length})'),
-          Tab(text: 'Đánh giá (${mockData['reviews'].length})'),
+          Tab(text: 'Khách sạn (${destination.hotels?.length ?? 0})'),
+          Tab(text: 'Tour (${destination.tours?.length ?? 0})'),
+          Tab(text: 'Đánh giá (${destination.reviews?.length ?? 0})'),
         ],
       ),
     );
   }
 
-  Widget _buildOverviewTab() {
+  Widget _buildOverviewTab(DestinationEntity destination) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -539,7 +497,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
           const Text('Mô tả', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           Text(
-            mockData['description'],
+            destination.description ?? 'Không có mô tả',
             style: TextStyle(height: 1.8, color: Colors.grey[700], fontSize: 14),
           ),
           const SizedBox(height: 28),
@@ -553,22 +511,16 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: GoogleMap(
-                initialCameraPosition: CameraPosition(
-                  target: LatLng(
-                    (mockData['latitude'] as num).toDouble(),
-                    (mockData['longitude'] as num).toDouble(),
-                  ),
+              child: gmap.GoogleMap(
+                initialCameraPosition:gmap.CameraPosition(
+                  target: gmap.LatLng(destination.latitude!, destination.longitude!),
                   zoom: 15,
                 ),
                 markers: {
-                  Marker(
-                    markerId: const MarkerId('dest'),
-                    position: LatLng(
-                      (mockData['latitude'] as num).toDouble(),
-                      (mockData['longitude'] as num).toDouble(),
-                    ),
-                    infoWindow: InfoWindow(title: mockData['name']),
+                  gmap.Marker(
+                    markerId: const gmap.MarkerId('dest'),
+                    position: gmap.LatLng(destination.latitude!, destination.longitude!),
+                    infoWindow: gmap.InfoWindow(title: destination.name),
                   ),
                 },
                 liteModeEnabled: true,
@@ -580,17 +532,15 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
     );
   }
 
-  Widget _buildHotelsTab() {
-    final hotels = mockData['hotels'] as List;
+  Widget _buildHotelsTab(List<Hotel> hotels) {
+    if (hotels.isEmpty) {
+      return const Center(child: Text('Chưa có khách sạn'));
+    }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: hotels.length,
       itemBuilder: (context, i) {
         final h = hotels[i];
-        final price = (h['pricePerNight'] as num).toDouble();
-        final starRating = h['starRating'] as int;
-        final avgRating = (h['averageRating'] as num).toDouble();
-
         return Container(
           margin: const EdgeInsets.only(bottom: 14),
           decoration: BoxDecoration(
@@ -609,7 +559,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.network(
-                        h['images'][0],
+                        h.images!,
                         width: 80,
                         height: 80,
                         fit: BoxFit.cover,
@@ -622,7 +572,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            h['name'],
+                            h.name!,
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -630,37 +580,32 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                           const SizedBox(height: 6),
                           Row(
                             children: [
-                              ...List.generate(starRating, (j) => const Icon(Icons.star, color: Color(0xFFFDBF0E), size: 14)),
+                              ...List.generate(h.starRating!, (_) => const Icon(Icons.star, color: Color(0xFFFDBF0E), size: 14)),
                               const SizedBox(width: 6),
-                              Text('$starRating sao', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                              Text('${h.starRating} sao', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                             ],
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            '${_formatPrice(price)}đ / đêm',
+                            '${_formatPrice(h.pricePerNight!)}đ / đêm',
                             style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF00C853), fontSize: 14),
                           ),
                         ],
                       ),
                     ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(color: Colors.green[50], borderRadius: BorderRadius.circular(8)),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.star, color: Color(0xFFFDBF0E), size: 14),
-                              const SizedBox(width: 4),
-                              Text(
-                                avgRating.toStringAsFixed(1),
-                                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 13),
-                              ),
-                            ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(color: Colors.green[50], borderRadius: BorderRadius.circular(8)),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.star, color: Color(0xFFFDBF0E), size: 14),
+                          const SizedBox(width: 4),
+                          Text(
+                            h.averageRating!.toStringAsFixed(1),
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 13),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -672,17 +617,15 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
     );
   }
 
-  Widget _buildToursTab() {
-    final tours = mockData['tours'] as List;
+  Widget _buildToursTab(List<Tour> tours) {
+    if (tours.isEmpty) {
+      return const Center(child: Text('Chưa có tour'));
+    }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: tours.length,
       itemBuilder: (context, i) {
         final t = tours[i];
-        final price = (t['pricePerPerson'] as num).toDouble();
-        final days = t['durationDays'] as int;
-        final avgRating = (t['averageRating'] as num).toDouble();
-
         return Container(
           margin: const EdgeInsets.only(bottom: 14),
           decoration: BoxDecoration(
@@ -701,7 +644,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.network(
-                        t['images'][0],
+                        t.image!,
                         width: 80,
                         height: 80,
                         fit: BoxFit.cover,
@@ -714,7 +657,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            t['name'],
+                            t.name!,
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -724,35 +667,30 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                             children: [
                               Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
                               const SizedBox(width: 4),
-                              Text('$days ngày', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                              Text('${t.durationDays} ngày', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                             ],
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            '${_formatPrice(price)}đ / người',
+                            '${_formatPrice(t.pricePerPerson!)}đ / người',
                             style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF00C853), fontSize: 14),
                           ),
                         ],
                       ),
                     ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(8)),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.star, color: Color(0xFFFDBF0E), size: 14),
-                              const SizedBox(width: 4),
-                              Text(
-                                avgRating.toStringAsFixed(1),
-                                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 13),
-                              ),
-                            ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(8)),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.star, color: Color(0xFFFDBF0E), size: 14),
+                          const SizedBox(width: 4),
+                          Text(
+                            t.averageRating!.toStringAsFixed(1),
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 13),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -764,16 +702,15 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
     );
   }
 
-  Widget _buildReviewsTab() {
-    final reviews = mockData['reviews'] as List;
+  Widget _buildReviewsTab(List<Review> reviews) {
+    if (reviews.isEmpty) {
+      return const Center(child: Text('Chưa có đánh giá'));
+    }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: reviews.length,
       itemBuilder: (context, i) {
         final r = reviews[i];
-        final rating = r['rating'] as int;
-        final likes = r['likesCount'] as int;
-
         return Container(
           margin: const EdgeInsets.only(bottom: 14),
           decoration: BoxDecoration(
@@ -788,29 +725,29 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                 Row(
                   children: [
                     ...List.generate(5, (j) => Icon(
-                      j < rating ? Icons.star : Icons.star_border,
+                      j < r.rating! ? Icons.star : Icons.star_border,
                       color: const Color(0xFFFDBF0E),
                       size: 18,
                     )),
                     const SizedBox(width: 8),
-                    Text('$rating/5', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text('${r.rating}/5', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                   ],
                 ),
                 const SizedBox(height: 12),
-                Text(r['comment'], style: TextStyle(fontSize: 15, color: Colors.grey[800], height: 1.6)),
-                if (r['images'].isNotEmpty) ...[
+                Text(r.comment!, style: TextStyle(fontSize: 15, color: Colors.grey[800], height: 1.6)),
+                if (r.imageUrls?.isNotEmpty == true) ...[
                   const SizedBox(height: 14),
                   SizedBox(
                     height: 90,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: r['images'].length,
+                      itemCount: r.imageUrls!.length,
                       itemBuilder: (context, j) => Padding(
                         padding: const EdgeInsets.only(right: 10),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: Image.network(
-                            r['images'][j],
+                            r.imageUrls![j],
                             width: 90,
                             height: 90,
                             fit: BoxFit.cover,
@@ -831,12 +768,12 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                         children: [
                           Icon(Icons.thumb_up, size: 16, color: Colors.blue[600]),
                           const SizedBox(width: 4),
-                          Text('$likes', style: TextStyle(color: Colors.blue[600], fontWeight: FontWeight.w600, fontSize: 13)),
+                          Text('${r.likesCount}', style: TextStyle(color: Colors.blue[600], fontWeight: FontWeight.w600, fontSize: 13)),
                         ],
                       ),
                     ),
                     const Spacer(),
-                    Text(_formatDate(r['createdAt']), style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+                    Text(_formatDate(r.createdAt), style: TextStyle(color: Colors.grey[500], fontSize: 12)),
                   ],
                 ),
               ],
@@ -847,21 +784,20 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
     );
   }
 
-  // Helper: Định dạng giá tiền
+  // Helper
   String _formatPrice(double price) {
-    return price.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+    return price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
   }
 
-  Map<String, String> _parseOpeningHours() {
-    final data = mockData['openingHours'];
-    if (data is String) {
-      final decoded = jsonDecode(data) as Map<String, dynamic>;
-      return decoded.map((k, v) => MapEntry(k, v.toString()));
-    }
-    return {'Giờ mở cửa': '07:00 - 21:00'};
+  Map<String, String> _parseOpeningHours(Map<String, dynamic>? hours) {
+    if (hours == null || hours.isEmpty) return {'': 'Không có thông tin'};
+    return hours.map((k, v) => MapEntry(k, v.toString()));
   }
 
-  String _formatDate(String date) => date.split('T')[0].replaceAll('-', '/');
+  String _formatDate(DateTime? date) {
+    if (date == null) return '';
+    return '${date.day}/${date.month}/${date.year}';
+  }
 
   void _openMap(double lat, double lng) async {
     final url = Uri.parse('https://www.google.com/maps?q=$lat,$lng');

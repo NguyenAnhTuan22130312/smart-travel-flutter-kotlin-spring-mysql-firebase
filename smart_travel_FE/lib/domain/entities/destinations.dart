@@ -1,3 +1,7 @@
+import 'package:smart_travel/domain/entities/hotel.dart';
+import 'package:smart_travel/domain/entities/review.dart';
+import 'package:smart_travel/domain/entities/tour.dart';
+
 class DestinationEntity {
   final int? id;
   final String name;
@@ -16,7 +20,12 @@ class DestinationEntity {
   final double? entryFee;
   final DateTime? createdAt;
   final DateTime? updatedAt;
-  final String imageUrl ;
+  final String? imageUrl ;
+
+  final List<String>? imageUrls;
+  final List<Hotel>? hotels;
+  final List<Tour>? tours;
+  final List<Review>? reviews;
 
 
   DestinationEntity({
@@ -37,6 +46,10 @@ class DestinationEntity {
     this.entryFee,
     this.createdAt,
     this.updatedAt,
-    required this.imageUrl
+    this.imageUrl,
+    this.imageUrls,
+    this.hotels,
+    this.tours,
+    this.reviews,
   });
 }

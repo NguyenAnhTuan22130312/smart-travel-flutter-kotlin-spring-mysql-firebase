@@ -49,10 +49,10 @@ public class Hotel {
     private String email;
 
     @Column(name = "star_rating", nullable = false)
-    private Integer starRating = 0;
+    private Integer starRating = 0; // tương ứng HotelResponse.stars
 
-    @Column(name = "price_per_night", nullable = false, precision = 10, scale = 2)
-    private BigDecimal pricePerNight;
+    @Column(name = "price_per_night", precision = 10, scale = 2)
+    private BigDecimal pricePerNight; // giá mặc định / hiển thị
 
     @Column(name = "average_rating", precision = 3, scale = 2)
     private BigDecimal averageRating = BigDecimal.ZERO;
@@ -82,4 +82,29 @@ public class Hotel {
 
     @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<HotelImage> images = new ArrayList<>();
+
+    @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RoomType> roomTypes = new ArrayList<>();
+
+    /**
+     * Lấy ảnh chính làm thumbnail
+     */
+    public String getThumbnail() {
+        return images.stream()
+                .filter(HotelImage::getIsPrimary)
+                .findFirst()
+                .map(HotelImage::getImageUrl)
+                .orElse(images.isEmpty() ? null : images.get(0).getImageUrl());
+    }
+
+    /**
+     * Lấy giá rẻ nhất trong các RoomType
+     */
+    public BigDecimal getMinPrice() {
+        return roomTypes.stream()
+                .map(RoomType::getPrice)
+                .filter(p -> p != null)
+                .min(BigDecimal::compareTo)
+                .orElse(pricePerNight);
+    }
 }

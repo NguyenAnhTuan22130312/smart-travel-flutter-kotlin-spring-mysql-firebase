@@ -497,7 +497,7 @@ class _ProvinceDetailScreenState extends State<ProvinceDetailScreen> {
               child: destination.imageUrl != null
                   ? Image.network(
 
-                destination.imageUrl,
+                destination.imageUrl!,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Icon(

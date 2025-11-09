@@ -1,7 +1,10 @@
 package com.example.smart_travel_BE.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -17,6 +20,9 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_status", columnList = "status"),
                 @Index(name = "idx_created_at", columnList = "created_at DESC")
         })
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Booking {
 
     @Id
@@ -82,4 +88,8 @@ public class Booking {
 
     @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL)
     private Invoice invoice;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "room_type_id")
+    private RoomType roomType;
 }
