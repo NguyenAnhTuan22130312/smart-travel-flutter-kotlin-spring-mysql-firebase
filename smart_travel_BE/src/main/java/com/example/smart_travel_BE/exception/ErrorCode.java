@@ -63,6 +63,9 @@ public enum ErrorCode {
 
     //PROVINCE
     PROVINCE_NOT_EXISTED(1060, "Tỉnh thành không tồn tại", HttpStatus.NOT_FOUND),
+
+    //DESTINATION
+    DESTINATION_NOT_EXISTED(1070, "Địa điểm không tồn tại", HttpStatus.NOT_FOUND),
     ;
 
 

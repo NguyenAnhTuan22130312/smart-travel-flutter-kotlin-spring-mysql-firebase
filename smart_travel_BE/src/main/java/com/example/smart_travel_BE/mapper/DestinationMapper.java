@@ -1,13 +1,21 @@
 package com.example.smart_travel_BE.mapper;
 
 import com.example.smart_travel_BE.dto.destination.request.DestinationRequest;
+import com.example.smart_travel_BE.dto.destination.response.DestinationDetailResponse;
 import com.example.smart_travel_BE.dto.destination.response.DestinationFeaturedResponse;
 import com.example.smart_travel_BE.dto.destination.response.DestinationResponse;
-import com.example.smart_travel_BE.entity.Destination;
+import com.example.smart_travel_BE.dto.hotel.response.HotelSummaryResponse;
+import com.example.smart_travel_BE.dto.review.response.ReviewResponse;
+import com.example.smart_travel_BE.dto.tour.response.TourSummaryResponse;
+import com.example.smart_travel_BE.entity.*;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface DestinationMapper {
@@ -19,6 +27,21 @@ public interface DestinationMapper {
 
     @Mapping(source = "province.name", target = "provinceName")
     DestinationFeaturedResponse toDestinationFeaturedResponse(Destination destination);
+
+
+    DestinationDetailResponse toDestinationDetailResponse(Destination destination);
+
+    // Chuyển Tour -> TourSummaryResponse (ảnh đầu tiên)
+    @Mapping(target = "images", ignore = true)
+    TourSummaryResponse map(Tour tour);
+
+    // Chuyển Hotel -> HotelSummaryResponse (ảnh đầu tiên)
+    @Mapping(target = "images", ignore = true)
+    HotelSummaryResponse map(Hotel hotel);
+
+    // Chuyển Review -> ReviewResponse (danh sách ảnh)
+    @Mapping(target = "images", source = "images")
+    ReviewResponse map(Review review);
 
     @AfterMapping
     default void mapImageUrl(Destination destination, @MappingTarget DestinationFeaturedResponse response) {
@@ -38,6 +61,58 @@ public interface DestinationMapper {
         } else {
             // Trường hợp không có ảnh
             response.setImageUrl(null);
+        }
+    }
+
+    // ====== Sau khi map xong, gán ảnh đầu tiên cho Tour ======
+    @AfterMapping
+    default void mapTourImage(Tour tour, @MappingTarget TourSummaryResponse response) {
+        if (tour.getImages() != null && !tour.getImages().isEmpty()) {
+            response.setImages(List.of(tour.getImages().get(0).getImageUrl()).toString());
+        } else {
+            response.setImages(String.valueOf(new ArrayList<>()));
+        }
+    }
+
+    // ====== Sau khi map xong, gán ảnh đầu tiên cho Hotel ======
+    @AfterMapping
+    default void mapHotelImage(Hotel hotel, @MappingTarget HotelSummaryResponse response) {
+        if (hotel.getImages() != null && !hotel.getImages().isEmpty()) {
+            response.setImages(List.of(hotel.getImages().get(0).getImageUrl()).toString());
+        } else {
+            response.setImages(String.valueOf(new ArrayList<>()));
+        }
+    }
+
+    // ====== Chuyển danh sách ảnh Review -> danh sách URL ======
+    default List<String> map(List<ReviewImage> images) {
+        if (images == null) {
+            return new ArrayList<>();
+        }
+        return images.stream()
+                .map(ReviewImage::getImageUrl)
+                .collect(Collectors.toList());
+    }
+
+    @AfterMapping
+    default void mapDestinationImages(Destination destination, @MappingTarget DestinationDetailResponse response) {
+        if (destination.getImages() != null && !destination.getImages().isEmpty()) {
+            // Lấy danh sách URL ảnh
+            List<String> imageUrls = destination.getImages()
+                    .stream()
+                    .map(DestinationImage::getImageUrl)
+                    .collect(Collectors.toList());
+            response.setImageUrls(imageUrls);
+        } else {
+            response.setImageUrls(new ArrayList<>());
+        }
+    }
+    @AfterMapping
+    default void mapUserFullName(Review review, @MappingTarget ReviewResponse response) {
+        if (review.getUser() != null && review.getUser().getFullName() != null) {
+            response.setUserFullName(review.getUser().getFullName());
+        } else {
+            response.setUserFullName("Ẩn danh"); // hoặc để null tùy yêu cầu
         }
     }
 }

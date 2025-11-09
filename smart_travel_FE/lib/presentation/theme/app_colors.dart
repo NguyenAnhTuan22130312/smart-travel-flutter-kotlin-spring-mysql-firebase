@@ -7,6 +7,9 @@ class AppColors {
   // Màu phụ (Secondary)
   static const Color green = Color(0xFF5BEDD2); // green
 
+  //
+  static const Color button = Color(0xFF23A39B); // Orange
+
   // Màu phụ (Secondary)
   static const Color secondary = Color(0xFFFF9800); // Orange
 

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:smart_travel/domain/entities/province.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
@@ -9,7 +8,7 @@ import 'package:smart_travel/presentation/blocs/province/province_event.dart';
 import 'package:smart_travel/presentation/blocs/province/province_state.dart';
 import 'package:smart_travel/presentation/widgets/category/custom_category.dart';
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
-import 'package:smart_travel/presentation/widgets/destination/DestinationFeaturedCard.dart';
+import 'package:smart_travel/presentation/widgets/destination/destination_card.dart';
 import 'package:smart_travel/presentation/widgets/province/province_is_popular_card.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import '../../theme/app_colors.dart';
@@ -215,6 +214,11 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () {
               // TODO: Navigate to search screen
             },
+            onChanged: (value) {
+              context.read<DestinationBloc>().add(SearchDestinationEvent(
+                  value
+              ));
+            },
           ),
         ),
       ),
@@ -342,8 +346,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Điểm đến du lịch',
+                       Text(
+                        'Điểm đến du lịch (${destinations.length})',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -352,7 +356,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       TextButton(
                         onPressed: () {
-                          // TODO: Navigate to all destinations (full screen)
+                          context.read<DestinationBloc>().add(LoadAllDestinations(loadAll: true));
                         },
                         child: Text(
                           'Xem tất cả',
@@ -377,7 +381,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       final destination = destinations[index];
                       return Padding(
                         padding: EdgeInsets.only(right: index == destinations.length - 1 ? 0 : 12),
-                        child: DestinationFeatured(destination),
+                        child: DestinationCart(destination),
                       );
                     },
                   ),
@@ -445,8 +449,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Điểm đến nổi bật',
+                       Text(
+                        'Điểm đến nổi bật (${featuredDestinations.length})',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -455,7 +459,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       TextButton(
                         onPressed: () {
-                          // TODO: Navigate to all featured destinations
+                          context.read<DestinationBloc>().add(LoadFeaturedDestinations(loadAll: true));
                         },
                         child: Text(
                           'Xem tất cả',
@@ -479,7 +483,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       final destination = featuredDestinations[index];
                       return Padding(
                         padding: EdgeInsets.only(right: index == featuredDestinations.length - 1 ? 0 : 12),
-                        child: DestinationFeatured(destination),
+                        child: DestinationCart(destination),
                       );
                     },
                   ),
@@ -539,8 +543,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Tỉnh thành phổ biến',
+                         Text(
+                          'Tỉnh thành phổ biến (${provinceIsPopulars.length})',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

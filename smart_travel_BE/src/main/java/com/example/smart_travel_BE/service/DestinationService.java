@@ -1,8 +1,11 @@
 package com.example.smart_travel_BE.service;
 
+import com.example.smart_travel_BE.dto.destination.response.DestinationDetailResponse;
 import com.example.smart_travel_BE.dto.destination.response.DestinationFeaturedResponse;
 import com.example.smart_travel_BE.dto.destination.response.DestinationResponse;
 import com.example.smart_travel_BE.entity.Destination;
+import com.example.smart_travel_BE.exception.AppException;
+import com.example.smart_travel_BE.exception.ErrorCode;
 import com.example.smart_travel_BE.mapper.DestinationMapper;
 import com.example.smart_travel_BE.repository.DestinationRepository;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +52,17 @@ public class DestinationService {
                         d.getCategory().equalsIgnoreCase(category))
                 .map(destinationMapper::toDestinationResponse)
                 .collect(Collectors.toList());
+    }
+    /**
+     * Xem chi tiết địa điểm
+     */
+
+    public DestinationDetailResponse getDestinationDetail(long id) {
+        Destination destination = destinationRepository.findById(id).orElseThrow(
+                () -> new AppException(ErrorCode.DESTINATION_NOT_EXISTED)
+        );
+
+        return  destinationMapper.toDestinationDetailResponse(destination);
     }
 
 }

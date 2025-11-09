@@ -8,7 +8,7 @@ import 'package:smart_travel/presentation/blocs/province/province_event.dart';
 import 'package:smart_travel/presentation/blocs/province/province_state.dart';
 import 'package:smart_travel/presentation/widgets/category/custom_category.dart';
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
-import 'package:smart_travel/presentation/widgets/destination/DestinationFeaturedCard.dart';
+import 'package:smart_travel/presentation/widgets/destination/destination_card.dart';
 import 'package:smart_travel/presentation/widgets/province/province_is_popular_card.dart';
 import '../../theme/app_colors.dart';
 
@@ -23,7 +23,13 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
   final TextEditingController _searchController = TextEditingController();
   int _selectedIndex = 1;
   String _sortBy = 'popular'; // popular, rating, price
-  bool _showFilterSheet = false;
+  RangeValues _priceRange = const RangeValues(0, 10000000);
+  double _minRating = 0;
+  // Biến tạm (dùng trong bottom sheet)
+  late String _tempSortBy;
+  late RangeValues _tempPriceRange;
+  late double _tempMinRating;
+
   late AnimationController _filterAnimationController;
 
 
@@ -58,15 +64,27 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
   }
 
   void _showFilterBottomSheet() {
+    // Khởi tạo lại giá trị tạm từ giá trị hiện tại
+    _tempSortBy = _sortBy;
+    _tempPriceRange = _priceRange;
+    _tempMinRating = _minRating;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _buildFilterBottomSheet(),
+      builder: (context) => StatefulBuilder(  // Thêm StatefulBuilder ở đây
+        builder: (BuildContext context, StateSetter setModalState) {
+          return _buildFilterBottomSheet(setModalState); // Truyền setModalState vào
+        },
+      ),
     );
   }
 
-  Widget _buildFilterBottomSheet() {
+
+
+  // Sửa lại method này để nhận setModalState
+  Widget _buildFilterBottomSheet(StateSetter setModalState) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
       decoration: const BoxDecoration(
@@ -120,7 +138,6 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Sắp xếp theo
                   const Text(
                     'Sắp xếp theo',
                     style: TextStyle(
@@ -130,11 +147,10 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                     ),
                   ),
                   const SizedBox(height: 12),
-                  _buildSortOptions(),
+                  _buildSortOptions(setModalState), // Truyền setModalState
 
                   const SizedBox(height: 24),
 
-                  // Khoảng giá
                   const Text(
                     'Khoảng giá',
                     style: TextStyle(
@@ -144,11 +160,10 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                     ),
                   ),
                   const SizedBox(height: 12),
-                  _buildPriceRangeSlider(),
+                  _buildPriceRangeSlider(setModalState), // Truyền setModalState
 
                   const SizedBox(height: 24),
 
-                  // Đánh giá
                   const Text(
                     'Đánh giá',
                     style: TextStyle(
@@ -158,7 +173,7 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                     ),
                   ),
                   const SizedBox(height: 12),
-                  _buildRatingFilter(),
+                  _buildRatingFilter(setModalState), // Truyền setModalState
 
                   const SizedBox(height: 32),
                 ],
@@ -166,7 +181,7 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
             ),
           ),
 
-          // Action buttons
+          // Action buttons (giữ nguyên)
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -184,9 +199,19 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () {
+                      setModalState(() {
+                        _tempSortBy = 'popular';
+                        _tempPriceRange = const RangeValues(0, 10000000);
+                        _tempMinRating = 0;
+                      });
+
                       setState(() {
                         _sortBy = 'popular';
+                        _priceRange = const RangeValues(0, 10000000);
+                        _minRating = 0;
                       });
+
+                      context.read<DestinationBloc>().add(LoadAllDestinations());
                       Navigator.pop(context);
                     },
                     style: OutlinedButton.styleFrom(
@@ -211,7 +236,20 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                   flex: 2,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Apply filters
+                      setState(() {
+                        _sortBy = _tempSortBy;
+                        _priceRange = _tempPriceRange;
+                        _minRating = _tempMinRating;
+                      });
+
+                      context.read<DestinationBloc>().add(
+                        FilterDestinationsEvent(
+                          sortBy: _tempSortBy,
+                          minPrice: _tempPriceRange.start,
+                          maxPrice: _tempPriceRange.end,
+                          minRating: _tempMinRating,
+                        ),
+                      );
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
@@ -239,7 +277,7 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildSortOptions() {
+  Widget _buildSortOptions(StateSetter setModalState) {
     final options = [
       {'id': 'popular', 'label': 'Phổ biến nhất', 'icon': Icons.trending_up},
       {'id': 'rating', 'label': 'Đánh giá cao', 'icon': Icons.star},
@@ -249,11 +287,11 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
 
     return Column(
       children: options.map((option) {
-        final isSelected = _sortBy == option['id'];
+        final isSelected = _tempSortBy == option['id'];
         return GestureDetector(
           onTap: () {
-            setState(() {
-              _sortBy = option['id'] as String;
+            setModalState(() {  // Dùng setModalState thay vì setState
+              _tempSortBy = option['id'] as String;
             });
           },
           child: Container(
@@ -286,11 +324,7 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                   ),
                 ),
                 if (isSelected)
-                  Icon(
-                    Icons.check_circle,
-                    color: AppColors.primary,
-                    size: 22,
-                  ),
+                  Icon(Icons.check_circle, color: AppColors.primary, size: 22),
               ],
             ),
           ),
@@ -299,7 +333,7 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildPriceRangeSlider() {
+  Widget _buildPriceRangeSlider(StateSetter setModalState) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -312,7 +346,7 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '0đ',
+                '${_tempPriceRange.start.toInt()}đ',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -320,7 +354,7 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                 ),
               ),
               Text(
-                '10,000,000đ',
+                '${_tempPriceRange.end.toInt()}đ',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -330,57 +364,60 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
             ],
           ),
           RangeSlider(
-            values: const RangeValues(0, 10000000),
+            values: _tempPriceRange,
             min: 0,
             max: 10000000,
             divisions: 20,
             activeColor: AppColors.primary,
-            onChanged: (RangeValues values) {},
+            onChanged: (values) {
+              setModalState(() {  // Dùng setModalState
+                _tempPriceRange = values;
+              });
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildRatingFilter() {
+  Widget _buildRatingFilter(StateSetter setModalState) {
     return Column(
       children: List.generate(5, (index) {
         final rating = 5 - index;
+        final isSelected = _tempMinRating == rating.toDouble();
+
         return GestureDetector(
-          onTap: () {},
+          onTap: () {
+            setModalState(() {  // Dùng setModalState
+              _tempMinRating = rating.toDouble();
+            });
+          },
           child: Container(
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey[50],
+              color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.grey[50],
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isSelected ? AppColors.primary : Colors.transparent,
+                width: 2,
+              ),
             ),
             child: Row(
               children: [
-                ...List.generate(
-                  rating,
-                      (i) => Icon(
-                    Icons.star,
-                    color: Colors.amber,
-                    size: 20,
-                  ),
-                ),
-                ...List.generate(
-                  5 - rating,
-                      (i) => Icon(
-                    Icons.star_border,
-                    color: Colors.grey[400],
-                    size: 20,
-                  ),
-                ),
+                ...List.generate(rating, (i) => Icon(Icons.star, color: Colors.amber, size: 20)),
+                ...List.generate(5 - rating, (i) => Icon(Icons.star_border, color: Colors.grey[400], size: 20)),
                 const SizedBox(width: 12),
                 Text(
                   'Từ $rating sao trở lên',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF374151),
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    color: isSelected ? AppColors.primary : const Color(0xFF374151),
                   ),
                 ),
+                const Spacer(),
+                if (isSelected) Icon(Icons.check_circle, color: AppColors.primary, size: 20),
               ],
             ),
           ),
@@ -522,10 +559,12 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
               ),
             ),
             onTap: () {
-              // TODO: Navigate to search screen
+
             },
             onChanged: (value) {
-              // TODO: Search destinations
+              context.read<DestinationBloc>().add(SearchDestinationEvent(
+                  value
+              ));
             },
           ),
         ),
@@ -535,75 +574,43 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
 
   Widget _buildExploreDestinations() {
     return BlocBuilder<DestinationBloc, DestinationState>(
-      buildWhen: (previous, current) {
-        return current is FilterDestinationLoading ||
-            current is FilterDestinationLoaded ||
-            current is FilterDestinationError;
-      },
       builder: (context, state) {
+        // === LOADING ===
         if (state is FilterDestinationLoading) {
-          return SliverToBoxAdapter(
+          return const SliverToBoxAdapter(
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.all(32),
+                padding: EdgeInsets.all(32),
                 child: Column(
                   children: [
-                    CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                      strokeWidth: 3,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Đang tải điểm đến...',
-                      style: TextStyle(
-                        color: AppColors.textGray,
-                        fontSize: 14,
-                      ),
-                    ),
+                    CircularProgressIndicator(strokeWidth: 3),
+                    SizedBox(height: 16),
+                    Text('Đang tải điểm đến...', style: TextStyle(fontSize: 14)),
                   ],
                 ),
               ),
             ),
           );
-        } else if (state is FilterDestinationLoaded) {
-          final destinations = state.destinations;
+        }
 
+        // === LOADED ===
+        else if (state is FilterDestinationLoaded) {
+          final destinations = state.destinations;
+          final bool showViewAll = state.isLimited && destinations.length >= 6;
+
+          // Nếu rỗng
           if (destinations.isEmpty) {
-            return SliverToBoxAdapter(
+            return const SliverToBoxAdapter(
               child: Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(40),
+                  padding: EdgeInsets.all(40),
                   child: Column(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.explore_off,
-                          size: 64,
-                          color: AppColors.primary.withOpacity(0.5),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      const Text(
-                        'Không có điểm đến',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1F2937),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Thử chọn danh mục khác',
-                        style: TextStyle(
-                          color: AppColors.textGray,
-                          fontSize: 14,
-                        ),
-                      ),
+                      Icon(Icons.explore_off, size: 64, color: Colors.grey),
+                      SizedBox(height: 20),
+                      Text('Không có điểm đến', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 8),
+                      Text('Thử chọn danh mục khác', style: TextStyle(color: Colors.grey)),
                     ],
                   ),
                 ),
@@ -611,25 +618,82 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
             );
           }
 
+          // === CÓ DỮ LIỆU ===
           return SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.65,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 16,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                  final destination = destinations[index];
-                  return DestinationFeatured(destination);
-                },
-                childCount: destinations.length,
-              ),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                // === TIÊU ĐỀ ===
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primary.withOpacity(0.1),
+                        AppColors.primary.withOpacity(0.05),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Địa điểm du lịch (${destinations.length})',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1F2937),
+                          ),
+                          overflow: TextOverflow.ellipsis, // cắt chuỗi nếu quá dài
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      TextButton(
+                        onPressed: () {
+                          context.read<DestinationBloc>().add(
+                            LoadAllDestinations(loadAll: true),
+                          );
+                        },
+                        child: Text(
+                          'Xem tất cả',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                ),
+                const SizedBox(height: 16),
+
+                // === LƯỚI ĐIỂM ĐẾN ===
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.65,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 16,
+                  ),
+                  itemCount: destinations.length,
+                  itemBuilder: (context, index) {
+                    return DestinationCart(destinations[index]);
+                  },
+                ),
+
+                // === NÚT XEM TẤT CẢ ===
+
+              ]),
             ),
           );
-        } else if (state is FilterDestinationError) {
+        }
+
+        // === LỖI ===
+        else if (state is FilterDestinationError) {
           return SliverToBoxAdapter(
             child: Center(
               child: Padding(
@@ -637,25 +701,45 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                 child: Column(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
-                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.primary.withOpacity(0.1),
+                            AppColors.primary.withOpacity(0.05),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      child: Icon(
-                        Icons.error_outline,
-                        size: 64,
-                        color: Colors.red.withOpacity(0.5),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withOpacity(0.2),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Icon(Icons.place, color: AppColors.primary, size: 24),
+                          ),
+                          const SizedBox(width: 12),
+                           Text(
+                            'Địa điểm du lịch',
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 20),
                     Text(
                       'Lỗi: ${state.message}',
-                      style: const TextStyle(
-                        color: Colors.red,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: const TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.w600),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -665,6 +749,7 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
           );
         }
 
+        // === MẶC ĐỊNH ===
         return const SliverToBoxAdapter(child: SizedBox.shrink());
       },
     );
@@ -730,8 +815,8 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Text(
-                          'Tỉnh thành',
+                         Text(
+                          'Tỉnh thành (${provinces.length})',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,

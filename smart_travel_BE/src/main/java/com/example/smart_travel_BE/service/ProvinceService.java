@@ -22,7 +22,7 @@ public class ProvinceService {
     private final ProvinceMapper provinceMapper;
 
     /**
-     * Lấy danh sách tỉnh thành phổ biến
+     * Lấy danh sách tỉnh thành
      */
     public List<ProvinceResponse> getAllProvince() {
         List<Province> provinces = provinceRepository.findAll();

@@ -1,5 +1,6 @@
 package com.example.smart_travel_BE.controller;
 
+import com.example.smart_travel_BE.dto.destination.response.DestinationDetailResponse;
 import com.example.smart_travel_BE.dto.destination.response.DestinationFeaturedResponse;
 import com.example.smart_travel_BE.dto.destination.response.DestinationResponse;
 import com.example.smart_travel_BE.dto.user.response.APIResponse;
@@ -57,5 +58,16 @@ public class DestinationsController {
         );
     }
 
+    /**
+     * xem chi tiết địa điểm
+     */
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<APIResponse<DestinationDetailResponse>>getDestinationDetail(@PathVariable("id") long id){
+        return ResponseEntity.status(HttpStatus.OK).body(
+                APIResponse.<DestinationDetailResponse>builder()
+                        .data(destinationService.getDestinationDetail(id))
+                        .build()
+        );
+    }
 
 }

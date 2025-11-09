@@ -22,6 +22,7 @@ import 'package:smart_travel/domain/usecases/auth/register_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/filter_destinations_by_category_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_featured_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_use_case.dart';
+import 'package:smart_travel/domain/usecases/destination/get_detail_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/get_all_province_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/province_detail_use_case.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
@@ -104,16 +105,18 @@ Future<void> init() async {
     ),
   );
 
-  //destination
+  //bloc destination
   sl.registerFactory(
         () => DestinationBloc(
-      destinationFeaturedUseCase : sl(),
-      getAllDestinationUseCase: sl(),
-      filterByCategoryUseCase: sl(),
+          destinationFeaturedUseCase : sl(),
+          getAllDestinationUseCase: sl(),
+          filterByCategoryUseCase: sl(),
+          getDetailDestinationUseCase: sl(),
+
     ),
   );
 
-  //province
+  //bloc province
   sl.registerFactory(
         () => ProvinceBloc(
           getAllProvinceUseCase : sl(),
@@ -137,6 +140,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetAllDestinationFeaturedUseCase(sl()));
   sl.registerLazySingleton(() => GetAllDestinationsUseCase(sl()));
   sl.registerLazySingleton(() => FilterDestinationsByCategoryUseCase(sl()));
+  sl.registerLazySingleton(() => GetDetailDestinationUseCase(sl()));
 
   //  province
   sl.registerLazySingleton(() => GetAllProvinceUseCase(sl()));

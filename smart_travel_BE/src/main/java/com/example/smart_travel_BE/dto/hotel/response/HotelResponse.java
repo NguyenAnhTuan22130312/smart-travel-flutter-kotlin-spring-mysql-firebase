@@ -21,3 +21,4 @@ public class HotelResponse {
     private Long destinationId;
     private String destinationName;
 }
+

@@ -18,6 +18,7 @@ class ApiConstants {
   static const String destinationFeatured = '/destination/destination-featured';
   static const String destinationAll = '/destination/destination-all';
   static const String destinationFilter = '/destination/destination-filter';
+  static const String destinationDetail = '/destination/detail/';
 
   //Province
   static const String provinceAll = '/province/all';
