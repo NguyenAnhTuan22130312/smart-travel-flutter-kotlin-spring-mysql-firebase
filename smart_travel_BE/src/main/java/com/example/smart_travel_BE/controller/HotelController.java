@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/api/hotels")
+@RequestMapping("/api/v1/hotels")
 public class HotelController {
 
     @Autowired
