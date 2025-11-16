@@ -1,0 +1,381 @@
+{
+  "info": {
+    "_postman_id": "smart-travel-api-collection",
+    "name": "Smart Travel API",
+    "description": "Collection API cho Smart Travel Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth APIs",
+      "item": [
+        {
+          "name": "1. Register - Đăng ký",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Lưu token nếu có",
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data) {",
+                  "        console.log('User registered:', jsonData.data.email);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nguyễn Văn A\",\n  \"email\": \"test@example.com\",\n  \"phone\": \"0123456789\",\n  \"password\": \"password123\",\n  \"confirmPassword\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "register"]
+            },
+            "description": "Đăng ký tài khoản mới. Sau khi đăng ký, cần xác thực email."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Login - Đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Lưu token vào environment variable",
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.environment.set(\"token\", jsonData.data.token);",
+                  "        pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
+                  "        console.log('Token saved to environment');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "Đăng nhập và lấy JWT token. Token sẽ được lưu tự động vào environment."
+          },
+          "response": []
+        },
+        {
+          "name": "3. Verify Email - Xác thực email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/verify-email?token={{verification_token}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "verify-email"],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{verification_token}}",
+                  "description": "Token từ email xác thực"
+                }
+              ]
+            },
+            "description": "Xác thực email sau khi đăng ký. Token được gửi qua email."
+          },
+          "response": []
+        },
+        {
+          "name": "4. Resend Verification - Gửi lại email xác thực",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/resend-verification?email=test@example.com",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "resend-verification"],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "test@example.com"
+                }
+              ]
+            },
+            "description": "Gửi lại email xác thực nếu chưa nhận được hoặc token đã hết hạn."
+          },
+          "response": []
+        },
+        {
+          "name": "5. Google Login - Đăng nhập bằng Google",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Lưu token vào environment variable",
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.environment.set(\"token\", jsonData.data.token);",
+                  "        pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
+                  "        console.log('Token saved to environment');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"YOUR_FIREBASE_ID_TOKEN\",\n  \"email\": \"user@gmail.com\",\n  \"displayName\": \"Nguyễn Văn B\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/google-login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "google-login"]
+            },
+            "description": "Đăng nhập bằng Google. Cần Firebase idToken hợp lệ."
+          },
+          "response": []
+        },
+        {
+          "name": "6. Facebook Login - Đăng nhập bằng Facebook",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Lưu token vào environment variable",
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.environment.set(\"token\", jsonData.data.token);",
+                  "        pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
+                  "        console.log('Token saved to environment');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"YOUR_FIREBASE_ID_TOKEN\",\n  \"email\": \"user@facebook.com\",\n  \"displayName\": \"Nguyễn Văn C\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/facebook-login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "facebook-login"]
+            },
+            "description": "Đăng nhập bằng Facebook. Cần Firebase idToken hợp lệ."
+          },
+          "response": []
+        },
+        {
+          "name": "7. Forgot Password - Quên mật khẩu",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/forgot-password?email=test@example.com",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "forgot-password"],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "test@example.com"
+                }
+              ]
+            },
+            "description": "Gửi email reset mật khẩu."
+          },
+          "response": []
+        },
+        {
+          "name": "8. Reset Password - Đặt lại mật khẩu",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{reset_token}}\",\n  \"password\": \"newpassword123\",\n  \"passwordConfirm\": \"newpassword123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/reset-password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "reset-password"]
+            },
+            "description": "Đặt lại mật khẩu mới. Token được gửi qua email."
+          },
+          "response": []
+        }
+      ],
+      "description": "Các API liên quan đến xác thực và đăng nhập"
+    },
+    {
+      "name": "Profile APIs",
+      "item": [
+        {
+          "name": "1. Get Profile - Lấy thông tin profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "profile"]
+            },
+            "description": "Lấy thông tin profile của user hiện tại. Yêu cầu authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Update Profile - Cập nhật profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nguyễn Văn B\",\n  \"phone\": \"0987654321\",\n  \"avatarUrl\": \"https://example.com/avatar.jpg\",\n  \"bio\": \"Giới thiệu về bản thân\",\n  \"gender\": \"MALE\",\n  \"dateOfBirth\": \"1990-01-01\",\n  \"address\": \"123 Đường ABC\",\n  \"city\": \"Hà Nội\",\n  \"country\": \"Việt Nam\",\n  \"preferences\": \"{\\\"theme\\\":\\\"light\\\"}\",\n  \"languageSettings\": \"{\\\"lang\\\":\\\"vi\\\"}\",\n  \"darkModeEnabled\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "profile"]
+            },
+            "description": "Cập nhật thông tin profile. Tất cả các field đều optional, chỉ cần gửi các field muốn cập nhật."
+          },
+          "response": []
+        }
+      ],
+      "description": "Các API quản lý thông tin profile cá nhân"
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "verification_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "reset_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
