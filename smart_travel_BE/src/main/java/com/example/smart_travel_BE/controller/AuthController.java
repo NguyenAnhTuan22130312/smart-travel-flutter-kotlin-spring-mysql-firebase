@@ -21,6 +21,8 @@ import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -231,6 +233,44 @@ public class AuthController {
                         .data(response)
                         .build()
         );
+    }
+
+    /**
+     * Kiểm tra trạng thái email verified (dùng để debug)
+     */
+    @GetMapping("/check-email-status")
+    public ResponseEntity<APIResponse<Object>> checkEmailStatus(@RequestParam("email") String email) {
+        try {
+            var user = authService.getUserByEmail(email);
+            if (user == null) {
+                return ResponseEntity.badRequest().body(
+                        APIResponse.builder()
+                                .msg("User không tồn tại")
+                                .build()
+                );
+            }
+
+            Map<String, Object> status = new HashMap<>();
+            status.put("email", user.getEmail());
+            status.put("emailVerified", user.getEmailVerified());
+            status.put("id", user.getId());
+            status.put("createdAt", user.getCreatedAt());
+            status.put("updatedAt", user.getUpdatedAt());
+
+            return ResponseEntity.ok(
+                    APIResponse.builder()
+                            .msg("Trạng thái email: " + (user.getEmailVerified() ? "Đã xác thực" : "Chưa xác thực"))
+                            .data(status)
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("Error checking email status", e);
+            return ResponseEntity.badRequest().body(
+                    APIResponse.builder()
+                            .msg("Lỗi: " + e.getMessage())
+                            .build()
+            );
+        }
     }
 
     //Đăng xuất của admin
