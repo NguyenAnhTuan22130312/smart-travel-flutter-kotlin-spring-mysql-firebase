@@ -78,6 +78,7 @@ public class AuthService {
 
         userRepository.save(user);
 
+        // KHÔNG tạo UserProfile ở đây - sẽ tạo sau khi email được xác thực
 
         log.info("User created successfully: {}", user.getEmail());
 
@@ -162,7 +163,6 @@ public class AuthService {
 
         verificationToken.setVerifiedAt(LocalDateTime.now());
         tokenRepository.save(verificationToken);
-        tokenRepository.flush();
 
         // Gửi email chào mừng
         try {
