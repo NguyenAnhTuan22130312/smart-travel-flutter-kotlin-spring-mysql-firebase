@@ -452,6 +452,55 @@ Content-Type: application/json
 
 ---
 
+### 9.3. Đổi mật khẩu
+
+#### Endpoint
+
+```
+PUT /api/v1/users/change-password
+```
+
+#### Headers
+
+```
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+#### Request Body
+
+```json
+{
+  "currentPassword": "oldPassword123",
+  "newPassword": "newPassword456",
+  "confirmNewPassword": "newPassword456"
+}
+```
+
+#### Logic
+
+- Kiểm tra email đã xác thực
+- So khớp mật khẩu hiện tại
+- Kiểm tra mật khẩu mới và xác nhận
+- Không cho phép trùng mật khẩu cũ
+- Lưu mật khẩu mới (đã mã hóa)
+
+#### Response thành công (200)
+
+```json
+{
+  "msg": "Đổi mật khẩu thành công"
+}
+```
+
+#### Response lỗi phổ biến
+
+- Sai mật khẩu hiện tại → `UNAUTHENTICATED`
+- Mật khẩu mới và xác nhận không khớp → `INVALID_PASSWORD`
+- Email chưa xác thực → `ACCOUNT_NOT_CONFIRM`
+
+---
+
 ## 📚 Các endpoint khác trong project
 
 Ngoài AuthController và UserController, project còn có các controller khác:

@@ -1,5 +1,6 @@
 package com.example.smart_travel_BE.controller;
 
+import com.example.smart_travel_BE.dto.user.request.ChangePasswordRequest;
 import com.example.smart_travel_BE.dto.user.request.UpdateProfileRequest;
 import com.example.smart_travel_BE.dto.user.response.APIResponse;
 import com.example.smart_travel_BE.dto.user.response.ProfileResponse;
@@ -76,6 +77,36 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     APIResponse.<ProfileResponse>builder()
                             .msg("Có lỗi xảy ra khi cập nhật profile")
+                            .build()
+            );
+        }
+    }
+
+    /**
+     * Đổi mật khẩu
+     */
+    @PutMapping("/change-password")
+    public ResponseEntity<APIResponse<Void>> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request) {
+        try {
+            userService.changePassword(request);
+            return ResponseEntity.ok(
+                    APIResponse.<Void>builder()
+                            .msg("Đổi mật khẩu thành công")
+                            .build()
+            );
+        } catch (AppException e) {
+            log.error("Change password failed", e);
+            return ResponseEntity.badRequest().body(
+                    APIResponse.<Void>builder()
+                            .msg(e.getMessage())
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("Unexpected error when changing password", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    APIResponse.<Void>builder()
+                            .msg("Có lỗi xảy ra khi đổi mật khẩu")
                             .build()
             );
         }

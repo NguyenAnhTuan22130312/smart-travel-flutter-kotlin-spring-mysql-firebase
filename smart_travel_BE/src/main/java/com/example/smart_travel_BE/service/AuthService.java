@@ -143,25 +143,14 @@ public class AuthService {
 
         // Cập nhật trạng thái xác thực
         User user = verificationToken.getUser();
-        log.info("Verifying email for user: {} (ID: {})", user.getEmail(), user.getId());
-        log.info("Current emailVerified status: {}", user.getEmailVerified());
-        
         user.setEmailVerified(true);
         userRepository.save(user);
-        userRepository.flush(); // Đảm bảo thay đổi được commit ngay
-        
-        // Refresh user để đảm bảo lấy dữ liệu mới nhất
-        user = userRepository.findById(user.getId())
-                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
-        
-        log.info("After save - emailVerified status: {}", user.getEmailVerified());
 
         // Tạo UserProfile sau khi email đã được xác thực
         createUserProfile(user);
 
         verificationToken.setVerifiedAt(LocalDateTime.now());
         tokenRepository.save(verificationToken);
-        tokenRepository.flush();
 
         // Gửi email chào mừng
         try {
@@ -170,8 +159,7 @@ public class AuthService {
             log.error("Failed to send welcome email", e);
         }
 
-        log.info("Email verified successfully for user: {} - emailVerified: {}", 
-                user.getEmail(), user.getEmailVerified());
+        log.info("Email verified successfully for user: {}", user.getEmail());
     }
 
     /**
@@ -435,13 +423,6 @@ public class AuthService {
             userProfileRepository.save(userProfile);
             log.info("UserProfile created for user: {}", user.getEmail());
         }
-    }
-
-    /**
-     * Lấy user theo email (dùng để debug)
-     */
-    public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email).orElse(null);
     }
 
 }

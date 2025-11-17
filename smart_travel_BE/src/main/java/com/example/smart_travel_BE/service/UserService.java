@@ -1,5 +1,6 @@
 package com.example.smart_travel_BE.service;
 
+import com.example.smart_travel_BE.dto.user.request.ChangePasswordRequest;
 import com.example.smart_travel_BE.dto.user.request.UpdateProfileRequest;
 import com.example.smart_travel_BE.dto.user.response.ProfileResponse;
 import com.example.smart_travel_BE.entity.User;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * Lấy thông tin profile của user hiện tại
@@ -120,6 +123,39 @@ public class UserService {
 
         log.info("Profile updated for user: {}", currentUser.getEmail());
         return buildProfileResponse(currentUser, userProfile);
+    }
+
+    /**
+     * Đổi mật khẩu cho user hiện tại
+     */
+    @Transactional
+    public void changePassword(ChangePasswordRequest request) {
+        User currentUser = getCurrentUser();
+
+        // Kiểm tra email đã được xác thực chưa
+        if (!currentUser.getEmailVerified()) {
+            throw new AppException(ErrorCode.ACCOUNT_NOT_CONFIRM);
+        }
+
+        // Kiểm tra mật khẩu hiện tại
+        if (!passwordEncoder.matches(request.getCurrentPassword(), currentUser.getPassword())) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        // Kiểm tra mật khẩu mới và xác nhận
+        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
+            throw new AppException(ErrorCode.INVALID_PASSWORD);
+        }
+
+        // Không cho phép đặt lại cùng mật khẩu cũ
+        if (passwordEncoder.matches(request.getNewPassword(), currentUser.getPassword())) {
+            throw new AppException(ErrorCode.INVALID_PASSWORD);
+        }
+
+        currentUser.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(currentUser);
+
+        log.info("Password changed for user: {}", currentUser.getEmail());
     }
 
     /**
