@@ -9,6 +9,7 @@ import com.example.smart_travel_BE.exception.AppException;
 import com.example.smart_travel_BE.exception.ErrorCode;
 import com.example.smart_travel_BE.mapper.UserMapper;
 import com.example.smart_travel_BE.repository.EmailVerificationTokenRepository;
+import com.example.smart_travel_BE.repository.RefreshTokenRepository;
 import com.example.smart_travel_BE.repository.UserRepository;
 import com.example.smart_travel_BE.util.JwtUtil;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -16,6 +17,8 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseToken;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,9 +28,7 @@ import org.springframework.stereotype.Service;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +40,7 @@ public class AuthService {
     private final EmailService emailService;
     private final UserMapper userMapper;
     private final JwtUtil jwtUtil;
+    private final RefreshTokenRepository refreshTokenRepository;
 
 
     /**
@@ -219,6 +221,35 @@ public class AuthService {
 
 
     }
+    public LoginResponse loginAdmin(LoginRequest request) {
+        log.info("Login attempt for email: {}", request.getEmail());
+
+        // Tìm user theo email
+        var user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.EMAIL_NOT_EXISTED));
+
+        // Kiểm tra mật khẩu
+        boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
+        if (!authenticated) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        if (!user.getEmailVerified()) {
+            throw new AppException(ErrorCode.IS_VERIFY_EMAIL);
+        }
+
+        // Tạo token JWT
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("id", user.getId());
+        claims.put("role", user.getRole()); // Có thể thêm thông tin khác vào claims
+        String token = jwtUtil.generateToken(user.getId(), claims);
+        String refreshToken = jwtUtil.generateRefreshToken(user.getId());
+
+        return LoginResponse.builder()
+                .token(token)
+                .refreshToken(refreshToken)
+                .role(String.valueOf(user.getRole()))
+                .build();
+    }
 
     /**
      * Quên mật khẩu
@@ -394,6 +425,46 @@ public class AuthService {
     }
 
 
+    //Refresh token
+    public LoginResponse refreshToken(HttpServletRequest request) {
+
+        // Lấy refreshToken từ cookie
+        String refreshToken = Arrays.stream(Optional.ofNullable(request.getCookies()).orElse(new Cookie[0]))
+                .filter(cookie -> "refreshToken".equals(cookie.getName()))
+                .findFirst()
+                .map(Cookie::getValue)
+                .orElse(null);
 
 
+        var tokenInDb = refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHORIZED));
+
+        if (tokenInDb.isRevoked()) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        // Lấy userId từ token (subject)
+        String userId = jwtUtil.extractSubjectAsUserId(refreshToken);
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", userRepository.findById(Long.valueOf(userId))
+                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHORIZED))
+                .getRole());
+
+        String newToken = jwtUtil.generateToken(Long.valueOf(userId), claims);
+
+
+        return LoginResponse.builder()
+                .token(newToken)
+                .build();
+    }
+
+    //Đăng xuất
+    public void logoutAdmin(String token) {
+        var storedToken = refreshTokenRepository.findByToken(token)
+                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHORIZED));
+
+        storedToken.setRevoked(true);
+        refreshTokenRepository.save(storedToken);
+    }
 }

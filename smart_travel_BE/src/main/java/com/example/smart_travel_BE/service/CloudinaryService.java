@@ -33,18 +33,44 @@ public class CloudinaryService {
             e.printStackTrace();
         }
     }
-
     private String extractPublicIdFromUrl(String imageUrl) {
-        // Bỏ phần đầu đến "/upload/"
-        String[] parts = imageUrl.split("/upload/");
-        if (parts.length < 2) return null;
+        try {
+            // Tách sau "upload/"
+            String[] parts = imageUrl.split("/upload/");
+            if (parts.length < 2) return null;
 
-        String pathWithExtension = parts[1];
-        // Bỏ đuôi mở rộng (jpg, png,...)
-        int lastDot = pathWithExtension.lastIndexOf(".");
-        if (lastDot != -1) {
-            return pathWithExtension.substring(0, lastDot);
+            String path = parts[1]; // v1763284960/destinations/nkkqgqlcmokfafk1rpvm.jpg
+
+            // Bỏ phần version v...
+            if (path.startsWith("v")) {
+                path = path.substring(path.indexOf("/") + 1); // => destinations/nkkqgqlcmokfafk1rpvm.jpg
+            }
+
+            // Bỏ extension (.jpg/.png...)
+            int lastDot = path.lastIndexOf(".");
+            if (lastDot != -1) {
+                path = path.substring(0, lastDot);
+            }
+
+            return path; // => destinations/nkkqgqlcmokfafk1rpvm
+        } catch (Exception e) {
+            return null;
         }
-        return pathWithExtension;
+    }
+
+    //Check xem ảnh có còn tồn tại trên Cloudinary không
+    public boolean checkFileExists(String imageUrl) {
+        try {
+            String publicId = extractPublicIdFromUrl(imageUrl);
+            if (publicId == null) return false;
+
+            // Gọi API resource
+            Map result = cloudinary.api().resource(publicId, ObjectUtils.emptyMap());
+
+            return result != null && result.get("url") != null;
+
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

@@ -36,7 +36,7 @@ public class UserHeaderAuthenticationFilter extends OncePerRequestFilter {
                     var user = userRepository.findById(Long.parseLong(userId)).orElse(null);
                     if (user != null && !jwtUtil.isTokenExpired(token)) {
                         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                                user, null, List.of(new SimpleGrantedAuthority(user.getRole()))
+                                user, null, List.of(new SimpleGrantedAuthority("ROLE_"+user.getRole()))
                         );
                         SecurityContextHolder.getContext().setAuthentication(auth);
                     }

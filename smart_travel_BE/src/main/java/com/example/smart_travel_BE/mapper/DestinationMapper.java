@@ -1,8 +1,11 @@
 package com.example.smart_travel_BE.mapper;
 
+import com.example.smart_travel_BE.dto.destination.request.DestinationCreateRequest;
 import com.example.smart_travel_BE.dto.destination.request.DestinationRequest;
+import com.example.smart_travel_BE.dto.destination.request.DestinationUpdateRequest;
 import com.example.smart_travel_BE.dto.destination.response.DestinationDetailResponse;
 import com.example.smart_travel_BE.dto.destination.response.DestinationFeaturedResponse;
+import com.example.smart_travel_BE.dto.destination.response.DestinationImageResponse;
 import com.example.smart_travel_BE.dto.destination.response.DestinationResponse;
 import com.example.smart_travel_BE.dto.hotel.response.HotelSummaryResponse;
 import com.example.smart_travel_BE.dto.review.response.ReviewResponse;
@@ -21,6 +24,8 @@ import java.util.stream.Collectors;
 public interface DestinationMapper {
 
     Destination toDestination(DestinationRequest destinationRequest);
+    Destination toDestination(DestinationCreateRequest request);
+    DestinationImageResponse toImageResponse (DestinationImage img);
 
     @Mapping(source = "province.name", target = "provinceName")
     DestinationResponse toDestinationResponse(Destination destination);
@@ -30,6 +35,9 @@ public interface DestinationMapper {
 
 
     DestinationDetailResponse toDestinationDetailResponse(Destination destination);
+
+    void updateDestinationFromRequest(DestinationUpdateRequest request, @MappingTarget Destination destination);
+
 
     // Chuyển Tour -> TourSummaryResponse (ảnh đầu tiên)
     @Mapping(target = "images", ignore = true)
@@ -94,19 +102,19 @@ public interface DestinationMapper {
                 .collect(Collectors.toList());
     }
 
-    @AfterMapping
-    default void mapDestinationImages(Destination destination, @MappingTarget DestinationDetailResponse response) {
-        if (destination.getImages() != null && !destination.getImages().isEmpty()) {
-            // Lấy danh sách URL ảnh
-            List<String> imageUrls = destination.getImages()
-                    .stream()
-                    .map(DestinationImage::getImageUrl)
-                    .collect(Collectors.toList());
-            response.setImageUrls(imageUrls);
-        } else {
-            response.setImageUrls(new ArrayList<>());
-        }
-    }
+//    @AfterMapping
+//    default void mapDestinationImages(Destination destination, @MappingTarget DestinationDetailResponse response) {
+//        if (destination.getImages() != null && !destination.getImages().isEmpty()) {
+//            // Lấy danh sách URL ảnh
+//            List<String> imageUrls = destination.getImages()
+//                    .stream()
+//                    .map(DestinationImage::getImageUrl)
+//                    .collect(Collectors.toList());
+//            response.setImageUrls(imageUrls);
+//        } else {
+//            response.setImageUrls(new ArrayList<>());
+//        }
+//    }
     @AfterMapping
     default void mapUserFullName(Review review, @MappingTarget ReviewResponse response) {
         if (review.getUser() != null && review.getUser().getFullName() != null) {
