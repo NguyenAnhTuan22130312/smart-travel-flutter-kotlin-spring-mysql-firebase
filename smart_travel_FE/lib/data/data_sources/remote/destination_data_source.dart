@@ -59,6 +59,7 @@ class DestinationDataSourceImpl implements DestinationDataSource{
             .map((item) => DestinationFeaturedResponseModel.fromJson(item))
             .toList();
 
+
         return destinations;
       } else if (response.statusCode == 400) {
         final apiResponse = ApiResponseModel.fromJson(

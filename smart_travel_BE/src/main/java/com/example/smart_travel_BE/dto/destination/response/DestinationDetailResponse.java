@@ -36,7 +36,7 @@ public class DestinationDetailResponse {
     private LocalDateTime updatedAt;
 
     //  Danh sách ảnh
-    private List<String> imageUrls;
+    private List<DestinationImageResponse> images;
 
     //Danh sách khách sạn liên quan
     private List<HotelSummaryResponse> hotels;

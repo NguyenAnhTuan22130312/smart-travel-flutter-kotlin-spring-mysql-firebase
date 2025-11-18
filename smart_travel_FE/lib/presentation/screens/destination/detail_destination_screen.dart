@@ -49,11 +49,15 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
   }
 
   void _startAutoPlay(List<String> images) {
+    if (images.isEmpty) return; // nếu không có ảnh, dừng
+
+    _timer?.cancel(); // nếu có timer trước, hủy
+
     _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
-      if (_pageController.hasClients && images.isNotEmpty) {
-        final nextPage = (_currentImageIndex + 1) % images.length;
+      if (_pageController.hasClients) {
+        _currentImageIndex = (_currentImageIndex + 1) % images.length; // cập nhật index
         _pageController.animateToPage(
-          nextPage,
+          _currentImageIndex,
           duration: const Duration(milliseconds: 600),
           curve: Curves.easeInOut,
         );
@@ -114,7 +118,9 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
 
           if (state is GetDetailDestinationLoaded) {
             final destination = state.destinationEntity;
-            final images = destination.imageUrls ?? [];
+            final images = destination.destinationImage
+                ?.map((img) => img.imageUrl ?? '')
+                .toList() ?? [];
             _startAutoPlay(images);
 
             return CustomScrollView(

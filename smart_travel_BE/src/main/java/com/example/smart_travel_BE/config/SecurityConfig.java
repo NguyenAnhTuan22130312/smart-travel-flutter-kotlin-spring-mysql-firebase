@@ -18,6 +18,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -26,7 +27,7 @@ import java.util.Arrays;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SecurityConfig {
     String[] PUBLIC_ENDPOINTS = new String[]{"/api/v1/auth/register", "/api/v1/auth/verify-email",
-            "/api/v1/auth/resend-verification","/api/v1/auth/login", "/api/v1/auth/forgot-password",
+            "/api/v1/auth/resend-verification","/api/v1/auth/login", "/api/v1/auth/login/admin", "/api/v1/auth/logout/admin", "/api/v1/auth/refresh", "/api/v1/auth/forgot-password",
             "/api/v1/auth/reset-password","/api/v1/auth/check-reset-password", "/api/v1/destination/destination-featured",
             "/api/v1/destination/destination-all", "/api/v1/destination/destination-filter","/api/v1/destination/detail/{id}",
             "/api/v1/province/popular","/api/v1/payment/vnpay-return","api/hotels", "api/hotels/{id}/detail",
@@ -39,6 +40,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers("/verify-success.html", "/verify-fail.html","/reset-password.html").permitAll()
@@ -61,15 +63,19 @@ public class SecurityConfig {
     // Tạo CorsFilter
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowCredentials(true);
-        configuration.setAllowedOrigins(Arrays.asList("*")); // hoặc domain cụ thể
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowCredentials(true);
+        config.setAllowedOriginPatterns(List.of("http://localhost:5173"));
+
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+
+        config.setExposedHeaders(List.of("Set-Cookie"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-
+        source.registerCorsConfiguration("/**", config);
         return source;
     }
+
 }
