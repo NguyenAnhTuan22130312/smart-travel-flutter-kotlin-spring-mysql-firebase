@@ -39,7 +39,7 @@ public class UpdateProfileRequest {
     @Size(max = 50, message = "Quốc gia không được quá 50 ký tự")
     private String country;
     
-    private String preferences; // JSON string
+    private String notificationSettings; // JSON string
     private String languageSettings; // JSON string
     private Boolean darkModeEnabled;
 }

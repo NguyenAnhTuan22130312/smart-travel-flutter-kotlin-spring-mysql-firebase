@@ -44,27 +44,22 @@ public class UserProfile {
     @Column(length = 50)
     private String country;
 
-    // JSON lưu dưới dạng chuỗi (Spring JPA không có kiểu JSON native)
-    @Column(columnDefinition = "JSON")
-    private String preferences;
+    @Column(columnDefinition = "TEXT")
+    private String notificationSettings;
 
-    @Column(name = "language_settings", columnDefinition = "JSON")
+    @Column(columnDefinition = "TEXT")
     private String languageSettings;
 
-    @Column(name = "dark_mode_enabled", nullable = false)
+    @Builder.Default
     private Boolean darkModeEnabled = false;
 
+    @Builder.Default
     @Column(name = "experience_points")
     private Long experiencePoints = 0L;
 
+    @Builder.Default
     @Column(name = "current_level", length = 50)
-    private String currentLevel = "Explorer";
-
-    @Column(name = "current_badge", length = 100)
-    private String currentBadge;
-
-    @Column(name = "achievements", columnDefinition = "JSON")
-    private String achievements;
+    private String currentLevel = "Đồng";
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;

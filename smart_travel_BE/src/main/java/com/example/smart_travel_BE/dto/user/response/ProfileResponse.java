@@ -32,7 +32,7 @@ public class ProfileResponse {
     private String address;
     private String city;
     private String country;
-    private String preferences; // JSON string
+    private String notificationSettings; // JSON string
     private String languageSettings; // JSON string
     private Boolean darkModeEnabled;
     private LocalDateTime profileUpdatedAt;
