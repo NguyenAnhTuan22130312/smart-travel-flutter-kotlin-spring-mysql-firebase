@@ -1,8 +1,12 @@
 package com.example.smart_travel_BE.service;
 
 import com.example.smart_travel_BE.dto.user.request.ChangePasswordRequest;
+import com.example.smart_travel_BE.dto.user.request.SettingsRequest;
+import com.example.smart_travel_BE.dto.user.request.UpdateLevelRequest;
 import com.example.smart_travel_BE.dto.user.request.UpdateProfileRequest;
 import com.example.smart_travel_BE.dto.user.response.ProfileResponse;
+import com.example.smart_travel_BE.dto.user.response.SettingsResponse;
+import com.example.smart_travel_BE.dto.user.response.LevelResponse;
 import com.example.smart_travel_BE.entity.User;
 import com.example.smart_travel_BE.entity.UserProfile;
 import com.example.smart_travel_BE.exception.AppException;
@@ -25,6 +29,14 @@ public class UserService {
     private final UserProfileRepository userProfileRepository;
     private final PasswordEncoder passwordEncoder;
 
+    private static final LevelTier[] LEVEL_TIERS = new LevelTier[]{
+            new LevelTier("Explorer", 0L, 1000L),
+            new LevelTier("Adventurer", 1000L, 3000L),
+            new LevelTier("Trailblazer", 3000L, 7000L),
+            new LevelTier("Globetrotter", 7000L, 15000L),
+            new LevelTier("Legend", 15000L, null)
+    };
+
     /**
      * Lấy thông tin profile của user hiện tại
      */
@@ -37,15 +49,7 @@ public class UserService {
         }
         
         // Lấy UserProfile, nếu chưa có thì tạo mới (chỉ khi email đã verified)
-        UserProfile userProfile = userProfileRepository.findByUser(currentUser)
-                .orElseGet(() -> {
-                    // Tạo UserProfile mặc định nếu chưa có (chỉ khi email đã verified)
-                    UserProfile newProfile = UserProfile.builder()
-                            .user(currentUser)
-                            .darkModeEnabled(false)
-                            .build();
-                    return userProfileRepository.save(newProfile);
-                });
+        UserProfile userProfile = getOrCreateUserProfile(currentUser);
 
         return buildProfileResponse(currentUser, userProfile);
     }
@@ -77,15 +81,7 @@ public class UserService {
         userRepository.save(currentUser);
 
         // Lấy hoặc tạo UserProfile (chỉ khi email đã verified)
-        UserProfile userProfile = userProfileRepository.findByUser(currentUser)
-                .orElseGet(() -> {
-                    // Tạo UserProfile mặc định nếu chưa có (chỉ khi email đã verified)
-                    UserProfile newProfile = UserProfile.builder()
-                            .user(currentUser)
-                            .darkModeEnabled(false)
-                            .build();
-                    return userProfileRepository.save(newProfile);
-                });
+        UserProfile userProfile = getOrCreateUserProfile(currentUser);
 
         // Cập nhật thông tin UserProfile
         if (request.getAvatarUrl() != null) {
@@ -123,6 +119,95 @@ public class UserService {
 
         log.info("Profile updated for user: {}", currentUser.getEmail());
         return buildProfileResponse(currentUser, userProfile);
+    }
+
+    /**
+     * Lấy thông tin cài đặt của user hiện tại
+     */
+    public SettingsResponse getSettings() {
+        User currentUser = getCurrentUser();
+
+        if (!currentUser.getEmailVerified()) {
+            throw new AppException(ErrorCode.ACCOUNT_NOT_CONFIRM);
+        }
+
+        UserProfile userProfile = getOrCreateUserProfile(currentUser);
+        return buildSettingsResponse(userProfile);
+    }
+
+    /**
+     * Cập nhật thông tin cài đặt (language, dark mode, notifications)
+     */
+    @Transactional
+    public SettingsResponse updateSettings(SettingsRequest request) {
+        User currentUser = getCurrentUser();
+
+        if (!currentUser.getEmailVerified()) {
+            throw new AppException(ErrorCode.ACCOUNT_NOT_CONFIRM);
+        }
+
+        UserProfile userProfile = getOrCreateUserProfile(currentUser);
+
+        if (request.getLanguageSettings() != null) {
+            userProfile.setLanguageSettings(request.getLanguageSettings());
+        }
+        if (request.getDarkModeEnabled() != null) {
+            userProfile.setDarkModeEnabled(request.getDarkModeEnabled());
+        }
+        if (request.getNotificationSettings() != null) {
+            userProfile.setPreferences(request.getNotificationSettings());
+        }
+
+        userProfileRepository.save(userProfile);
+
+        log.info("Settings updated for user: {}", currentUser.getEmail());
+        return buildSettingsResponse(userProfile);
+    }
+
+    /**
+     * Lấy thông tin cấp bậc/ thành tích của user
+     */
+    public LevelResponse getUserLevel() {
+        User currentUser = getCurrentUser();
+
+        if (!currentUser.getEmailVerified()) {
+            throw new AppException(ErrorCode.ACCOUNT_NOT_CONFIRM);
+        }
+
+        UserProfile userProfile = getOrCreateUserProfile(currentUser);
+        return buildLevelResponse(userProfile);
+    }
+
+    /**
+     * Cập nhật cấp bậc/ huy hiệu
+     */
+    @Transactional
+    public LevelResponse updateUserLevel(UpdateLevelRequest request) {
+        User currentUser = getCurrentUser();
+
+        if (!currentUser.getEmailVerified()) {
+            throw new AppException(ErrorCode.ACCOUNT_NOT_CONFIRM);
+        }
+
+        UserProfile userProfile = getOrCreateUserProfile(currentUser);
+
+        if (request.getExperiencePoints() != null) {
+            userProfile.setExperiencePoints(request.getExperiencePoints());
+        }
+        if (request.getCurrentBadge() != null) {
+            userProfile.setCurrentBadge(request.getCurrentBadge());
+        }
+        if (request.getAchievements() != null) {
+            userProfile.setAchievements(request.getAchievements());
+        }
+
+        LevelInfo levelInfo = calculateLevel(userProfile.getExperiencePoints());
+        userProfile.setCurrentLevel(levelInfo.levelName());
+
+        userProfileRepository.save(userProfile);
+
+        log.info("Level updated for user: {} - level {}", currentUser.getEmail(), levelInfo.levelName());
+        return buildLevelResponse(userProfile, levelInfo);
     }
 
     /**
@@ -174,6 +259,19 @@ public class UserService {
         throw new AppException(ErrorCode.UNAUTHENTICATED);
     }
 
+    private UserProfile getOrCreateUserProfile(User user) {
+        return userProfileRepository.findByUser(user)
+                .orElseGet(() -> {
+                    UserProfile newProfile = UserProfile.builder()
+                            .user(user)
+                            .darkModeEnabled(false)
+                            .experiencePoints(0L)
+                            .currentLevel("Explorer")
+                            .build();
+                    return userProfileRepository.save(newProfile);
+                });
+    }
+
     /**
      * Build ProfileResponse từ User và UserProfile
      */
@@ -202,5 +300,71 @@ public class UserService {
                 .darkModeEnabled(userProfile.getDarkModeEnabled())
                 .profileUpdatedAt(userProfile.getUpdatedAt())
                 .build();
+    }
+
+    /**
+     * Build SettingsResponse từ UserProfile
+     */
+    private SettingsResponse buildSettingsResponse(UserProfile userProfile) {
+        return SettingsResponse.builder()
+                .languageSettings(userProfile.getLanguageSettings())
+                .darkModeEnabled(userProfile.getDarkModeEnabled())
+                .notificationSettings(userProfile.getPreferences())
+                .build();
+    }
+
+    /**
+     * Build LevelResponse từ UserProfile
+     */
+    private LevelResponse buildLevelResponse(UserProfile userProfile) {
+        LevelInfo levelInfo = calculateLevel(userProfile.getExperiencePoints());
+        return buildLevelResponse(userProfile, levelInfo);
+    }
+
+    private LevelResponse buildLevelResponse(UserProfile userProfile, LevelInfo levelInfo) {
+        return LevelResponse.builder()
+                .currentLevel(levelInfo.levelName())
+                .currentBadge(userProfile.getCurrentBadge())
+                .experiencePoints(userProfile.getExperiencePoints())
+                .nextLevelAt(levelInfo.nextLevelAt())
+                .progressPercentage(levelInfo.progress())
+                .achievements(userProfile.getAchievements())
+                .build();
+    }
+
+    private LevelInfo calculateLevel(Long experiencePoints) {
+        long xp = experiencePoints != null ? experiencePoints : 0L;
+        LevelTier currentTier = LEVEL_TIERS[LEVEL_TIERS.length - 1];
+        LevelTier nextTier = null;
+
+        for (int i = 0; i < LEVEL_TIERS.length; i++) {
+            LevelTier tier = LEVEL_TIERS[i];
+            LevelTier following = (i + 1 < LEVEL_TIERS.length) ? LEVEL_TIERS[i + 1] : null;
+
+            if (following == null || xp < following.minXp()) {
+                currentTier = tier;
+                nextTier = following;
+                break;
+            }
+        }
+
+        Double progress;
+        Long nextLevelAt = nextTier != null ? nextTier.minXp() : null;
+
+        if (nextTier == null) {
+            progress = 100d;
+        } else {
+            long range = nextTier.minXp() - currentTier.minXp();
+            long gained = xp - currentTier.minXp();
+            progress = range == 0 ? 0d : Math.min(100d, (gained * 100d) / range);
+        }
+
+        return new LevelInfo(currentTier.name(), nextLevelAt, progress);
+    }
+
+    private record LevelTier(String name, long minXp, Long nextXp) {
+    }
+
+    private record LevelInfo(String levelName, Long nextLevelAt, Double progress) {
     }
 }
