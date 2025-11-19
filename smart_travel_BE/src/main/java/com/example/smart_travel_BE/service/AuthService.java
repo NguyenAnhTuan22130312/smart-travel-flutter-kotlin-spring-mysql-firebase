@@ -12,6 +12,7 @@ import com.example.smart_travel_BE.mapper.UserMapper;
 import com.example.smart_travel_BE.repository.EmailVerificationTokenRepository;
 import com.example.smart_travel_BE.repository.UserProfileRepository;
 import com.example.smart_travel_BE.repository.RefreshTokenRepository;
+import com.example.smart_travel_BE.repository.UserProfileRepository;
 import com.example.smart_travel_BE.repository.UserRepository;
 import com.example.smart_travel_BE.util.JwtUtil;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -77,8 +78,6 @@ public class AuthService {
         user.setEmailVerified(false);
 
         userRepository.save(user);
-
-        // KHÔNG tạo UserProfile ở đây - sẽ tạo sau khi email được xác thực
 
         log.info("User created successfully: {}", user.getEmail());
 
