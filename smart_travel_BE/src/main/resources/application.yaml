@@ -33,6 +33,9 @@ jwt:
   valid-duration: 3600 #5p
   refreshable-duration: 604800 #7 ngày
 
+gemini:
+  api:
+    key: AIzaSyAxFL3ViAhZRVEdxyJZlB88KKbM_o2EZMc
 
 cloudinary:
   cloud-name: dcwqv4rng

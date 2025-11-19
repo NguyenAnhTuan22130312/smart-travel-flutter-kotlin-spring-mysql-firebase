@@ -52,6 +52,10 @@ public enum ErrorCode {
     INVALID_FILE_TYPE(1027, "File không đúng định dạng", HttpStatus.BAD_REQUEST),
     FILE_UPLOAD_FAILED(1028, "Upload file thất bại", HttpStatus.INTERNAL_SERVER_ERROR),
 
+    // Thêm các mã lỗi mới cho MoMo
+    MOMO_CREATE_PAYMENT_FAILED(9001, "Tạo yêu cầu thanh toán MoMo thất bại",HttpStatus.BAD_REQUEST),
+    MOMO_API_CALL_FAILED(9002,  "Lỗi kết nối hoặc gọi API MoMo",HttpStatus.INTERNAL_SERVER_ERROR),
+
     //VALIDATION cho cập nhật thông tin doanh nghiệp
     NOT_BLANK_COMPANY_NAME(1050, "Tên công ty không được để trống", HttpStatus.BAD_REQUEST),
     NOT_BLANK_DESCRIPTION(1051, "Mô tả không được để trống", HttpStatus.BAD_REQUEST),
