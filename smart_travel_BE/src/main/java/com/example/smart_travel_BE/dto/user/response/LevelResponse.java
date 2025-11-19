@@ -11,10 +11,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LevelResponse {
     private String currentLevel;
-    private String currentBadge;
     private Long experiencePoints;
     private Long nextLevelAt;
     private Double progressPercentage;
-    private String achievements;
 }
 

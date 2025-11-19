@@ -30,11 +30,10 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     private static final LevelTier[] LEVEL_TIERS = new LevelTier[]{
-            new LevelTier("Explorer", 0L, 1000L),
-            new LevelTier("Adventurer", 1000L, 3000L),
-            new LevelTier("Trailblazer", 3000L, 7000L),
-            new LevelTier("Globetrotter", 7000L, 15000L),
-            new LevelTier("Legend", 15000L, null)
+            new LevelTier("Đồng", 0L, 1000L),
+            new LevelTier("Bạc", 1000L, 3000L),
+            new LevelTier("Vàng", 3000L, 7000L),
+            new LevelTier("Kim cương", 7000L, null)
     };
 
     /**
@@ -105,8 +104,8 @@ public class UserService {
         if (request.getCountry() != null) {
             userProfile.setCountry(request.getCountry());
         }
-        if (request.getPreferences() != null) {
-            userProfile.setPreferences(request.getPreferences());
+        if (request.getNotificationSettings() != null) {
+            userProfile.setNotificationSettings(request.getNotificationSettings());
         }
         if (request.getLanguageSettings() != null) {
             userProfile.setLanguageSettings(request.getLanguageSettings());
@@ -155,7 +154,7 @@ public class UserService {
             userProfile.setDarkModeEnabled(request.getDarkModeEnabled());
         }
         if (request.getNotificationSettings() != null) {
-            userProfile.setPreferences(request.getNotificationSettings());
+            userProfile.setNotificationSettings(request.getNotificationSettings());
         }
 
         userProfileRepository.save(userProfile);
@@ -194,13 +193,6 @@ public class UserService {
         if (request.getExperiencePoints() != null) {
             userProfile.setExperiencePoints(request.getExperiencePoints());
         }
-        if (request.getCurrentBadge() != null) {
-            userProfile.setCurrentBadge(request.getCurrentBadge());
-        }
-        if (request.getAchievements() != null) {
-            userProfile.setAchievements(request.getAchievements());
-        }
-
         LevelInfo levelInfo = calculateLevel(userProfile.getExperiencePoints());
         userProfile.setCurrentLevel(levelInfo.levelName());
 
@@ -266,7 +258,7 @@ public class UserService {
                             .user(user)
                             .darkModeEnabled(false)
                             .experiencePoints(0L)
-                            .currentLevel("Explorer")
+                            .currentLevel("Đồng")
                             .build();
                     return userProfileRepository.save(newProfile);
                 });
@@ -295,7 +287,7 @@ public class UserService {
                 .address(userProfile.getAddress())
                 .city(userProfile.getCity())
                 .country(userProfile.getCountry())
-                .preferences(userProfile.getPreferences())
+                .notificationSettings(userProfile.getNotificationSettings())
                 .languageSettings(userProfile.getLanguageSettings())
                 .darkModeEnabled(userProfile.getDarkModeEnabled())
                 .profileUpdatedAt(userProfile.getUpdatedAt())
@@ -309,7 +301,7 @@ public class UserService {
         return SettingsResponse.builder()
                 .languageSettings(userProfile.getLanguageSettings())
                 .darkModeEnabled(userProfile.getDarkModeEnabled())
-                .notificationSettings(userProfile.getPreferences())
+                .notificationSettings(userProfile.getNotificationSettings())
                 .build();
     }
 
@@ -324,11 +316,9 @@ public class UserService {
     private LevelResponse buildLevelResponse(UserProfile userProfile, LevelInfo levelInfo) {
         return LevelResponse.builder()
                 .currentLevel(levelInfo.levelName())
-                .currentBadge(userProfile.getCurrentBadge())
                 .experiencePoints(userProfile.getExperiencePoints())
                 .nextLevelAt(levelInfo.nextLevelAt())
                 .progressPercentage(levelInfo.progress())
-                .achievements(userProfile.getAchievements())
                 .build();
     }
 

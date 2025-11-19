@@ -39,6 +39,7 @@ POST /api/v1/auth/register
 
 ```json
 {
+  "code": 1000,
   "msg": "Đăng ký thành công",
   "data": {
     "id": 1,
@@ -53,7 +54,9 @@ POST /api/v1/auth/register
 
 ```json
 {
-  "msg": "Email đã tồn tại"
+  "code": 1002,
+  "msg": "Email đã tồn tại",
+  "data": null
 }
 ```
 
@@ -89,6 +92,8 @@ POST /api/v1/auth/login
 
 ```json
 {
+  "code": 1000,
+  "msg": null,
   "data": {
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -98,9 +103,9 @@ POST /api/v1/auth/login
 }
 ```
 
-### Response lỗi phổ biến
+### Response lỗi phổ biến (HTTP 400, mã lỗi nằm trong body)
 
-#### 1. Email không tồn tại (404)
+#### 1. Email không tồn tại
 
 ```json
 {
@@ -110,7 +115,7 @@ POST /api/v1/auth/login
 }
 ```
 
-#### 2. Tài khoản chưa được xác thực (401)
+#### 2. Tài khoản chưa được xác thực
 
 ```json
 {
@@ -127,7 +132,7 @@ POST /api/v1/auth/login
 - Kiểm tra email và click vào link xác thực
 - Hoặc gọi API `/api/v1/auth/resend-verification?email={email}` để gửi lại email xác thực
 
-#### 3. Tài khoản không chính xác (401)
+#### 3. Mật khẩu không chính xác
 
 ```json
 {
@@ -189,7 +194,9 @@ POST /api/v1/auth/resend-verification?email={email}
 
 ```json
 {
-  "msg": "Gửi lại email xác thực thành công"
+  "code": 1000,
+  "msg": "Gửi lại email xác thực thành công",
+  "data": null
 }
 ```
 
@@ -217,6 +224,8 @@ POST /api/v1/auth/google-login
 
 ```json
 {
+  "code": 1000,
+  "msg": null,
   "data": {
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -273,7 +282,9 @@ POST /api/v1/auth/forgot-password?email={email}
 
 ```json
 {
-  "msg": "Yêu cầu đã được gửi!"
+  "code": 1000,
+  "msg": "Yêu cầu đã được gửi!",
+  "data": null
 }
 ```
 
@@ -301,7 +312,9 @@ POST /api/v1/auth/reset-password
 
 ```json
 {
-  "msg": "Đặt lại mật khẩu thành công!. Vui lòng quay lại ứng dụng để đăng nhập"
+  "code": 1000,
+  "msg": "Đặt lại mật khẩu thành công!. Vui lòng quay lại ứng dụng để đăng nhập",
+  "data": null
 }
 ```
 
@@ -408,6 +421,7 @@ Content-Type: application/json
 
 ```json
 {
+  "code": 1000,
   "msg": "Lấy thông tin profile thành công",
   "data": {
     "id": 1,
@@ -426,7 +440,7 @@ Content-Type: application/json
     "address": "123 Đường ABC",
     "city": "Hà Nội",
     "country": "Việt Nam",
-    "preferences": "{\"theme\":\"light\"}",
+    "notificationSettings": "{\"email\":true,\"push\":false}",
     "languageSettings": "{\"lang\":\"vi\"}",
     "darkModeEnabled": false,
     "profileUpdatedAt": "2024-01-01T10:00:00"
@@ -464,7 +478,7 @@ Content-Type: application/json
   "address": "456 Đường XYZ",
   "city": "Hồ Chí Minh",
   "country": "Việt Nam",
-  "preferences": "{\"theme\":\"dark\",\"notifications\":true}",
+  "notificationSettings": "{\"email\":true,\"push\":true}",
   "languageSettings": "{\"lang\":\"en\"}",
   "darkModeEnabled": true
 }
@@ -474,6 +488,7 @@ Content-Type: application/json
 
 ```json
 {
+  "code": 1000,
   "msg": "Cập nhật profile thành công",
   "data": {
     // ... thông tin profile đã được cập nhật
@@ -536,7 +551,9 @@ Content-Type: application/json
 
 ```json
 {
-  "msg": "Đổi mật khẩu thành công"
+  "code": 1000,
+  "msg": "Đổi mật khẩu thành công",
+  "data": null
 }
 ```
 
@@ -567,6 +584,7 @@ Content-Type: application/json
 
 ```json
 {
+  "code": 1000,
   "msg": "Lấy thông tin cài đặt thành công",
   "data": {
     "languageSettings": "{\"lang\":\"vi\"}",
@@ -612,6 +630,7 @@ Content-Type: application/json
 
 ```json
 {
+  "code": 1000,
   "msg": "Cập nhật cài đặt thành công",
   "data": {
     "languageSettings": "{\"lang\":\"en\"}",
@@ -640,14 +659,13 @@ GET /api/v1/users/level
 
 ```json
 {
+  "code": 1000,
   "msg": "Lấy cấp bậc thành công",
   "data": {
-    "currentLevel": "Adventurer",
-    "currentBadge": "Top Reviewer",
+    "currentLevel": "Bạc",
     "experiencePoints": 2450,
     "nextLevelAt": 3000,
-    "progressPercentage": 72.5,
-    "achievements": "{\"totalTrips\":12,\"reviews\":25}"
+    "progressPercentage": 72.5
   }
 }
 ```
@@ -655,7 +673,8 @@ GET /api/v1/users/level
 #### Ghi chú
 
 - `progressPercentage` thể hiện phần trăm tiến tới level tiếp theo
-- Khi đạt level cuối (`Legend`), `nextLevelAt` = `null`
+- Các cấp bậc lần lượt: `Đồng → Bạc → Vàng → Kim cương`
+- Khi đạt level cuối (`Kim cương`), `nextLevelAt` = `null`
 
 ---
 
@@ -671,9 +690,7 @@ PUT /api/v1/users/level
 
 ```json
 {
-  "experiencePoints": 3200,
-  "currentBadge": "Trailblazer",
-  "achievements": "{\"totalTrips\":15,\"reviews\":40}"
+  "experiencePoints": 3200
 }
 ```
 
@@ -681,14 +698,13 @@ PUT /api/v1/users/level
 
 ```json
 {
+  "code": 1000,
   "msg": "Cập nhật cấp bậc thành công",
   "data": {
-    "currentLevel": "Trailblazer",
-    "currentBadge": "Trailblazer",
+    "currentLevel": "Vàng",
     "experiencePoints": 3200,
     "nextLevelAt": 7000,
-    "progressPercentage": 10.0,
-    "achievements": "{\"totalTrips\":15,\"reviews\":40}"
+    "progressPercentage": 10.0
   }
 }
 ```
@@ -697,7 +713,6 @@ PUT /api/v1/users/level
 
 - API yêu cầu token và email đã xác thực
 - `experiencePoints` là giá trị tuyệt đối (tổng XP mới)
-- `achievements` nên ở định dạng JSON string để FE parse
 
 ---
 

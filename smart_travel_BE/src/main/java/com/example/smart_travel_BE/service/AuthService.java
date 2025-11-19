@@ -461,6 +461,7 @@ public class AuthService {
             UserProfile userProfile = UserProfile.builder()
                     .user(user)
                     .darkModeEnabled(false)
+                    .languageSettings("{\"lang\": \"vi\"}")
                     .build();
             userProfileRepository.save(userProfile);
             log.info("UserProfile created for user: {}", user.getEmail());
