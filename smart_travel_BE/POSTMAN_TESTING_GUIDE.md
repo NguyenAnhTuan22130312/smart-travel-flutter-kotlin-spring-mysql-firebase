@@ -98,11 +98,58 @@ POST /api/v1/auth/login
 }
 ```
 
+### Response lỗi phổ biến
+
+#### 1. Email không tồn tại (404)
+
+```json
+{
+  "code": 1005,
+  "msg": "Email không tồn tại",
+  "data": null
+}
+```
+
+#### 2. Tài khoản chưa được xác thực (401)
+
+```json
+{
+  "code": 1019,
+  "msg": "Tài khoản chưa được xác thực",
+  "data": null
+}
+```
+
+**Nguyên nhân**: Email chưa được verify hoặc tài khoản chưa được kích hoạt
+
+**Cách xử lý**:
+
+- Kiểm tra email và click vào link xác thực
+- Hoặc gọi API `/api/v1/auth/resend-verification?email={email}` để gửi lại email xác thực
+
+#### 3. Tài khoản không chính xác (401)
+
+```json
+{
+  "code": 1006,
+  "msg": "Tài khoản không chính xác",
+  "data": null
+}
+```
+
+**Nguyên nhân**: Mật khẩu không đúng
+
+**Cách xử lý**:
+
+- Kiểm tra lại mật khẩu
+- Nếu quên mật khẩu, sử dụng API `/api/v1/auth/forgot-password`
+
 ### Lưu ý:
 
 - **Lưu token** để dùng cho các API yêu cầu authentication
 - Token có thời hạn 1 giờ (3600 giây)
 - Refresh token có thời hạn 7 ngày
+- **Quan trọng**: Phải xác thực email trước khi đăng nhập (trừ khi đăng nhập bằng Google/Facebook)
 
 ---
 
@@ -498,6 +545,159 @@ Content-Type: application/json
 - Sai mật khẩu hiện tại → `UNAUTHENTICATED`
 - Mật khẩu mới và xác nhận không khớp → `INVALID_PASSWORD`
 - Email chưa xác thực → `ACCOUNT_NOT_CONFIRM`
+
+---
+
+### 9.4. Lấy cài đặt (ngôn ngữ, dark mode, notifications)
+
+#### Endpoint
+
+```
+GET /api/v1/users/settings
+```
+
+#### Headers
+
+```
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+#### Response thành công (200)
+
+```json
+{
+  "msg": "Lấy thông tin cài đặt thành công",
+  "data": {
+    "languageSettings": "{\"lang\":\"vi\"}",
+    "darkModeEnabled": true,
+    "notificationSettings": "{\"email\":true,\"push\":false}"
+  }
+}
+```
+
+#### Lưu ý
+
+- Email phải được xác thực trước khi gọi API
+- Nếu user chưa từng lưu cài đặt, hệ thống sẽ trả về giá trị mặc định (`darkModeEnabled = false`, các trường còn lại `null`)
+
+---
+
+### 9.5. Cập nhật cài đặt
+
+#### Endpoint
+
+```
+PUT /api/v1/users/settings
+```
+
+#### Headers
+
+```
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+#### Request Body (tất cả field optional)
+
+```json
+{
+  "languageSettings": "{\"lang\":\"en\"}",
+  "darkModeEnabled": false,
+  "notificationSettings": "{\"email\":true,\"push\":true,\"sms\":false}"
+}
+```
+
+#### Response thành công (200)
+
+```json
+{
+  "msg": "Cập nhật cài đặt thành công",
+  "data": {
+    "languageSettings": "{\"lang\":\"en\"}",
+    "darkModeEnabled": false,
+    "notificationSettings": "{\"email\":true,\"push\":true,\"sms\":false}"
+  }
+}
+```
+
+#### Response lỗi phổ biến
+
+- Email chưa xác thực → `ACCOUNT_NOT_CONFIRM`
+- Token không hợp lệ/hết hạn → `UNAUTHENTICATED`
+
+---
+
+### 9.6. Lấy cấp bậc / thành tích
+
+#### Endpoint
+
+```
+GET /api/v1/users/level
+```
+
+#### Response thành công (200)
+
+```json
+{
+  "msg": "Lấy cấp bậc thành công",
+  "data": {
+    "currentLevel": "Adventurer",
+    "currentBadge": "Top Reviewer",
+    "experiencePoints": 2450,
+    "nextLevelAt": 3000,
+    "progressPercentage": 72.5,
+    "achievements": "{\"totalTrips\":12,\"reviews\":25}"
+  }
+}
+```
+
+#### Ghi chú
+
+- `progressPercentage` thể hiện phần trăm tiến tới level tiếp theo
+- Khi đạt level cuối (`Legend`), `nextLevelAt` = `null`
+
+---
+
+### 9.7. Cập nhật cấp bậc / thành tích
+
+#### Endpoint
+
+```
+PUT /api/v1/users/level
+```
+
+#### Request Body
+
+```json
+{
+  "experiencePoints": 3200,
+  "currentBadge": "Trailblazer",
+  "achievements": "{\"totalTrips\":15,\"reviews\":40}"
+}
+```
+
+#### Response thành công (200)
+
+```json
+{
+  "msg": "Cập nhật cấp bậc thành công",
+  "data": {
+    "currentLevel": "Trailblazer",
+    "currentBadge": "Trailblazer",
+    "experiencePoints": 3200,
+    "nextLevelAt": 7000,
+    "progressPercentage": 10.0,
+    "achievements": "{\"totalTrips\":15,\"reviews\":40}"
+  }
+}
+```
+
+#### Lưu ý
+
+- API yêu cầu token và email đã xác thực
+- `experiencePoints` là giá trị tuyệt đối (tổng XP mới)
+- `achievements` nên ở định dạng JSON string để FE parse
 
 ---
 

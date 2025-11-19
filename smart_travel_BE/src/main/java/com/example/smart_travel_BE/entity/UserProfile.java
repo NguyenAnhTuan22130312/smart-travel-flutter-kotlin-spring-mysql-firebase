@@ -54,6 +54,18 @@ public class UserProfile {
     @Column(name = "dark_mode_enabled", nullable = false)
     private Boolean darkModeEnabled = false;
 
+    @Column(name = "experience_points")
+    private Long experiencePoints = 0L;
+
+    @Column(name = "current_level", length = 50)
+    private String currentLevel = "Explorer";
+
+    @Column(name = "current_badge", length = 100)
+    private String currentBadge;
+
+    @Column(name = "achievements", columnDefinition = "JSON")
+    private String achievements;
+
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 

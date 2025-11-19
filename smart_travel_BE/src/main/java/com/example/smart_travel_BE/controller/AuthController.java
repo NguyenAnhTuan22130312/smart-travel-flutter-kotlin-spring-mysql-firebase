@@ -45,6 +45,7 @@ public class AuthController {
             log.error("Registration failed", e);
             return ResponseEntity.badRequest().body(
                     APIResponse.<RegisterResponse>builder()
+                            .code(e.getErrorCode().getCode())
                             .msg(e.getMessage())
                             .build()
             );
@@ -84,6 +85,7 @@ public class AuthController {
             log.error("Gửi lại email xác thực thất bại", e);
             return ResponseEntity.badRequest().body(
                     APIResponse.<Void>builder()
+                            .code(e.getErrorCode().getCode())
                             .msg(e.getMessage())
                             .build()
             );
@@ -105,6 +107,7 @@ public class AuthController {
             log.error("Đăng nhập thất bại:", e);
             return ResponseEntity.badRequest().body(
                     APIResponse.<LoginResponse>builder()
+                            .code(e.getErrorCode().getCode())
                             .msg(e.getMessage())
                             .build()
             );
@@ -127,6 +130,7 @@ public class AuthController {
             log.error("Không th gửi yêu cầu quên mật khẩu:", e);
             return ResponseEntity.badRequest().body(
                     APIResponse.<Void>builder()
+                            .code(e.getErrorCode().getCode())
                             .msg(e.getMessage())
                             .build()
             );
@@ -167,6 +171,7 @@ public class AuthController {
             log.error("Đặt mật khẩu thất bại:", e);
             return ResponseEntity.badRequest().body(
                     APIResponse.<Void>builder()
+                            .code(e.getErrorCode().getCode())
                             .msg(e.getMessage())
                             .build()
             );
