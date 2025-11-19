@@ -68,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
       });
       Navigator.pushReplacementNamed(
         context,
-        ['/home', '/destination/list', '/booking', '/profile', '/ai_chat'][index],
+        ['/home', '/explore', '/booking', '/profile', '/ai_chat'][index],
       );
     }
   }
@@ -319,7 +319,6 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         } else if (state is FilterDestinationLoaded) {
           final destinations = state.destinations;
-
           if (destinations.isEmpty) {
             return SliverToBoxAdapter(
               child: Center(

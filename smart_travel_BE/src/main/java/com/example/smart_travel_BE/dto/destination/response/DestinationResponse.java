@@ -32,6 +32,4 @@ public class DestinationResponse {
 
     private String imageUrl;
 
-
-
 }

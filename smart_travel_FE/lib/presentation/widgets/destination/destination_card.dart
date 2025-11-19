@@ -62,13 +62,13 @@ class _DestinationFeaturedState extends State<DestinationCart> {
                       width: double.infinity,
                       color: Colors.grey[300],
                       child:
-                      destination.imageUrl != null &&
-                          destination.imageUrl!.isNotEmpty
+                      destination.destinationImage != null && destination.destinationImage!.isNotEmpty
                           ? Image.network(
-                        destination.imageUrl!,
+                        destination.destinationImage![0].imageUrl ?? "", // lấy ảnh đầu tiên
                         fit: BoxFit.cover,
                       )
-                          : Image.asset("assets/images/img.png",
+                          : Image.asset(
+                        "assets/images/img.png",
                         fit: BoxFit.cover,
                       )
                   ),

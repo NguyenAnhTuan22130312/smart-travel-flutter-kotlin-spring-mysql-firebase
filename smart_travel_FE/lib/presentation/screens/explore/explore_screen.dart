@@ -81,8 +81,6 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
     );
   }
 
-
-
   // Sửa lại method này để nhận setModalState
   Widget _buildFilterBottomSheet(StateSetter setModalState) {
     return Container(
@@ -574,31 +572,24 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
 
   Widget _buildExploreDestinations() {
     return BlocBuilder<DestinationBloc, DestinationState>(
+      buildWhen: (previous, current) {
+        // Chỉ rebuild khi state là FilterDestination*
+        return current is FilterDestinationLoading ||
+            current is FilterDestinationLoaded ||
+            current is FilterDestinationError;
+      },
       builder: (context, state) {
-        // === LOADING ===
+        // 1. Đang loading → hiện loading
         if (state is FilterDestinationLoading) {
           return const SliverToBoxAdapter(
-            child: Center(
-              child: Padding(
-                padding: EdgeInsets.all(32),
-                child: Column(
-                  children: [
-                    CircularProgressIndicator(strokeWidth: 3),
-                    SizedBox(height: 16),
-                    Text('Đang tải điểm đến...', style: TextStyle(fontSize: 14)),
-                  ],
-                ),
-              ),
-            ),
+            child: Center(child: CircularProgressIndicator()),
           );
         }
 
-        // === LOADED ===
-        else if (state is FilterDestinationLoaded) {
+        // 2. Có dữ liệu → hiển thị bình thường
+        if (state is FilterDestinationLoaded) {
           final destinations = state.destinations;
-          final bool showViewAll = state.isLimited && destinations.length >= 6;
 
-          // Nếu rỗng
           if (destinations.isEmpty) {
             return const SliverToBoxAdapter(
               child: Center(
@@ -608,9 +599,7 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                     children: [
                       Icon(Icons.explore_off, size: 64, color: Colors.grey),
                       SizedBox(height: 20),
-                      Text('Không có điểm đến', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 8),
-                      Text('Thử chọn danh mục khác', style: TextStyle(color: Colors.grey)),
+                      Text('Không tìm thấy điểm đến', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
@@ -618,58 +607,35 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
             );
           }
 
-          // === CÓ DỮ LIỆU ===
           return SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // === TIÊU ĐỀ ===
+                // Tiêu đề
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppColors.primary.withOpacity(0.1),
-                        AppColors.primary.withOpacity(0.05),
-                      ],
-                    ),
+                    gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.1), AppColors.primary.withOpacity(0.05)]),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
                     children: [
-                      const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           'Địa điểm du lịch (${destinations.length})',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1F2937),
-                          ),
-                          overflow: TextOverflow.ellipsis, // cắt chuỗi nếu quá dài
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                       ),
-                      const SizedBox(width: 10),
                       TextButton(
-                        onPressed: () {
-                          context.read<DestinationBloc>().add(
-                            LoadAllDestinations(loadAll: true),
-                          );
-                        },
-                        child: Text(
-                          'Xem tất cả',
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        onPressed: () => context.read<DestinationBloc>().add(LoadAllDestinations(loadAll: true)),
+                        child: const Text('Xem tất cả', style: TextStyle(color: AppColors.primary)),
                       ),
                     ],
-                  )
+                  ),
                 ),
                 const SizedBox(height: 16),
 
-                // === LƯỚI ĐIỂM ĐẾN ===
+                // Grid
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -680,77 +646,27 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                     mainAxisSpacing: 16,
                   ),
                   itemCount: destinations.length,
-                  itemBuilder: (context, index) {
-                    return DestinationCart(destinations[index]);
-                  },
+                  itemBuilder: (context, index) => DestinationCart(destinations[index]),
                 ),
-
-                // === NÚT XEM TẤT CẢ ===
-
               ]),
             ),
           );
         }
 
-        // === LỖI ===
-        else if (state is FilterDestinationError) {
-          return SliverToBoxAdapter(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            AppColors.primary.withOpacity(0.1),
-                            AppColors.primary.withOpacity(0.05),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.primary.withOpacity(0.2),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Icon(Icons.place, color: AppColors.primary, size: 24),
-                          ),
-                          const SizedBox(width: 12),
-                           Text(
-                            'Địa điểm du lịch',
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      'Lỗi: ${state.message}',
-                      style: const TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.w600),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }
+        // 3. MỌI TRƯỜNG HỢP KHÁC (Initial, Error, v.v.) → TỰ ĐỘNG LOAD LẠI + HIỆN LOADING
+        // ← Đây là chỗ quan trọng nhất!
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.read<DestinationBloc>().add(LoadAllDestinations());
+        });
 
-        // === MẶC ĐỊNH ===
-        return const SliverToBoxAdapter(child: SizedBox.shrink());
+        return const SliverToBoxAdapter(
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        );
       },
     );
   }

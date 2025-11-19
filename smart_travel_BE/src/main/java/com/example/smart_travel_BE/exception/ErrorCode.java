@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatusCode;
 public enum ErrorCode {
 
     //VALID AUTH
+    IS_VERIFY_EMAIL(1018, "Tài khoản chưa được xác thực", HttpStatus.UNAUTHORIZED),
     ACCOUNT_NOT_FOUND(1029, "Người dùng không tồn tại", HttpStatus.NOT_FOUND),
     ACCOUNT_NOT_CONFIRM(1019, "Tài khoản chưa được xác thực", HttpStatus.UNAUTHORIZED),
     ERROR_LOGOUT(1017, "Có lỗi khi đăng xuất", HttpStatus.INTERNAL_SERVER_ERROR),
@@ -66,10 +67,39 @@ public enum ErrorCode {
     FILE_NOT_FOUND(1055, "File không tồn tại", HttpStatus.NOT_FOUND),
 
     //PROVINCE
+
     PROVINCE_NOT_EXISTED(1060, "Tỉnh thành không tồn tại", HttpStatus.NOT_FOUND),
+    NOT_BLANK_PROVINCE_NAME(1061, "Tên tỉnh không được để trống", HttpStatus.BAD_REQUEST),
+    SIZE_PROVINCE_NAME(1062, "Tên tỉnh phải từ 2 đến 100 ký tự", HttpStatus.BAD_REQUEST),
+    NOT_BLANK_PROVINCE_CODE(1063, "Mã tỉnh không được để trống", HttpStatus.BAD_REQUEST),
+    SIZE_PROVINCE_CODE(1064, "Mã tỉnh phải từ 2 đến 10 ký tự", HttpStatus.BAD_REQUEST),
+    NOT_BLANK_REGION(1065, "Vùng không được để trống", HttpStatus.BAD_REQUEST),
+    SIZE_DESCRIPTION(1066, "Mô tả tối đa 255 ký tự", HttpStatus.BAD_REQUEST),
+    NOT_NULL_IS_POPULAR(1067, "Trường isPopular không được null", HttpStatus.BAD_REQUEST),
+    IMAGE_UPLOAD_FAILED(1068, "Upload hình ảnh thất bại", HttpStatus.BAD_REQUEST),
+    PROVINCE_CODE_EXISTED(1069, "Tỉnh đã tồn tại", HttpStatus.BAD_REQUEST),
+
 
     //DESTINATION
     DESTINATION_NOT_EXISTED(1070, "Địa điểm không tồn tại", HttpStatus.NOT_FOUND),
+    DESTINATION_NAME_BLANK(1101, "Tên địa điểm không được để trống", HttpStatus.BAD_REQUEST),
+    DESTINATION_NAME_SIZE(1102, "Tên địa điểm phải từ 2 đến 200 ký tự", HttpStatus.BAD_REQUEST),
+    PROVINCE_ID_REQUIRED(1103, "ID tỉnh/thành là bắt buộc", HttpStatus.BAD_REQUEST),
+    LATITUDE_REQUIRED(1104, "Vĩ độ là bắt buộc", HttpStatus.BAD_REQUEST),
+    LONGITUDE_REQUIRED(1105, "Kinh độ là bắt buộc", HttpStatus.BAD_REQUEST),
+    LATITUDE_INVALID(1106, "Vĩ độ phải từ -90 đến 90", HttpStatus.BAD_REQUEST),
+    LONGITUDE_INVALID(1107, "Kinh độ phải từ -180 đến 180", HttpStatus.BAD_REQUEST),
+    CATEGORY_SIZE(1108, "Danh mục phải từ 2 đến 100 ký tự", HttpStatus.BAD_REQUEST),
+    ENTRY_FEE_NEGATIVE(1109, "Phí vào cửa không được âm", HttpStatus.BAD_REQUEST),
+    IMAGE_URL_INVALID(1110, "URL ảnh không hợp lệ", HttpStatus.BAD_REQUEST),
+    DESTINATION_ALREADY_EXISTS(1002, "Địa điểm đã tồn tại trong tỉnh này", HttpStatus.CONFLICT),
+    INVALID_JSON_FORMAT(1111, "Định dạng JSON không hợp lệ", HttpStatus.BAD_REQUEST),
+
+    FILE_REQUIRED(1113, "File ảnh là bắt buộc", HttpStatus.BAD_REQUEST),
+    FILE_TOO_LARGE(1114, "File quá lớn, tối đa 5MB", HttpStatus.BAD_REQUEST),
+    FILE_TYPE_NOT_SUPPORTED(1115, "Chỉ hỗ trợ JPG, PNG, WebP, GIF", HttpStatus.BAD_REQUEST),
+    IMAGE_UPLOAD_FAILED_ERROR(1116, "Upload ảnh thất bại", HttpStatus.INTERNAL_SERVER_ERROR),
+    IMAGE_NOT_FOUND(1117, "Hình ảnh không tồn tài", HttpStatus.NOT_FOUND),
     ;
 
 

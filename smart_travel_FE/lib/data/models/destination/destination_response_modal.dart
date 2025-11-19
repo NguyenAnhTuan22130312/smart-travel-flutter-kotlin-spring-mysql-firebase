@@ -1,9 +1,11 @@
+import 'package:smart_travel/data/models/destination/destination_image_response_modal.dart';
+import 'package:smart_travel/data/models/province/province_response_modal.dart';
 import 'package:smart_travel/domain/entities/destinations.dart';
 
 class DestinationResponseModal {
   final int id;
   final String name;
-  final String provinceName;
+  final ProvinceModal? province;
   final String category;
   final String address;
   final double averageRating;
@@ -12,11 +14,11 @@ class DestinationResponseModal {
   final bool isActive;
   final bool isFeatured;
   final double entryFee;
-  final String imageUrl ;
+  final List<DestinationImageResponse>? destinationImage;
   const DestinationResponseModal({
     required this.id,
     required this.name,
-    required this.provinceName,
+    this.province,
     required this.category,
     required this.address,
     required this.averageRating,
@@ -25,7 +27,7 @@ class DestinationResponseModal {
     required this.isActive,
     required this.isFeatured,
     required this.entryFee,
-    required this.imageUrl ,
+    required this.destinationImage ,
   });
 
   /// Hàm chuyển từ JSON sang model
@@ -33,7 +35,9 @@ class DestinationResponseModal {
     return DestinationResponseModal(
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
-      provinceName: json['provinceName'] ?? '',
+      province: json['province'] != null
+          ? ProvinceModal.formJson(json['province'])
+          : null,
       category: json['category'] ?? '',
       address: json['address'] ?? '',
       averageRating: (json['averageRating'] ?? 0).toDouble(),
@@ -42,14 +46,18 @@ class DestinationResponseModal {
       isActive: json['isActive'] ?? false,
       isFeatured: json['isFeatured'] ?? false,
       entryFee: (json['entryFee'] ?? 0).toDouble(),
-      imageUrl: json['imageUrl'] ??  '',
+      destinationImage: json['images'] != null
+          ? (json['images'] as List)
+          .map((e) => DestinationImageResponse.fromJson(e))
+          .toList()
+          : [],
     );
   }
   DestinationEntity toEntity() {
     return DestinationEntity(
       id: id,
       name: name,
-      province: provinceName,
+      province: province?.name ?? 'Unknown', // Lấy tên tỉnh từ ProvinceResponse
       category: category,
       address: address,
       averageRating: averageRating,
@@ -58,7 +66,7 @@ class DestinationResponseModal {
       isActive: isActive,
       isFeatured: isFeatured,
       entryFee: entryFee,
-      imageUrl: imageUrl,
+      destinationImage : destinationImage?.map((d) => d.toEntity()).toList(),
     );
   }
 
