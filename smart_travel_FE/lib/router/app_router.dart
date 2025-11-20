@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
 import 'package:smart_travel/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:smart_travel/presentation/screens/auth/login_screen.dart';
 import 'package:smart_travel/presentation/screens/auth/register_screen.dart';
 import 'package:smart_travel/presentation/screens/destination/detail_destination_screen.dart';
 import 'package:smart_travel/presentation/screens/explore/explore_screen.dart';
 import 'package:smart_travel/presentation/screens/home/home_screen.dart';
+import 'package:smart_travel/presentation/screens/hotel/detail_hotel_screen.dart';
 import 'package:smart_travel/presentation/screens/province/province_detail_screen.dart';
 import 'package:smart_travel/presentation/screens/splash/splash_screen.dart';
 import 'package:smart_travel/router/route_names.dart';
+import '../injection_container.dart' as di;
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case RouteNames.provinceDetail:
         return MaterialPageRoute(
-          builder: (context) =>  ProvinceDetailScreen(),
+          builder: (context) => ProvinceDetailScreen(),
           settings: settings,
         );
       case RouteNames.home:
@@ -32,14 +36,24 @@ class AppRouter {
 
       case RouteNames.destinationDetail:
         return MaterialPageRoute(
-            builder: (context) =>  DetailDestinationScreen(),
-            settings: settings,
+          builder: (context) => DetailDestinationScreen(),
+          settings: settings,
         );
-        default:
+      case RouteNames.hotelDetail:
         return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(child: Text('404 - Page not found')),
-          ),
+          builder:
+              (context) => BlocProvider(
+                create: (_) => di.sl<HotelDetailBloc>(), // Tạo BLoC ở đây
+                child: const DetailHotelScreen(),
+              ),
+          settings: settings, // Rất quan trọng để truyền arguments
+        );
+      default:
+        return MaterialPageRoute(
+          builder:
+              (_) => const Scaffold(
+                body: Center(child: Text('404 - Page not found')),
+              ),
         );
     }
   }

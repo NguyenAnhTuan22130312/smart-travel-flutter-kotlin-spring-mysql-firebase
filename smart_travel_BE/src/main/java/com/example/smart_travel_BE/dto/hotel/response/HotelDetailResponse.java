@@ -22,4 +22,6 @@ public class HotelDetailResponse {
     private String destinationName;
     private String provinceName; // tên tỉnh thành
     private List<RoomTypeResponse> rooms;
+    private Double latitude;
+    private Double longitude;
 }
