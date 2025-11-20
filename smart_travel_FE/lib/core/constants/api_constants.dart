@@ -12,6 +12,8 @@ class ApiConstants {
 
   static const String createOnlinePayment = '/payment/create-online-payment';
   static const String confirmCashPayment = '/payment/confirm-cash-payment';
+  static const String vnpayReturn = '/payment/vnpay-return';
+  static const String momoReturn = '/payment/momo-return';
   static const String createBooking = '/bookings';
 
   //Destination

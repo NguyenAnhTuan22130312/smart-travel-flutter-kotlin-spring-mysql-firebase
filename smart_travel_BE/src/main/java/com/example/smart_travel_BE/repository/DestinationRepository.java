@@ -9,6 +9,7 @@ import java.util.List;
 public interface DestinationRepository extends JpaRepository<Destination, Long> {
 
     List<Destination> findByIsFeaturedTrue();
+    List<Destination> findByNameContainingIgnoreCase(String name);
     boolean existsByNameAndProvinceId(String name, Long provinceId);
     boolean existsByNameAndProvinceIdAndIdNot (String name, Long provinceId, Long id);
 }

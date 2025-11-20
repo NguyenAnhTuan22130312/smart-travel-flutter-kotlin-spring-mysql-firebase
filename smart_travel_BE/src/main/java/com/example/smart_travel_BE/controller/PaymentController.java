@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/payment")
 @RequiredArgsConstructor
@@ -67,6 +69,31 @@ public class PaymentController {
         } catch (AppException e) {
             log.error("Lỗi khi xử lý VNPay return: {}", e.getMessage());
             return ResponseEntity.status(e.getErrorCode().getStatusCode()).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/momo-return")
+    public ResponseEntity<String> momoReturn(@RequestParam Map<String, String> params) {
+        try {
+            // MoMo Redirect/Return thường dùng GET và các tham số là @RequestParam
+            String message = paymentService.handleMoMoReturn(params);
+            return ResponseEntity.ok(message);
+        } catch (AppException e) {
+            log.error("Lỗi khi xử lý MoMo return: {}", e.getMessage());
+            return ResponseEntity.status(e.getErrorCode().getStatusCode()).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/momo-ipn")
+    public ResponseEntity<?> momoIpn(@RequestBody Map<String, Object> ipnData) {
+        // MoMo IPN là Server-to-Server, sử dụng POST và gửi JSON body
+        try {
+            log.info("MoMo IPN received: {}", ipnData);
+            return paymentService.handleMoMoIpn(ipnData);
+        } catch (Exception e) {
+            log.error("Lỗi khi xử lý MoMo IPN: {}", e.getMessage());
+            // Trả về lỗi 500 để MoMo có thể thử lại
+            return ResponseEntity.status(500).body("Error processing IPN: " + e.getMessage());
         }
     }
 }
