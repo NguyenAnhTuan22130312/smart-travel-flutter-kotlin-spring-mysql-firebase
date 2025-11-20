@@ -21,6 +21,8 @@ import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -50,6 +52,7 @@ public class AuthController {
             log.error("Registration failed", e);
             return ResponseEntity.badRequest().body(
                     APIResponse.<RegisterResponse>builder()
+                            .code(e.getErrorCode().getCode())
                             .msg(e.getMessage())
                             .build()
             );
@@ -89,6 +92,7 @@ public class AuthController {
             log.error("Gửi lại email xác thực thất bại", e);
             return ResponseEntity.badRequest().body(
                     APIResponse.<Void>builder()
+                            .code(e.getErrorCode().getCode())
                             .msg(e.getMessage())
                             .build()
             );
@@ -110,6 +114,7 @@ public class AuthController {
             log.error("Đăng nhập thất bại:", e);
             return ResponseEntity.badRequest().body(
                     APIResponse.<LoginResponse>builder()
+                            .code(e.getErrorCode().getCode())
                             .msg(e.getMessage())
                             .build()
             );
@@ -167,6 +172,7 @@ public class AuthController {
             log.error("Không th gửi yêu cầu quên mật khẩu:", e);
             return ResponseEntity.badRequest().body(
                     APIResponse.<Void>builder()
+                            .code(e.getErrorCode().getCode())
                             .msg(e.getMessage())
                             .build()
             );
@@ -207,6 +213,7 @@ public class AuthController {
             log.error("Đặt mật khẩu thất bại:", e);
             return ResponseEntity.badRequest().body(
                     APIResponse.<Void>builder()
+                            .code(e.getErrorCode().getCode())
                             .msg(e.getMessage())
                             .build()
             );
@@ -231,6 +238,44 @@ public class AuthController {
                         .data(response)
                         .build()
         );
+    }
+
+    /**
+     * Kiểm tra trạng thái email verified (dùng để debug)
+     */
+    @GetMapping("/check-email-status")
+    public ResponseEntity<APIResponse<Object>> checkEmailStatus(@RequestParam("email") String email) {
+        try {
+            var user = authService.getUserByEmail(email);
+            if (user == null) {
+                return ResponseEntity.badRequest().body(
+                        APIResponse.builder()
+                                .msg("User không tồn tại")
+                                .build()
+                );
+            }
+
+            Map<String, Object> status = new HashMap<>();
+            status.put("email", user.getEmail());
+            status.put("emailVerified", user.getEmailVerified());
+            status.put("id", user.getId());
+            status.put("createdAt", user.getCreatedAt());
+            status.put("updatedAt", user.getUpdatedAt());
+
+            return ResponseEntity.ok(
+                    APIResponse.builder()
+                            .msg("Trạng thái email: " + (user.getEmailVerified() ? "Đã xác thực" : "Chưa xác thực"))
+                            .data(status)
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("Error checking email status", e);
+            return ResponseEntity.badRequest().body(
+                    APIResponse.builder()
+                            .msg("Lỗi: " + e.getMessage())
+                            .build()
+            );
+        }
     }
 
     //Đăng xuất của admin
