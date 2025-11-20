@@ -101,6 +101,8 @@ public class HotelService {
                                 ? hotel.getDestination().getProvince().getName()
                                 : null
                 )
+                .latitude(hotel.getLatitude())
+                .longitude(hotel.getLongitude())
                 .rooms(roomResponses)
                 .build();
     }

@@ -54,10 +54,21 @@ public class HotelController {
     @GetMapping("/{id}/detail")
     public ResponseEntity<HotelDetailResponse> getHotelDetail(
             @PathVariable("id") Long hotelId,
-            @RequestParam("checkIn") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkIn,
-            @RequestParam("checkOut") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOut
+            @RequestParam(value = "checkIn", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkIn,
+
+            @RequestParam(value = "checkOut", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOut
     ) {
-        HotelDetailResponse response = hotelService.getHotelDetail(hotelId, checkIn, checkOut);
+        // Nếu không truyền → dùng ngày hôm nay và mai
+        LocalDate in = (checkIn != null) ? checkIn : LocalDate.now();
+        LocalDate out = (checkOut != null) ? checkOut : in.plusDays(1);
+
+        // Đảm bảo checkOut > checkIn
+        if (out.isBefore(in) || out.equals(in)) {
+            out = in.plusDays(1);
+        }
+        HotelDetailResponse response = hotelService.getHotelDetail(hotelId, in, out);
         return ResponseEntity.ok(response);
     }
 }
