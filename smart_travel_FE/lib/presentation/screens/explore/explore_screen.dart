@@ -19,7 +19,8 @@ class ExploreScreen extends StatefulWidget {
   State<ExploreScreen> createState() => _ExploreScreenState();
 }
 
-class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProviderStateMixin {
+class _ExploreScreenState extends State<ExploreScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   int _selectedIndex = 1;
   String _sortBy = 'popular'; // popular, rating, price
@@ -31,8 +32,6 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
   late double _tempMinRating;
 
   late AnimationController _filterAnimationController;
-
-
 
   @override
   void initState() {
@@ -73,11 +72,15 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => StatefulBuilder(  // Thêm StatefulBuilder ở đây
-        builder: (BuildContext context, StateSetter setModalState) {
-          return _buildFilterBottomSheet(setModalState); // Truyền setModalState vào
-        },
-      ),
+      builder:
+          (context) => StatefulBuilder(
+            // Thêm StatefulBuilder ở đây
+            builder: (BuildContext context, StateSetter setModalState) {
+              return _buildFilterBottomSheet(
+                setModalState,
+              ); // Truyền setModalState vào
+            },
+          ),
     );
   }
 
@@ -209,7 +212,9 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                         _minRating = 0;
                       });
 
-                      context.read<DestinationBloc>().add(LoadAllDestinations());
+                      context.read<DestinationBloc>().add(
+                        LoadAllDestinations(),
+                      );
                       Navigator.pop(context);
                     },
                     style: OutlinedButton.styleFrom(
@@ -279,55 +284,76 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
     final options = [
       {'id': 'popular', 'label': 'Phổ biến nhất', 'icon': Icons.trending_up},
       {'id': 'rating', 'label': 'Đánh giá cao', 'icon': Icons.star},
-      {'id': 'price_low', 'label': 'Giá thấp đến cao', 'icon': Icons.arrow_upward},
-      {'id': 'price_high', 'label': 'Giá cao đến thấp', 'icon': Icons.arrow_downward},
+      {
+        'id': 'price_low',
+        'label': 'Giá thấp đến cao',
+        'icon': Icons.arrow_upward,
+      },
+      {
+        'id': 'price_high',
+        'label': 'Giá cao đến thấp',
+        'icon': Icons.arrow_downward,
+      },
     ];
 
     return Column(
-      children: options.map((option) {
-        final isSelected = _tempSortBy == option['id'];
-        return GestureDetector(
-          onTap: () {
-            setModalState(() {  // Dùng setModalState thay vì setState
-              _tempSortBy = option['id'] as String;
-            });
-          },
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.grey[50],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isSelected ? AppColors.primary : Colors.transparent,
-                width: 2,
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  option['icon'] as IconData,
-                  color: isSelected ? AppColors.primary : Colors.grey[600],
-                  size: 22,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    option['label'] as String,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                      color: isSelected ? AppColors.primary : const Color(0xFF374151),
-                    ),
+      children:
+          options.map((option) {
+            final isSelected = _tempSortBy == option['id'];
+            return GestureDetector(
+              onTap: () {
+                setModalState(() {
+                  // Dùng setModalState thay vì setState
+                  _tempSortBy = option['id'] as String;
+                });
+              },
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color:
+                      isSelected
+                          ? AppColors.primary.withOpacity(0.1)
+                          : Colors.grey[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected ? AppColors.primary : Colors.transparent,
+                    width: 2,
                   ),
                 ),
-                if (isSelected)
-                  Icon(Icons.check_circle, color: AppColors.primary, size: 22),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
+                child: Row(
+                  children: [
+                    Icon(
+                      option['icon'] as IconData,
+                      color: isSelected ? AppColors.primary : Colors.grey[600],
+                      size: 22,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        option['label'] as String,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.normal,
+                          color:
+                              isSelected
+                                  ? AppColors.primary
+                                  : const Color(0xFF374151),
+                        ),
+                      ),
+                    ),
+                    if (isSelected)
+                      Icon(
+                        Icons.check_circle,
+                        color: AppColors.primary,
+                        size: 22,
+                      ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
     );
   }
 
@@ -368,7 +394,8 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
             divisions: 20,
             activeColor: AppColors.primary,
             onChanged: (values) {
-              setModalState(() {  // Dùng setModalState
+              setModalState(() {
+                // Dùng setModalState
                 _tempPriceRange = values;
               });
             },
@@ -386,7 +413,8 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
 
         return GestureDetector(
           onTap: () {
-            setModalState(() {  // Dùng setModalState
+            setModalState(() {
+              // Dùng setModalState
               _tempMinRating = rating.toDouble();
             });
           },
@@ -394,7 +422,10 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.grey[50],
+              color:
+                  isSelected
+                      ? AppColors.primary.withOpacity(0.1)
+                      : Colors.grey[50],
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isSelected ? AppColors.primary : Colors.transparent,
@@ -403,19 +434,34 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
             ),
             child: Row(
               children: [
-                ...List.generate(rating, (i) => Icon(Icons.star, color: Colors.amber, size: 20)),
-                ...List.generate(5 - rating, (i) => Icon(Icons.star_border, color: Colors.grey[400], size: 20)),
+                ...List.generate(
+                  rating,
+                  (i) => Icon(Icons.star, color: Colors.amber, size: 20),
+                ),
+                ...List.generate(
+                  5 - rating,
+                  (i) => Icon(
+                    Icons.star_border,
+                    color: Colors.grey[400],
+                    size: 20,
+                  ),
+                ),
                 const SizedBox(width: 12),
                 Text(
                   'Từ $rating sao trở lên',
                   style: TextStyle(
                     fontSize: 14,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                    color: isSelected ? AppColors.primary : const Color(0xFF374151),
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
+                    color:
+                        isSelected
+                            ? AppColors.primary
+                            : const Color(0xFF374151),
                   ),
                 ),
                 const Spacer(),
-                if (isSelected) Icon(Icons.check_circle, color: AppColors.primary, size: 20),
+                if (isSelected)
+                  Icon(Icons.check_circle, color: AppColors.primary, size: 20),
               ],
             ),
           ),
@@ -459,10 +505,7 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Colors.white,
-                AppColors.primary.withOpacity(0.05),
-              ],
+              colors: [Colors.white, AppColors.primary.withOpacity(0.05)],
             ),
           ),
         ),
@@ -477,11 +520,7 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
               ),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
-              Icons.explore,
-              color: Colors.white,
-              size: 24,
-            ),
+            child: const Icon(Icons.explore, color: Colors.white, size: 24),
           ),
           const SizedBox(width: 12),
           const Text(
@@ -504,9 +543,7 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
         child: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.white, Colors.grey[50]!],
-            ),
+            gradient: LinearGradient(colors: [Colors.white, Colors.grey[50]!]),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -536,7 +573,10 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                   margin: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
+                      colors: [
+                        AppColors.primary,
+                        AppColors.primary.withOpacity(0.8),
+                      ],
                     ),
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
@@ -556,13 +596,11 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                 vertical: 14,
               ),
             ),
-            onTap: () {
-
-            },
+            onTap: () {},
             onChanged: (value) {
-              context.read<DestinationBloc>().add(SearchDestinationEvent(
-                  value
-              ));
+              context.read<DestinationBloc>().add(
+                SearchDestinationEvent(value),
+              );
             },
           ),
         ),
@@ -599,7 +637,13 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                     children: [
                       Icon(Icons.explore_off, size: 64, color: Colors.grey),
                       SizedBox(height: 20),
-                      Text('Không tìm thấy điểm đến', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text(
+                        'Không tìm thấy điểm đến',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -615,7 +659,12 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.1), AppColors.primary.withOpacity(0.05)]),
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primary.withOpacity(0.1),
+                        AppColors.primary.withOpacity(0.05),
+                      ],
+                    ),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
@@ -623,12 +672,21 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                       Expanded(
                         child: Text(
                           'Địa điểm du lịch (${destinations.length})',
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       TextButton(
-                        onPressed: () => context.read<DestinationBloc>().add(LoadAllDestinations(loadAll: true)),
-                        child: const Text('Xem tất cả', style: TextStyle(color: AppColors.primary)),
+                        onPressed:
+                            () => context.read<DestinationBloc>().add(
+                              LoadAllDestinations(loadAll: true),
+                            ),
+                        child: const Text(
+                          'Xem tất cả',
+                          style: TextStyle(color: AppColors.primary),
+                        ),
                       ),
                     ],
                   ),
@@ -646,7 +704,8 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                     mainAxisSpacing: 16,
                   ),
                   itemCount: destinations.length,
-                  itemBuilder: (context, index) => DestinationCart(destinations[index]),
+                  itemBuilder:
+                      (context, index) => DestinationCart(destinations[index]),
                 ),
               ]),
             ),
@@ -731,7 +790,7 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                           ),
                         ),
                         const SizedBox(width: 12),
-                         Text(
+                        Text(
                           'Tỉnh thành (${provinces.length})',
                           style: TextStyle(
                             fontSize: 20,
@@ -746,12 +805,13 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 1.2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 1.2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                        ),
                     itemCount: provinces.length,
                     itemBuilder: (context, index) {
                       final province = provinces[index];
