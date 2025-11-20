@@ -11,6 +11,7 @@ import 'package:smart_travel/domain/entities/tour.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
+import 'package:smart_travel/router/route_names.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme/app_colors.dart';
@@ -551,7 +552,14 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
             borderRadius: BorderRadius.circular(16),
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
-              onTap: () {},
+              onTap: () {
+                // (Tôi giả sử thuộc tính ID của bạn là 'id')
+                Navigator.pushNamed(
+                  context,
+                  RouteNames.hotelDetail,
+                  arguments: h.id, // <-- GỬI ID (int)
+                );
+              },
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Row(
