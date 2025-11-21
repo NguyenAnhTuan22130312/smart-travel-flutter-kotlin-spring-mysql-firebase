@@ -40,7 +40,7 @@ jwt:
 
 gemini:
   api:
-    key: AIzaSyAxFL3ViAhZRVEdxyJZlB88KKbM_o2EZMc
+    key: AIzaSyCNxZOFgazS4QjKJWT6TdumkLJON6aXtug
 
 cloudinary:
   cloud-name: dcwqv4rng
