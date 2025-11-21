@@ -179,7 +179,7 @@ class _ProvinceDetailScreenState extends State<ProvinceDetailScreen> {
       actions: [
         GestureDetector(
           onTap: () {
-            // TODO: Add to favorites
+
           },
           child: Container(
             margin: const EdgeInsets.all(8),
@@ -473,6 +473,7 @@ class _ProvinceDetailScreenState extends State<ProvinceDetailScreen> {
     return GestureDetector(
       onTap: () {
         // TODO: Navigate to destination detail
+        Navigator.pushNamed(context, "/destination-detail", arguments: destination.id);
       },
       child: Container(
         decoration: BoxDecoration(
@@ -494,24 +495,16 @@ class _ProvinceDetailScreenState extends State<ProvinceDetailScreen> {
               height: 180,
               width: double.infinity,
               color: AppColors.primary.withOpacity(0.1),
-              child: destination.imageUrl != null
+              child:
+              destination.imageUrl != null
                   ? Image.network(
-
-                destination.imageUrl!,
+                destination.imageUrl ?? "", // lấy ảnh đầu tiên
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Icon(
-                    Icons.image_not_supported,
-                    color: AppColors.primary,
-                    size: 48,
-                  );
-                },
               )
-                  : Icon(
-                Icons.location_on,
-                color: AppColors.primary,
-                size: 48,
-              ),
+                  : Image.asset(
+                "assets/images/img.png",
+                fit: BoxFit.cover,
+              )
             ),
             // Destination Info
             Padding(
