@@ -6,6 +6,7 @@ import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
 import 'package:smart_travel/presentation/widgets/common/custom_button.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({Key? key}) : super(key: key);
@@ -48,7 +49,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Đổi mật khẩu'),
+        title: Text(AppLocalizations.of(context)!.changePasswordTitle),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -60,7 +61,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               behavior: SnackBarBehavior.floating,
               backgroundColor: Colors.transparent,
               content: AwesomeSnackbarContent(
-                title: 'Thành công',
+                title: AppLocalizations.of(context)!.success,
                 message: state.message,
                 contentType: ContentType.success,
               ),
@@ -75,7 +76,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               behavior: SnackBarBehavior.floating,
               backgroundColor: Colors.transparent,
               content: AwesomeSnackbarContent(
-                title: 'Lỗi',
+                title: AppLocalizations.of(context)!.error,
                 message: state.message,
                 contentType: ContentType.failure,
               ),
@@ -109,7 +110,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            'Mật khẩu phải có ít nhất 8 ký tự',
+                            AppLocalizations.of(context)!.passwordInfo,
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.blue[700],
@@ -122,9 +123,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   const SizedBox(height: 24),
 
                   // Current Password
-                  const Text(
-                    'Mật khẩu hiện tại',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context)!.currentPasswordLabel,
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: Color(0xFF374151),
@@ -155,7 +156,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập mật khẩu hiện tại';
+                        return AppLocalizations.of(context)!.pleaseEnterCurrentPassword;
                       }
                       return null;
                     },
@@ -163,9 +164,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   const SizedBox(height: 16),
 
                   // New Password
-                  const Text(
-                    'Mật khẩu mới',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context)!.newPasswordLabel,
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: Color(0xFF374151),
@@ -196,13 +197,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập mật khẩu mới';
+                        return AppLocalizations.of(context)!.pleaseEnterNewPassword;
                       }
                       if (value.length < 8) {
-                        return 'Mật khẩu phải có ít nhất 8 ký tự';
+                        return AppLocalizations.of(context)!.passwordAtLeast8;
                       }
                       if (value == _currentPasswordController.text) {
-                        return 'Mật khẩu mới phải khác mật khẩu hiện tại';
+                        return AppLocalizations.of(context)!.newPasswordDifferent;
                       }
                       return null;
                     },
@@ -210,9 +211,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   const SizedBox(height: 16),
 
                   // Confirm New Password
-                  const Text(
-                    'Xác nhận mật khẩu mới',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context)!.confirmNewPasswordLabel,
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: Color(0xFF374151),
@@ -243,10 +244,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Vui lòng xác nhận mật khẩu mới';
+                        return AppLocalizations.of(context)!.pleaseConfirmNewPassword;
                       }
                       if (value != _newPasswordController.text) {
-                        return 'Mật khẩu xác nhận không khớp';
+                        return AppLocalizations.of(context)!.confirmNotMatch;
                       }
                       return null;
                     },
@@ -255,7 +256,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
                   // Change Password Button
                   PrimaryButton(
-                    text: isLoading ? 'Đang đổi mật khẩu...' : 'Đổi mật khẩu',
+                    text: isLoading ? AppLocalizations.of(context)!.changingPassword : AppLocalizations.of(context)!.changePasswordButton,
                     onPressed: isLoading ? () {} : _handleChangePassword,
                   ),
                 ],

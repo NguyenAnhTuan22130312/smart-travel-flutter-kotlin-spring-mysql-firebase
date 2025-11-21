@@ -4,6 +4,7 @@ import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class AccountManagementScreen extends StatelessWidget {
   const AccountManagementScreen({Key? key}) : super(key: key);
@@ -12,7 +13,7 @@ class AccountManagementScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quản lý tài khoản'),
+        title: Text(AppLocalizations.of(context)!.accountManagement),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -56,9 +57,9 @@ class AccountManagementScreen extends StatelessWidget {
                       children: [
                         Icon(Icons.warning, color: Colors.red[700]),
                         const SizedBox(width: 8),
-                        const Text(
-                          'Xóa tài khoản',
-                          style: TextStyle(
+                        Text(
+                          AppLocalizations.of(context)!.deleteAccountTitle,
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Colors.red,
@@ -68,7 +69,7 @@ class AccountManagementScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Hành động này không thể hoàn tác. Tất cả dữ liệu của bạn sẽ bị xóa vĩnh viễn.',
+                      AppLocalizations.of(context)!.deleteAccountWarning,
                       style: TextStyle(
                         fontSize: 14,
                         color: Theme.of(context).textTheme.bodyMedium?.color,
@@ -80,7 +81,7 @@ class AccountManagementScreen extends StatelessWidget {
                       child: OutlinedButton.icon(
                         onPressed: () => _showDeleteAccountDialog(context),
                         icon: const Icon(Icons.delete_forever),
-                        label: const Text('Xóa tài khoản'),
+                        label: Text(AppLocalizations.of(context)!.deleteAccountButton),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.red,
                           side: const BorderSide(color: Colors.red, width: 2),
@@ -110,19 +111,16 @@ class AccountManagementScreen extends StatelessWidget {
               children: [
                 Icon(Icons.warning, color: Colors.red[700]),
                 const SizedBox(width: 8),
-                const Text('Xóa tài khoản'),
+                Text(AppLocalizations.of(context)!.deleteAccountTitle),
               ],
             ),
-            content: const Text(
-              'CẢNH BÁO: Hành động này không thể hoàn tác!\n\n'
-              'Tất cả dữ liệu của bạn bao gồm thông tin cá nhân, lịch sử đặt phòng, '
-              'đánh giá và ưu đãi sẽ bị xóa vĩnh viễn.\n\n'
-              'Bạn có chắc chắn muốn tiếp tục?',
+            content: Text(
+              AppLocalizations.of(context)!.deleteAccountWarning,
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Hủy'),
+                child: Text(AppLocalizations.of(context)!.cancel),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -139,9 +137,9 @@ class AccountManagementScreen extends StatelessWidget {
                     ),
                   );
                 },
-                child: const Text(
-                  'Xóa vĩnh viễn',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                child: Text(
+                  AppLocalizations.of(context)!.deletePermanently,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ],
