@@ -100,10 +100,6 @@ public enum ErrorCode {
     FILE_TYPE_NOT_SUPPORTED(1115, "Chỉ hỗ trợ JPG, PNG, WebP, GIF", HttpStatus.BAD_REQUEST),
     IMAGE_UPLOAD_FAILED_ERROR(1116, "Upload ảnh thất bại", HttpStatus.INTERNAL_SERVER_ERROR),
     IMAGE_NOT_FOUND(1117, "Hình ảnh không tồn tài", HttpStatus.NOT_FOUND),
-    
-    // DELETE ACCOUNT
-    CONFIRM_TEXT_INVALID(1118, "Text xác nhận không đúng. Vui lòng nhập 'XÓA TÀI KHOẢN'", HttpStatus.BAD_REQUEST),
-    PASSWORD_REQUIRED_FOR_LOCAL_ACCOUNT(1119, "Mật khẩu là bắt buộc để xóa tài khoản", HttpStatus.BAD_REQUEST),
     ;
 
 
