@@ -14,6 +14,7 @@ class DestinationResponseModal {
   final bool isActive;
   final bool isFeatured;
   final double entryFee;
+  final String imageUrl;
   final List<DestinationImageResponse>? destinationImage;
   const DestinationResponseModal({
     required this.id,
@@ -27,6 +28,7 @@ class DestinationResponseModal {
     required this.isActive,
     required this.isFeatured,
     required this.entryFee,
+    required this.imageUrl,
     required this.destinationImage ,
   });
 
@@ -46,6 +48,7 @@ class DestinationResponseModal {
       isActive: json['isActive'] ?? false,
       isFeatured: json['isFeatured'] ?? false,
       entryFee: (json['entryFee'] ?? 0).toDouble(),
+      imageUrl: json['imageUrl'] ?? '',
       destinationImage: json['images'] != null
           ? (json['images'] as List)
           .map((e) => DestinationImageResponse.fromJson(e))
@@ -66,6 +69,7 @@ class DestinationResponseModal {
       isActive: isActive,
       isFeatured: isFeatured,
       entryFee: entryFee,
+      imageUrl: imageUrl,
       destinationImage : destinationImage?.map((d) => d.toEntity()).toList(),
     );
   }

@@ -35,4 +35,11 @@ class AppColors {
       secondary,
     ],
   );
+
+  // Profile colors (based on mockup)
+  static const Color profileHeaderBrown = Color(0xFF8B6B47); // Warm brown for header
+  static const Color profileBadgeGold = Color(0xFFFFD700); // Gold for VIP badge
+  static const Color menuIconGray = Color(0xFF4A5568); // Icons in menu
+  static const Color dividerGray = Color(0xFFE2E8F0); // Divider lines
 }
+

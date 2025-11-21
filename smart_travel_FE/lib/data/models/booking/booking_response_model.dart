@@ -1,5 +1,3 @@
-import 'package:intl/intl.dart';
-
 class BookingResponseModel {
   final String bookingId;
   final double amount;
