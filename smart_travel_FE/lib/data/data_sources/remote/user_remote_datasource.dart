@@ -11,11 +11,7 @@ abstract class UserRemoteDataSource {
   Future<UserSettingsModel> updateSettings(Map<String, dynamic> data);
   Future<UserLevelModel> getLevel();
   Future<UserLevelModel> updateLevel(Map<String, dynamic> data);
-  Future<void> deleteAccount({
-    required String confirmText,
-    String? password,
-    String? reason,
-  });
+  Future<void> deleteAccount();
 }
 
 class UserRemoteDataSourceImpl implements UserRemoteDataSource {
@@ -195,26 +191,10 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   }
 
   @override
-  Future<void> deleteAccount({
-    required String confirmText,
-    String? password,
-    String? reason,
-  }) async {
+  Future<void> deleteAccount() async {
     try {
-      final data = <String, dynamic>{
-        'confirmText': confirmText,
-      };
-      
-      if (password != null && password.isNotEmpty) {
-        data['password'] = password;
-      }
-      if (reason != null && reason.isNotEmpty) {
-        data['reason'] = reason;
-      }
-
       final response = await dioClient.delete(
         ApiConstants.deleteAccount,
-        data: data,
       );
 
       if (response.data['code'] != 1000) {

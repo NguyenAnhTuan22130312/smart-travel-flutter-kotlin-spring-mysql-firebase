@@ -116,16 +116,8 @@ class DeleteAccountUseCase {
 
   DeleteAccountUseCase(this.repository);
 
-  Future<Either<Failure, void>> call({
-    required String confirmText,
-    String? password,
-    String? reason,
-  }) async {
-    return await repository.deleteAccount(
-      confirmText: confirmText,
-      password: password,
-      reason: reason,
-    );
+  Future<Either<Failure, void>> call() async {
+    return await repository.deleteAccount();
   }
 }
 

@@ -141,11 +141,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ) async {
     emit(ProfileLoading());
 
-    final result = await deleteAccountUseCase(
-      confirmText: event.confirmText,
-      password: event.password,
-      reason: event.reason,
-    );
+    final result = await deleteAccountUseCase();
 
     result.fold(
       (failure) => emit(ProfileError(failure.message)),

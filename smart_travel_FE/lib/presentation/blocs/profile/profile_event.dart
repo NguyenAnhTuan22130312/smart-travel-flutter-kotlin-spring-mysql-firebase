@@ -91,20 +91,7 @@ class UpdateSettings extends ProfileEvent {
 class LoadLevel extends ProfileEvent {}
 
 // Delete Account Event
-class DeleteAccount extends ProfileEvent {
-  final String confirmText;
-  final String? password;
-  final String? reason;
-
-  const DeleteAccount({
-    required this.confirmText,
-    this.password,
-    this.reason,
-  });
-
-  @override
-  List<Object?> get props => [confirmText, password, reason];
-}
+class DeleteAccount extends ProfileEvent {}
 
 // Logout Event
 class Logout extends ProfileEvent {}

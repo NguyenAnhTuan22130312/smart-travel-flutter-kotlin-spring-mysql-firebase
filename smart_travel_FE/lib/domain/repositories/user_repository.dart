@@ -41,11 +41,7 @@ abstract class UserRepository {
   });
 
   // Account Management
-  Future<Either<Failure, void>> deleteAccount({
-    required String confirmText,
-    String? password,
-    String? reason,
-  });
+  Future<Either<Failure, void>> deleteAccount();
 
   Future<Either<Failure, void>> logout();
 }

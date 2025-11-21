@@ -167,17 +167,9 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deleteAccount({
-    required String confirmText,
-    String? password,
-    String? reason,
-  }) async {
+  Future<Either<Failure, void>> deleteAccount() async {
     try {
-      await remoteDataSource.deleteAccount(
-        confirmText: confirmText,
-        password: password,
-        reason: reason,
-      );
+      await remoteDataSource.deleteAccount();
       await localStorage.clear();
       return const Right(null);
     } on DioException catch (e) {

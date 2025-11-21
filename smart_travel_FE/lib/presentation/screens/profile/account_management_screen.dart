@@ -131,9 +131,6 @@ class AccountManagementScreen extends StatelessWidget {
                   Navigator.pop(dialogContext);
                   context.read<ProfileBloc>().add(
                     DeleteAccount(
-                      confirmText: 'XÓA TÀI KHOẢN',
-                      password: null,
-                      reason: null,
                     ),
                   );
                 },

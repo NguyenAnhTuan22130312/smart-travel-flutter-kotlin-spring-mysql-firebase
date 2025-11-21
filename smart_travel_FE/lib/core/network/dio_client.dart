@@ -30,8 +30,8 @@ class DioClient {
     return _dio.put(path, data: data);
   }
 
-  Future<Response> delete(String path, {dynamic data}) async {
-    return _dio.delete(path, data: data);
+  Future<Response> delete(String path) async {
+    return _dio.delete(path);
   }
 }
 
