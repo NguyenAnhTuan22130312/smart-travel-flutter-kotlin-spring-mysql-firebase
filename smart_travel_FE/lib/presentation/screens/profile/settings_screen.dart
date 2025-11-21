@@ -31,7 +31,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final settings = state.settings;
 
     // Parse language settings
-    if (settings.languageSettings != null && settings.languageSettings!.isNotEmpty) {
+    if (settings.languageSettings != null &&
+        settings.languageSettings!.isNotEmpty) {
       try {
         final langMap = json.decode(settings.languageSettings!);
         _selectedLanguage = langMap['lang'] ?? 'vi';
@@ -44,7 +45,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _darkModeEnabled = settings.darkModeEnabled;
 
     // Parse notification settings
-    if (settings.notificationSettings != null && settings.notificationSettings!.isNotEmpty) {
+    if (settings.notificationSettings != null &&
+        settings.notificationSettings!.isNotEmpty) {
       try {
         final notifMap = json.decode(settings.notificationSettings!);
         _emailNotifications = notifMap['email'] ?? true;
@@ -68,8 +70,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       final langSettings = json.encode({'lang': newLanguage});
       context.read<ProfileBloc>().add(
-            UpdateSettings(languageSettings: langSettings),
-          );
+        UpdateSettings(languageSettings: langSettings),
+      );
     }
   }
 
@@ -78,9 +80,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _darkModeEnabled = value;
     });
 
-    context.read<ProfileBloc>().add(
-          UpdateSettings(darkModeEnabled: value),
-        );
+    context.read<ProfileBloc>().add(UpdateSettings(darkModeEnabled: value));
   }
 
   void _updateNotifications() {
@@ -91,8 +91,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
 
     context.read<ProfileBloc>().add(
-          UpdateSettings(notificationSettings: notifSettings),
-        );
+      UpdateSettings(notificationSettings: notifSettings),
+    );
   }
 
   @override
@@ -135,6 +135,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ..showSnackBar(snackBar);
           } else if (state is SettingsLoaded) {
             _loadSettingsData(state);
+          } else if (state is AccountDeletedSuccess) {
+            Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil('/login', (route) => false);
           }
         },
         builder: (context, state) {
@@ -279,7 +283,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       color: Theme.of(context).cardColor,
       child: SwitchListTile(
-        secondary: const Icon(Icons.notifications_outlined, color: Color(0xFF4A5568)),
+        secondary: const Icon(
+          Icons.notifications_outlined,
+          color: Color(0xFF4A5568),
+        ),
         title: Text(
           title,
           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
