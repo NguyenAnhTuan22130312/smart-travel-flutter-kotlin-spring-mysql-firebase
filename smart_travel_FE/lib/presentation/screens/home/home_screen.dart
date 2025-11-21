@@ -12,6 +12,7 @@ import 'package:smart_travel/presentation/widgets/destination/destination_card.d
 import 'package:smart_travel/presentation/widgets/province/province_is_popular_card.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import '../../theme/app_colors.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
@@ -134,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Xin chào 👋',
+                        AppLocalizations.of(context)!.hello,
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.white.withOpacity(0.9),
@@ -209,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: TextField(
             controller: _searchController,
             decoration: InputDecoration(
-              hintText: 'Tìm kiếm địa điểm, tour...',
+              hintText: AppLocalizations.of(context)!.searchHint,
               hintStyle: TextStyle(color: AppColors.textGray, fontSize: 14),
               prefixIcon: Icon(Icons.search, color: AppColors.primary),
               suffixIcon: Container(
@@ -283,9 +284,9 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
-                      'AI Trợ lý du lịch',
+                      AppLocalizations.of(context)!.aiAssistantTitle,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -294,7 +295,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Để AI gợi ý tour phù hợp với bạn',
+                      AppLocalizations.of(context)!.aiAssistantSubtitle,
                       style: TextStyle(color: Colors.white70, fontSize: 12),
                     ),
                   ],
@@ -340,7 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    'Không có điểm đến cho danh mục này',
+                    AppLocalizations.of(context)!.noDestinations,
                     style: TextStyle(
                       color: AppColors.textGray,
                       fontSize: 14,
@@ -361,7 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                        Text(
-                        'Điểm đến du lịch (${destinations.length})',
+                        '${AppLocalizations.of(context)!.travelDestinations} (${destinations.length})',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -373,7 +374,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           context.read<DestinationBloc>().add(LoadAllDestinations(loadAll: true));
                         },
                         child: Text(
-                          'Xem tất cả',
+                          AppLocalizations.of(context)!.seeAll,
                           style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.w600,
@@ -445,11 +446,11 @@ class _HomeScreenState extends State<HomeScreen> {
         else if (state is FeaturedDestinationLoaded) {
           final featuredDestinations = state.destinations;
           if (featuredDestinations.isEmpty) {
-            return const SliverToBoxAdapter(
+            return SliverToBoxAdapter(
               child: Center(
                 child: Padding(
                   padding: EdgeInsets.all(16),
-                  child: Text("Không có điểm đến nổi bật"),
+                  child: Text(AppLocalizations.of(context)!.noFeaturedDestinations),
                 ),
               ),
             );
@@ -464,7 +465,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                        Text(
-                        'Điểm đến nổi bật (${featuredDestinations.length})',
+                        '${AppLocalizations.of(context)!.featuredDestinations} (${featuredDestinations.length})',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -476,7 +477,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           context.read<DestinationBloc>().add(LoadFeaturedDestinations(loadAll: true));
                         },
                         child: Text(
-                          'Xem tất cả',
+                          AppLocalizations.of(context)!.seeAll,
                           style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.w600,
@@ -506,11 +507,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         } else if (state is FeaturedDestinationError) {
-          return const SliverToBoxAdapter(
+          return SliverToBoxAdapter(
             child: Center(
               child: Padding(
                 padding: EdgeInsets.all(16),
-                child: Text("Không thể tải điểm đến nổi bật"),
+                child: Text(AppLocalizations.of(context)!.errorLoadFeatured),
               ),
             ),
           );
@@ -540,11 +541,11 @@ class _HomeScreenState extends State<HomeScreen> {
           else if (state is ProvincePopularLoaded) {
             final provinceIsPopulars = state.province;
             if (provinceIsPopulars.isEmpty) {
-              return const SliverToBoxAdapter(
+              return SliverToBoxAdapter(
                 child: Center(
                   child: Padding(
                     padding: EdgeInsets.all(16),
-                    child: Text("Không có tỉnh thành phổ biến"),
+                    child: Text(AppLocalizations.of(context)!.noPopularProvinces),
                   ),
                 ),
               );
@@ -558,7 +559,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                          Text(
-                          'Tỉnh thành phổ biến (${provinceIsPopulars.length})',
+                          '${AppLocalizations.of(context)!.popularProvinces} (${provinceIsPopulars.length})',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -570,7 +571,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             // TODO: Navigate to all provinces
                           },
                           child: Text(
-                            'Xem tất cả',
+                            AppLocalizations.of(context)!.seeAll,
                             style: TextStyle(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600,
@@ -600,11 +601,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             );
           } else if (state is ProvinceError) {
-            return const SliverToBoxAdapter(
+            return SliverToBoxAdapter(
               child: Center(
                 child: Padding(
                   padding: EdgeInsets.all(16),
-                  child: Text("Không thể tải tỉnh thành phổ biến"),
+                  child: Text(AppLocalizations.of(context)!.errorLoadProvinces),
                 ),
               ),
             );

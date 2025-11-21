@@ -10,6 +10,7 @@ import 'package:smart_travel/presentation/widgets/profile/profile_menu_item_widg
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import '../../theme/app_colors.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -80,7 +81,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               behavior: SnackBarBehavior.floating,
               backgroundColor: Colors.transparent,
               content: AwesomeSnackbarContent(
-                title: 'Lỗi',
+                title: AppLocalizations.of(context)!.error,
                 message: state.message,
                 contentType: ContentType.failure,
               ),
@@ -181,11 +182,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // Section 1: Tài khoản của tôi
                         _buildSection(
                           context,
-                          title: 'Tài khoản của tôi',
+                          title: AppLocalizations.of(context)!.myAccount,
                           items: [
                             ProfileMenuItemWidget(
                               icon: Icons.person_outline,
-                              title: 'Hồ sơ',
+                              title: AppLocalizations.of(context)!.profile,
                               iconColor: AppColors.primary,
                               onTap: () async {
                                 await Navigator.pushNamed(
@@ -204,11 +205,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // Section 2: Quyền lợi thành viên
                         _buildSection(
                           context,
-                          title: 'Quyền lợi thành viên',
+                          title: AppLocalizations.of(context)!.memberBenefits,
                           items: [
                             ProfileMenuItemWidget(
                               icon: Icons.star_outline,
-                              title: 'SamtraVIP', // Renamed to match ref image
+                              title: AppLocalizations.of(context)!.samtraVip,
                               iconColor: AppColors.primary,
                               onTap: () async {
                                 await Navigator.pushNamed(
@@ -227,11 +228,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // Section 3: Cài đặt
                         _buildSection(
                           context,
-                          title: 'Cài đặt',
+                          title: AppLocalizations.of(context)!.settings,
                           items: [
                             ProfileMenuItemWidget(
                               icon: Icons.settings_outlined,
-                              title: 'Cài đặt chung',
+                              title: AppLocalizations.of(context)!.generalSettings,
                               iconColor: AppColors.primary,
                               onTap: () async {
                                 await Navigator.pushNamed(
@@ -250,17 +251,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // Section 4: Trợ giúp và thông tin
                         _buildSection(
                           context,
-                          title: 'Trợ giúp và thông tin',
+                          title: AppLocalizations.of(context)!.helpAndInfo,
                           items: [
                             ProfileMenuItemWidget(
                               icon: Icons.info_outline,
-                              title: 'Về chúng tôi',
+                              title: AppLocalizations.of(context)!.aboutUs,
                               iconColor: AppColors.primary,
                               onTap: () {},
                             ),
                             ProfileMenuItemWidget(
                               icon: Icons.headset_mic_outlined,
-                              title: 'Trung tâm trợ giúp',
+                              title: AppLocalizations.of(context)!.helpCenter,
                               iconColor: AppColors.primary,
                               onTap: () {},
                               showDivider: false,
@@ -272,11 +273,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // Section 5: Quản lý tài khoản
                         _buildSection(
                           context,
-                          title: 'Quản lý tài khoản',
+                          title: AppLocalizations.of(context)!.accountManagement,
                           items: [
                             ProfileMenuItemWidget(
                               icon: Icons.lock_outline,
-                              title: 'Đổi mật khẩu',
+                              title: AppLocalizations.of(context)!.changePassword,
                               iconColor: AppColors.primary,
                               onTap: () async {
                                 await Navigator.pushNamed(
@@ -290,7 +291,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             ProfileMenuItemWidget(
                               icon: Icons.delete_outline,
-                              title: 'Xóa bỏ tài khoản của tôi',
+                              title: AppLocalizations.of(context)!.deleteAccount,
                               iconColor: Colors.red,
                               onTap: () async {
                                 await Navigator.pushNamed(
@@ -304,7 +305,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             ProfileMenuItemWidget(
                               icon: Icons.logout,
-                              title: 'Đăng xuất',
+                              title: AppLocalizations.of(context)!.logout,
                               iconColor: Colors.red,
                               onTap: () => _showLogoutDialog(context),
                               showDivider: false,
@@ -327,8 +328,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 const Icon(Icons.error_outline, size: 64, color: Colors.grey),
                 const SizedBox(height: 16),
-                const Text(
-                  'Không thể tải thông tin profile',
+                Text(
+                  AppLocalizations.of(context)!.errorLoadProfile,
                   style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
                 const SizedBox(height: 16),
@@ -336,7 +337,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: () {
                     context.read<ProfileBloc>().add(LoadProfile());
                   },
-                  child: const Text('Thử lại'),
+                  child: Text(AppLocalizations.of(context)!.retry),
                 ),
               ],
             ),
@@ -394,12 +395,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder:
           (dialogContext) => AlertDialog(
-            title: const Text('Đăng xuất'),
-            content: const Text('Bạn có chắc chắn muốn đăng xuất?'),
+            title: Text(AppLocalizations.of(context)!.logout),
+            content: Text(AppLocalizations.of(context)!.logoutConfirmation),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Hủy'),
+                child: Text(AppLocalizations.of(context)!.cancel),
               ),
               TextButton(
                 onPressed: () {
@@ -407,9 +408,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   context.read<ProfileBloc>().add(Logout());
                   Navigator.pushReplacementNamed(context, '/login');
                 },
-                child: const Text(
-                  'Đăng xuất',
-                  style: TextStyle(color: Colors.red),
+                child: Text(
+                  AppLocalizations.of(context)!.logout,
+                  style: const TextStyle(color: Colors.red),
                 ),
               ),
             ],
