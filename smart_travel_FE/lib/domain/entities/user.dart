@@ -1,19 +1,112 @@
 import 'package:equatable/equatable.dart';
 
-class UserEntity extends Equatable{
+class User extends Equatable {
+  final int id;
   final String email;
   final String fullName;
   final String? phone;
-  final bool? emailVerified;
+  final String role;
+  final String authProvider;
+  final bool emailVerified;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final String? avatarUrl;
+  final String? bio;
+  final String? gender;
+  final DateTime? dateOfBirth;
+  final String? address;
+  final String? city;
+  final String? country;
+  final String? notificationSettings;
+  final String? languageSettings;
+  final bool darkModeEnabled;
+  final DateTime? profileUpdatedAt;
 
-  UserEntity({
+  const User({
+    required this.id,
     required this.email,
     required this.fullName,
     this.phone,
+    required this.role,
+    required this.authProvider,
     required this.emailVerified,
+    required this.createdAt,
+    required this.updatedAt,
+    this.avatarUrl,
+    this.bio,
+    this.gender,
+    this.dateOfBirth,
+    this.address,
+    this.city,
+    this.country,
+    this.notificationSettings,
+    this.languageSettings,
+    required this.darkModeEnabled,
+    this.profileUpdatedAt,
   });
 
   @override
-  List<Object?> get props => [email, fullName, phone, emailVerified];
+  List<Object?> get props => [
+    id,
+    email,
+    fullName,
+    phone,
+    role,
+    authProvider,
+    emailVerified,
+    createdAt,
+    updatedAt,
+    avatarUrl,
+    bio,
+    gender,
+    dateOfBirth,
+    address,
+    city,
+    country,
+    notificationSettings,
+    languageSettings,
+    darkModeEnabled,
+    profileUpdatedAt,
+  ];
+}
 
+class UserLevel extends Equatable {
+  final String currentLevel;
+  final int experiencePoints;
+  final int? nextLevelAt;
+  final double progressPercentage;
+
+  const UserLevel({
+    required this.currentLevel,
+    required this.experiencePoints,
+    this.nextLevelAt,
+    required this.progressPercentage,
+  });
+
+  @override
+  List<Object?> get props => [
+    currentLevel,
+    experiencePoints,
+    nextLevelAt,
+    progressPercentage,
+  ];
+}
+
+class UserSettings extends Equatable {
+  final String? languageSettings;
+  final bool darkModeEnabled;
+  final String? notificationSettings;
+
+  const UserSettings({
+    this.languageSettings,
+    required this.darkModeEnabled,
+    this.notificationSettings,
+  });
+
+  @override
+  List<Object?> get props => [
+    languageSettings,
+    darkModeEnabled,
+    notificationSettings,
+  ];
 }

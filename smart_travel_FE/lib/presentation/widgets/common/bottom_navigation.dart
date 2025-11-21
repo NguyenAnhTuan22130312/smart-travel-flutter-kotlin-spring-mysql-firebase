@@ -24,12 +24,20 @@ class AppBottomNavigationWithIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
+        border: isDark ? Border(
+          top: BorderSide(
+            color: Colors.grey[800]!,
+            width: 0.5,
+          ),
+        ) : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -44,6 +52,7 @@ class AppBottomNavigationWithIndicator extends StatelessWidget {
             children: List.generate(
               _navItems.length,
                   (index) => _buildNavItemWithIndicator(
+                context: context,
                 icon: _navItems[index]['icon'],
                 label: _navItems[index]['label'],
                 isSelected: currentIndex == index,
@@ -57,6 +66,7 @@ class AppBottomNavigationWithIndicator extends StatelessWidget {
   }
 
   Widget _buildNavItemWithIndicator({
+    required BuildContext context,
     required IconData icon,
     required String label,
     required bool isSelected,
