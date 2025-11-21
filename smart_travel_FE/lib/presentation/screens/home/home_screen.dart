@@ -13,6 +13,10 @@ import 'package:smart_travel/presentation/widgets/province/province_is_popular_c
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import '../../theme/app_colors.dart';
 
+import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
+import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
+import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
@@ -24,19 +28,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   int _selectedIndex = 0; // Index cho thanh điều hướng dưới
 
-
-  // Dữ liệu user mẫu từ bảng users & user_profiles
-  final Map<String, dynamic> _currentUser = {
-    'id': 1,
-    'full_name': 'Nguyễn Văn A',
-    'email': 'nguyenvana@gmail.com',
-    'role': 'USER',
-    'profile': {
-      'avatar_url': null, // hoặc 'https://example.com/avatar.jpg'
-      'dark_mode_enabled': false,
-    },
-  };
-
   @override
   void dispose() {
     _searchController.dispose();
@@ -45,11 +36,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     context.read<DestinationBloc>().add(LoadAllDestinations());
     context.read<DestinationBloc>().add(LoadFeaturedDestinations());
     context.read<ProvinceBloc>().add(LoadProvinceIsPopular());
+    // Load profile data
+    context.read<ProfileBloc>().add(LoadProfile());
   }
 
   void _onNavItemTapped(int index) {
@@ -58,6 +50,9 @@ class _HomeScreenState extends State<HomeScreen> {
         context,
         MaterialPageRoute(builder: (context) => const BookingScreen()),
       );
+    } else if (index == 4) {
+      // Navigate to Profile screen
+      Navigator.pushNamed(context, '/profile');
     } else {
       if (index == _selectedIndex) {
         return; // Tránh điều hướng lại
@@ -76,9 +71,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: CustomScrollView(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: CustomScrollView(
           slivers: [
             _buildAppBar(),
             _buildSearchBar(),
@@ -90,7 +84,6 @@ class _HomeScreenState extends State<HomeScreen> {
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
           ],
         ),
-      ),
       bottomNavigationBar: AppBottomNavigationWithIndicator(
         currentIndex: _selectedIndex,
         onTap: _onNavItemTapped,
@@ -98,79 +91,99 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // App Bar với thông tin user từ bảng users & user_profiles
+  // App Bar với thông tin user từ ProfileBloc
   Widget _buildAppBar() {
-    return SliverAppBar(
-      floating: true,
-      backgroundColor: Colors.white,
-      elevation: 0,
-      title: Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: AppColors.primary.withOpacity(0.1),
-            backgroundImage:
-            _currentUser['profile']['avatar_url'] != null
-                ? NetworkImage(_currentUser['profile']['avatar_url'])
-                : null,
-            child:
-            _currentUser['profile']['avatar_url'] == null
-                ? Icon(Icons.person, color: AppColors.primary)
-                : null,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Xin chào 👋',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textGray,
-                    fontWeight: FontWeight.normal,
-                  ),
-                ),
-                Text(
-                  _currentUser['full_name'],
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1F2937),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+    return BlocBuilder<ProfileBloc, ProfileState>(
+      builder: (context, state) {
+        String fullName = 'Khách';
+        String? avatarUrl;
+        
+        if (state is ProfileLoaded) {
+          fullName = state.user.fullName;
+          avatarUrl = state.user.avatarUrl;
+        }
+
+        return SliverAppBar(
+          floating: true,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: AppColors.mainGradient,
             ),
           ),
-          IconButton(
-            icon: Stack(
-              children: [
-                const Icon(
-                  Icons.notifications_outlined,
-                  color: Color(0xFF374151),
-                ),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            onPressed: () {
-              // TODO: Navigate to notifications
+          title: GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, '/profile');
             },
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.white,
+                  backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty
+                      ? NetworkImage(avatarUrl)
+                      : null,
+                  child: avatarUrl == null || avatarUrl.isEmpty
+                      ? Icon(Icons.person, color: AppColors.primary)
+                      : null,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Xin chào 👋',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white.withOpacity(0.9),
+                          fontWeight: FontWeight.normal,
+                        ),
+                      ),
+                      Text(
+                        fullName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: Stack(
+                    children: [
+                      const Icon(
+                        Icons.notifications_outlined,
+                        color: Colors.white,
+                      ),
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  onPressed: () {
+                    // TODO: Navigate to notifications
+                  },
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -181,11 +194,13 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withOpacity(
+                  Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.05
+                ),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
@@ -350,7 +365,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1F2937),
+                          color: Theme.of(context).textTheme.titleLarge?.color,
                         ),
                       ),
                       TextButton(
@@ -453,7 +468,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1F2937),
+                          color: Theme.of(context).textTheme.titleLarge?.color,
                         ),
                       ),
                       TextButton(
@@ -547,7 +562,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF1F2937),
+                            color: Theme.of(context).textTheme.titleLarge?.color,
                           ),
                         ),
                         TextButton(

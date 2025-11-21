@@ -1,0 +1,217 @@
+import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
+import 'package:smart_travel/core/error/exceptions.dart';
+import 'package:smart_travel/core/error/failures.dart';
+import 'package:smart_travel/data/data_sources/local/auth_local_data_source.dart';
+import 'package:smart_travel/data/data_sources/remote/user_remote_datasource.dart';
+import 'package:smart_travel/domain/entities/user.dart';
+import 'package:smart_travel/domain/repositories/user_repository.dart';
+
+class UserRepositoryImpl implements UserRepository {
+  final UserRemoteDataSource remoteDataSource;
+  final AuthLocalDataSource localStorage;
+
+  UserRepositoryImpl({
+    required this.remoteDataSource,
+    required this.localStorage,
+  });
+
+  @override
+  Future<Either<Failure, User>> getProfile() async {
+    try {
+      final user = await remoteDataSource.getProfile();
+      return Right(user);
+    } on DioException catch (e) {
+      return Left(_handleDioError(e));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Đã xảy ra lỗi: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, User>> updateProfile({
+    String? fullName,
+    String? phone,
+    String? avatarUrl,
+    String? bio,
+    String? gender,
+    DateTime? dateOfBirth,
+    String? address,
+    String? city,
+    String? country,
+  }) async {
+    try {
+      final data = <String, dynamic>{};
+
+      if (fullName != null) data['fullName'] = fullName;
+      if (phone != null) data['phone'] = phone;
+      if (avatarUrl != null) data['avatarUrl'] = avatarUrl;
+      if (bio != null) data['bio'] = bio;
+      if (gender != null) data['gender'] = gender;
+      if (dateOfBirth != null) {
+        data['dateOfBirth'] = dateOfBirth.toIso8601String().split('T')[0];
+      }
+      if (address != null) data['address'] = address;
+      if (city != null) data['city'] = city;
+      if (country != null) data['country'] = country;
+
+      final user = await remoteDataSource.updateProfile(data);
+      return Right(user);
+    } on DioException catch (e) {
+      return Left(_handleDioError(e));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Đã xảy ra lỗi: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmNewPassword,
+  }) async {
+    try {
+      await remoteDataSource.changePassword({
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+        'confirmNewPassword': confirmNewPassword,
+      });
+      return const Right(null);
+    } on DioException catch (e) {
+      return Left(_handleDioError(e));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Đã xảy ra lỗi: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserSettings>> getSettings() async {
+    try {
+      final settings = await remoteDataSource.getSettings();
+      return Right(settings);
+    } on DioException catch (e) {
+      return Left(_handleDioError(e));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Đã xảy ra lỗi: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserSettings>> updateSettings({
+    String? languageSettings,
+    bool? darkModeEnabled,
+    String? notificationSettings,
+  }) async {
+    try {
+      final data = <String, dynamic>{};
+
+      if (languageSettings != null) {
+        data['languageSettings'] = languageSettings;
+      }
+      if (darkModeEnabled != null) {
+        data['darkModeEnabled'] = darkModeEnabled;
+      }
+      if (notificationSettings != null) {
+        data['notificationSettings'] = notificationSettings;
+      }
+
+      final settings = await remoteDataSource.updateSettings(data);
+      return Right(settings);
+    } on DioException catch (e) {
+      return Left(_handleDioError(e));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Đã xảy ra lỗi: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserLevel>> getLevel() async {
+    try {
+      final level = await remoteDataSource.getLevel();
+      return Right(level);
+    } on DioException catch (e) {
+      return Left(_handleDioError(e));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Đã xảy ra lỗi: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserLevel>> updateLevel({
+    required int experiencePoints,
+  }) async {
+    try {
+      final level = await remoteDataSource.updateLevel({
+        'experiencePoints': experiencePoints,
+      });
+      return Right(level);
+    } on DioException catch (e) {
+      return Left(_handleDioError(e));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Đã xảy ra lỗi: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteAccount() async {
+    try {
+      await remoteDataSource.deleteAccount();
+      await localStorage.clear();
+      return const Right(null);
+    } on DioException catch (e) {
+      return Left(_handleDioError(e));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Đã xảy ra lỗi: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> logout() async {
+    try {
+      await localStorage.clear();
+      return const Right(null);
+    } catch (e) {
+      return Left(CacheFailure('Không thể đăng xuất'));
+    }
+  }
+
+  Failure _handleDioError(DioException e) {
+    if (e.response != null && e.response!.data != null) {
+      final data = e.response!.data;
+      if (data is Map<String, dynamic> && data.containsKey('msg')) {
+        return ServerFailure(data['msg'] as String);
+      }
+    }
+
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return ServerFailure('Kết nối timeout');
+      case DioExceptionType.badResponse:
+        return ServerFailure('Lỗi từ server: ${e.response?.statusCode}');
+      case DioExceptionType.cancel:
+        return ServerFailure('Request bị hủy');
+      case DioExceptionType.connectionError:
+        return ServerFailure('Lỗi kết nối');
+      default:
+        return ServerFailure('Đã xảy ra lỗi');
+    }
+  }
+}
