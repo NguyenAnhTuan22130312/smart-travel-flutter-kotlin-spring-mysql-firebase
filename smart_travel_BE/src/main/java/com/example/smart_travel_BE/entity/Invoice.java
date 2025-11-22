@@ -40,6 +40,9 @@ public class Invoice {
     @Column(name = "issue_date", nullable = false)
     private LocalDate issueDate;
 
+    @Column(name = "is_reviewed", nullable = false)
+    private boolean isReviewed = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
