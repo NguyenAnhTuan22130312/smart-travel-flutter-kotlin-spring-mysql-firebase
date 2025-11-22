@@ -6,6 +6,7 @@ import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -31,7 +32,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final settings = state.settings;
 
     // Parse language settings
-    if (settings.languageSettings != null && settings.languageSettings!.isNotEmpty) {
+    if (settings.languageSettings != null &&
+        settings.languageSettings!.isNotEmpty) {
       try {
         final langMap = json.decode(settings.languageSettings!);
         _selectedLanguage = langMap['lang'] ?? 'vi';
@@ -44,7 +46,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _darkModeEnabled = settings.darkModeEnabled;
 
     // Parse notification settings
-    if (settings.notificationSettings != null && settings.notificationSettings!.isNotEmpty) {
+    if (settings.notificationSettings != null &&
+        settings.notificationSettings!.isNotEmpty) {
       try {
         final notifMap = json.decode(settings.notificationSettings!);
         _emailNotifications = notifMap['email'] ?? true;
@@ -68,8 +71,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       final langSettings = json.encode({'lang': newLanguage});
       context.read<ProfileBloc>().add(
-            UpdateSettings(languageSettings: langSettings),
-          );
+        UpdateSettings(languageSettings: langSettings),
+      );
     }
   }
 
@@ -78,9 +81,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _darkModeEnabled = value;
     });
 
-    context.read<ProfileBloc>().add(
-          UpdateSettings(darkModeEnabled: value),
-        );
+    context.read<ProfileBloc>().add(UpdateSettings(darkModeEnabled: value));
   }
 
   void _updateNotifications() {
@@ -91,15 +92,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
 
     context.read<ProfileBloc>().add(
-          UpdateSettings(notificationSettings: notifSettings),
-        );
+      UpdateSettings(notificationSettings: notifSettings),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cài đặt'),
+        title: Text(AppLocalizations.of(context)!.settings),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -111,7 +112,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               behavior: SnackBarBehavior.floating,
               backgroundColor: Colors.transparent,
               content: AwesomeSnackbarContent(
-                title: 'Thành công',
+                title: AppLocalizations.of(context)!.success,
                 message: state.message,
                 contentType: ContentType.success,
               ),
@@ -125,7 +126,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               behavior: SnackBarBehavior.floating,
               backgroundColor: Colors.transparent,
               content: AwesomeSnackbarContent(
-                title: 'Lỗi',
+                title: AppLocalizations.of(context)!.error,
                 message: state.message,
                 contentType: ContentType.failure,
               ),
@@ -135,6 +136,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ..showSnackBar(snackBar);
           } else if (state is SettingsLoaded) {
             _loadSettingsData(state);
+          } else if (state is AccountDeletedSuccess) {
+            Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil('/login', (route) => false);
           }
         },
         builder: (context, state) {
@@ -145,23 +150,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
           return ListView(
             children: [
               // Language Section
-              _buildSectionHeader('Ngôn ngữ'),
+              _buildSectionHeader(AppLocalizations.of(context)!.language),
               _buildLanguageTile(),
               const Divider(height: 1),
 
               const SizedBox(height: 16),
 
               // Appearance Section
-              _buildSectionHeader('Giao diện'),
+              _buildSectionHeader(AppLocalizations.of(context)!.appearance),
               _buildDarkModeTile(),
               const Divider(height: 1),
 
               const SizedBox(height: 16),
 
               // Notifications Section
-              _buildSectionHeader('Thông báo'),
+              _buildSectionHeader(AppLocalizations.of(context)!.notifications),
               _buildNotificationTile(
-                title: 'Thông báo Email',
+                title: AppLocalizations.of(context)!.emailNotifications,
                 value: _emailNotifications,
                 onChanged: (value) {
                   setState(() {
@@ -172,7 +177,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const Divider(height: 1, indent: 16),
               _buildNotificationTile(
-                title: 'Thông báo Push',
+                title: AppLocalizations.of(context)!.pushNotifications,
                 value: _pushNotifications,
                 onChanged: (value) {
                   setState(() {
@@ -183,7 +188,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const Divider(height: 1, indent: 16),
               _buildNotificationTile(
-                title: 'Thông báo SMS',
+                title: AppLocalizations.of(context)!.smsNotifications,
                 value: _smsNotifications,
                 onChanged: (value) {
                   setState(() {
@@ -219,8 +224,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       color: Theme.of(context).cardColor,
       child: ListTile(
         leading: const Icon(Icons.language, color: Color(0xFF4A5568)),
-        title: const Text(
-          'Ngôn ngữ',
+        title: Text(
+          AppLocalizations.of(context)!.language,
           style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
         ),
         trailing: DropdownButton<String>(
@@ -259,11 +264,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       color: Theme.of(context).cardColor,
       child: SwitchListTile(
         secondary: const Icon(Icons.dark_mode, color: Color(0xFF4A5568)),
-        title: const Text(
-          'Chế độ tối',
+        title: Text(
+          AppLocalizations.of(context)!.darkMode,
           style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
         ),
-        subtitle: const Text('Theo môi trường'),
+        subtitle: Text(AppLocalizations.of(context)!.systemDefault),
         value: _darkModeEnabled,
         onChanged: _updateDarkMode,
         activeColor: AppColors.primary,
@@ -279,7 +284,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       color: Theme.of(context).cardColor,
       child: SwitchListTile(
-        secondary: const Icon(Icons.notifications_outlined, color: Color(0xFF4A5568)),
+        secondary: const Icon(
+          Icons.notifications_outlined,
+          color: Color(0xFF4A5568),
+        ),
         title: Text(
           title,
           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),

@@ -1,6 +1,7 @@
 package com.example.smart_travel_BE.service;
 
 import com.example.smart_travel_BE.dto.user.request.ChangePasswordRequest;
+import com.example.smart_travel_BE.dto.user.request.DeleteAccountRequest;
 import com.example.smart_travel_BE.dto.user.request.SettingsRequest;
 import com.example.smart_travel_BE.dto.user.request.UpdateLevelRequest;
 import com.example.smart_travel_BE.dto.user.request.UpdateProfileRequest;
@@ -11,6 +12,9 @@ import com.example.smart_travel_BE.entity.User;
 import com.example.smart_travel_BE.entity.UserProfile;
 import com.example.smart_travel_BE.exception.AppException;
 import com.example.smart_travel_BE.exception.ErrorCode;
+import com.example.smart_travel_BE.repository.BookingRepository;
+import com.example.smart_travel_BE.repository.EmailVerificationTokenRepository;
+import com.example.smart_travel_BE.repository.RefreshTokenRepository;
 import com.example.smart_travel_BE.repository.UserProfileRepository;
 import com.example.smart_travel_BE.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -27,6 +31,9 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
+    private final BookingRepository bookingRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final EmailVerificationTokenRepository emailVerificationTokenRepository;
     private final PasswordEncoder passwordEncoder;
 
     private static final LevelTier[] LEVEL_TIERS = new LevelTier[]{
@@ -41,12 +48,12 @@ public class UserService {
      */
     public ProfileResponse getProfile() {
         User currentUser = getCurrentUser();
-        
+
         // Kiểm tra email đã được xác thực chưa
         if (!currentUser.getEmailVerified()) {
             throw new AppException(ErrorCode.ACCOUNT_NOT_CONFIRM);
         }
-        
+
         // Lấy UserProfile, nếu chưa có thì tạo mới (chỉ khi email đã verified)
         UserProfile userProfile = getOrCreateUserProfile(currentUser);
 
@@ -59,19 +66,19 @@ public class UserService {
     @Transactional
     public ProfileResponse updateProfile(UpdateProfileRequest request) {
         User currentUser = getCurrentUser();
-        
+
         // Kiểm tra email đã được xác thực chưa
         if (!currentUser.getEmailVerified()) {
             throw new AppException(ErrorCode.ACCOUNT_NOT_CONFIRM);
         }
-        
+
         // Cập nhật thông tin User
         if (request.getFullName() != null) {
             currentUser.setFullName(request.getFullName());
         }
         if (request.getPhone() != null) {
             // Kiểm tra phone đã tồn tại chưa (trừ chính user hiện tại)
-            if (userRepository.existsByPhone(request.getPhone()) && 
+            if (userRepository.existsByPhone(request.getPhone()) &&
                 !request.getPhone().equals(currentUser.getPhone())) {
                 throw new AppException(ErrorCode.PHONE_EXISTED);
             }
@@ -236,6 +243,34 @@ public class UserService {
     }
 
     /**
+     * Xóa tài khoản vĩnh viễn
+     */
+    @Transactional
+    public void deleteAccount(DeleteAccountRequest request) {
+        User currentUser = getCurrentUser();
+
+        // Xóa tất cả email verification tokens của user
+        emailVerificationTokenRepository.deleteByUser(currentUser);
+        log.info("Deleted all email verification tokens for user: {}", currentUser.getEmail());
+
+        // Xóa tất cả refresh tokens của user
+        refreshTokenRepository.deleteByUser(currentUser);
+        log.info("Deleted all refresh tokens for user: {}", currentUser.getEmail());
+
+        // Xóa tất cả bookings của user (sẽ cascade xóa payments và invoices)
+        bookingRepository.deleteByUser(currentUser);
+        log.info("Deleted all bookings for user: {}", currentUser.getEmail());
+
+        // Xóa UserProfile
+        userProfileRepository.deleteByUserId(currentUser.getId());
+        log.info("Deleted user profile for user: {}", currentUser.getEmail());
+
+        // Xóa User
+        userRepository.delete(currentUser);
+        log.info("Account permanently deleted for user: {}", currentUser.getEmail());
+    }
+
+    /**
      * Lấy user hiện tại từ SecurityContext
      */
     private User getCurrentUser() {
@@ -243,11 +278,11 @@ public class UserService {
         if (authentication == null || authentication.getPrincipal() == null) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
-        
+
         if (authentication.getPrincipal() instanceof User) {
             return (User) authentication.getPrincipal();
         }
-        
+
         throw new AppException(ErrorCode.UNAUTHENTICATED);
     }
 

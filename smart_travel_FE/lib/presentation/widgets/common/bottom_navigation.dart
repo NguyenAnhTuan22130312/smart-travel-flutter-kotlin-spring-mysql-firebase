@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 
 
@@ -14,17 +15,20 @@ class AppBottomNavigationWithIndicator extends StatelessWidget {
     required this.onTap,
   }) : super(key: key);
 
-  static final List<Map<String, dynamic>> _navItems = [
-    {'icon': Icons.home_rounded, 'label': 'Trang chủ'},
-    {'icon': Icons.explore_rounded, 'label': 'Khám phá'},
-    {'icon': Icons.confirmation_number_rounded, 'label': 'Đặt tour'},
-    {'icon': Icons.smart_toy_rounded, 'label': 'AI Chat'},
-    {'icon': Icons.person_rounded, 'label': 'Cá nhân'},
-  ];
+  List<Map<String, dynamic>> _getNavItems(BuildContext context) {
+    return [
+      {'icon': Icons.home_rounded, 'label': AppLocalizations.of(context)!.navHome},
+      {'icon': Icons.explore_rounded, 'label': AppLocalizations.of(context)!.navExplore},
+      {'icon': Icons.confirmation_number_rounded, 'label': AppLocalizations.of(context)!.navBooking},
+      {'icon': Icons.smart_toy_rounded, 'label': AppLocalizations.of(context)!.navAiChat},
+      {'icon': Icons.person_rounded, 'label': AppLocalizations.of(context)!.navProfile},
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final navItems = _getNavItems(context);
     
     return Container(
       decoration: BoxDecoration(
@@ -50,11 +54,11 @@ class AppBottomNavigationWithIndicator extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(
-              _navItems.length,
+              navItems.length,
                   (index) => _buildNavItemWithIndicator(
                 context: context,
-                icon: _navItems[index]['icon'],
-                label: _navItems[index]['label'],
+                icon: navItems[index]['icon'],
+                label: navItems[index]['label'],
                 isSelected: currentIndex == index,
                 onTap: () => onTap(index),
               ),

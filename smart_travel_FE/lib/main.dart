@@ -14,6 +14,10 @@ import 'package:smart_travel/presentation/screens/splash/splash_screen.dart';
 import 'package:smart_travel/router/app_router.dart';
 import 'package:smart_travel/router/route_names.dart';
 
+import 'dart:convert';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 import 'injection_container.dart' as di;
 
 void main() async {
@@ -40,6 +44,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool _isDarkMode = false;
+  Locale? _locale;
 
   @override
   Widget build(BuildContext context) {
@@ -64,14 +69,30 @@ class _MyAppState extends State<MyApp> {
         ],
         child: BlocListener<ProfileBloc, ProfileState>(
           listener: (context, state) {
-            // Update dark mode setting whenever any state with this info is emitted
+            // Update dark mode and language setting whenever any state with this info is emitted
             if (state is SettingsLoaded) {
               setState(() {
                 _isDarkMode = state.settings.darkModeEnabled;
+                if (state.settings.languageSettings != null) {
+                  try {
+                    final langMap = json.decode(state.settings.languageSettings!);
+                    _locale = Locale(langMap['lang'] ?? 'vi');
+                  } catch (_) {
+                    _locale = const Locale('vi');
+                  }
+                }
               });
             } else if (state is SettingsUpdateSuccess) {
               setState(() {
                 _isDarkMode = state.settings.darkModeEnabled;
+                if (state.settings.languageSettings != null) {
+                  try {
+                    final langMap = json.decode(state.settings.languageSettings!);
+                    _locale = Locale(langMap['lang'] ?? 'vi');
+                  } catch (_) {
+                    _locale = const Locale('vi');
+                  }
+                }
               });
             } else if (state is ProfileLoaded) {
               setState(() {
@@ -102,6 +123,17 @@ class _MyAppState extends State<MyApp> {
               useMaterial3: true,
             ),
             themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            locale: _locale,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en'),
+              Locale('vi'),
+            ],
           ),
         )
     );

@@ -176,7 +176,7 @@ class UserRepositoryImpl implements UserRepository {
       return Left(_handleDioError(e));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
-    } catch (e) {
+   } catch (e) {
       return Left(ServerFailure('Đã xảy ra lỗi: ${e.toString()}'));
     }
   }

@@ -5,6 +5,7 @@ import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
 import 'package:smart_travel/presentation/widgets/profile/level_progress_widget.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../../domain/entities/user.dart';
 
@@ -26,7 +27,7 @@ class _UserLevelScreenState extends State<UserLevelScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cấp bậc thành viên'),
+        title: Text(AppLocalizations.of(context)!.userLevelTitle),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -70,9 +71,9 @@ class _UserLevelScreenState extends State<UserLevelScreen> {
           const SizedBox(height: 24),
 
           // Level Benefits Section
-          const Text(
-            'Quyền lợi của cấp độ',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.levelBenefitsTitle,
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -80,60 +81,64 @@ class _UserLevelScreenState extends State<UserLevelScreen> {
           const SizedBox(height: 16),
 
           _buildBenefitCard(
+            context: context,
             icon: Icons.diamond,
-            title: 'Kim cương',
+            title: AppLocalizations.of(context)!.levelDiamond,
             color: const Color(0xFFB9F2FF),
             benefits: [
-              'Giảm giá 15% cho tất cả đặt phòng',
-              'Ưu tiên hỗ trợ 24/7',
-              'Nâng hạng phòng miễn phí',
-              'Late check-out miễn phí',
-              'Tích điểm gấp 3 lần',
+              AppLocalizations.of(context)!.benefitDiscount15,
+              AppLocalizations.of(context)!.benefitPrioritySupport247,
+              AppLocalizations.of(context)!.benefitFreeRoomUpgrade,
+              AppLocalizations.of(context)!.benefitLateCheckoutFree,
+              AppLocalizations.of(context)!.benefitTriplePoints,
             ],
-            requirement: '7000+ XP',
+            requirement: AppLocalizations.of(context)!.requirementDiamond,
           ),
 
           const SizedBox(height: 12),
 
           _buildBenefitCard(
+            context: context,
             icon: Icons.workspace_premium,
-            title: 'Vàng',
+            title: AppLocalizations.of(context)!.levelGold,
             color: const Color(0xFFFFD700),
             benefits: [
-              'Giảm giá 10% cho tất cả đặt phòng',
-              'Hỗ trợ ưu tiên',
-              'Tích điểm gấp 2 lần',
-              'Early check-in miễn phí',
+              AppLocalizations.of(context)!.benefitDiscount10,
+              AppLocalizations.of(context)!.benefitPrioritySupport,
+              AppLocalizations.of(context)!.benefitDoublePoints,
+              AppLocalizations.of(context)!.benefitEarlyCheckinFree,
             ],
-            requirement: '3000 - 6999 XP',
+            requirement: AppLocalizations.of(context)!.requirementGold,
           ),
 
           const SizedBox(height: 12),
 
           _buildBenefitCard(
+            context: context,
             icon: Icons.stars,
-            title: 'Bạc',
+            title: AppLocalizations.of(context)!.levelSilver,
             color: const Color(0xFFC0C0C0),
             benefits: [
-              'Giảm giá 5% cho tất cả đặt phòng',
-              'Tích điểm gấp 1.5 lần',
-              'Ưu đãi đặc biệt theo mùa',
+              AppLocalizations.of(context)!.benefitDiscount5,
+              AppLocalizations.of(context)!.benefitOnePointFiveTimes,
+              AppLocalizations.of(context)!.benefitSeasonalOffers,
             ],
-            requirement: '1000 - 2999 XP',
+            requirement: AppLocalizations.of(context)!.requirementSilver,
           ),
 
           const SizedBox(height: 12),
 
           _buildBenefitCard(
+            context: context,
             icon: Icons.emoji_events,
-            title: 'Đồng',
+            title: AppLocalizations.of(context)!.levelBronze,
             color: const Color(0xFFCD7F32),
             benefits: [
-              'Tích điểm cho mỗi đặt phòng',
-              'Nhận ưu đãi đặc biệt',
-              'Cập nhật về chương trình khuyến mãi',
+              AppLocalizations.of(context)!.benefitEarnPointsEachBooking,
+              AppLocalizations.of(context)!.benefitReceiveSpecialDeals,
+              AppLocalizations.of(context)!.benefitPromoUpdates,
             ],
-            requirement: '0 - 999 XP',
+            requirement: AppLocalizations.of(context)!.requirementBronze,
           ),
 
           const SizedBox(height: 24),
@@ -165,7 +170,7 @@ class _UserLevelScreenState extends State<UserLevelScreen> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Cách tích điểm kinh nghiệm',
+                      AppLocalizations.of(context)!.earnXpTitle,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -177,10 +182,10 @@ class _UserLevelScreenState extends State<UserLevelScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                _buildEarnXPItem('Đặt phòng khách sạn: +100 XP'),
-                _buildEarnXPItem('Viết đánh giá: +50 XP'),
-                _buildEarnXPItem('Hoàn thành hồ sơ: +30 XP'),
-                _buildEarnXPItem('Giới thiệu bạn bè: +80 XP'),
+                _buildEarnXPItem(AppLocalizations.of(context)!.earnXpBookingHotel),
+                _buildEarnXPItem(AppLocalizations.of(context)!.earnXpWriteReview),
+                _buildEarnXPItem(AppLocalizations.of(context)!.earnXpCompleteProfile),
+                _buildEarnXPItem(AppLocalizations.of(context)!.earnXpReferFriends),
               ],
             ),
           ),
@@ -200,16 +205,16 @@ class _UserLevelScreenState extends State<UserLevelScreen> {
             color: Colors.grey,
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Không thể tải thông tin cấp bậc',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+          Text(
+            AppLocalizations.of(context)!.errorLoadLevel,
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
               context.read<ProfileBloc>().add(LoadLevel());
             },
-            child: const Text('Thử lại'),
+            child: Text(AppLocalizations.of(context)!.retry),
           ),
         ],
       ),
@@ -218,6 +223,7 @@ class _UserLevelScreenState extends State<UserLevelScreen> {
 
 
   Widget _buildBenefitCard({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required Color color,
