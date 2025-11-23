@@ -35,7 +35,7 @@ public class SecurityConfig {
             "/api/v1/payment/momo-ipn", "/api/v1/hotels", "/api/v1/hotels/{id}/detail",
             "/api/v1/province/all", "/api/v1/province/detail/{provinceId}"
             ,"/api/v1/auth/google-login", "/api/v1/auth/facebook-login", "/api/v1/payment/vnpay-return",
-            "/api/v1/hotels/{hotelId}/images", "/api/v1/hotels/{hotelId}/images/upload", "/api/v1/hotels/{hotelId}/images/upload-multiple",
+            "/api/v1/hotels/*/images", "/api/v1/hotels/*/images/upload", "/api/v1/hotels/*/images/upload-multiple","/api/v1/hotels/*/images/*"
     };
 
     CustomAuthEntryPoint customAuthEntryPoint;

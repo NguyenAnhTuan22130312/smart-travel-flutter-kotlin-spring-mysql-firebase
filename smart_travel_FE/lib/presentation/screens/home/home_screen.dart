@@ -53,26 +53,40 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onNavItemTapped(int index) {
+    // Dãy routes tương ứng với các tab
+    final List<String> routes = ['/home', '/explore', '/booking', '/hotel-list', '/ai_chat', '/profile'];
+    final String routeName = routes[index];
+
+    // 1. Trường hợp đặc biệt: Đặt tour (index 2)
     if (index == 2) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const BookingScreen()),
       );
-    } else {
-      if (index == _selectedIndex) {
-        return; // Tránh điều hướng lại
-      }
+      // KHÔNG CẦN return, vì logic tiếp theo cũng có thể đúng (nếu bạn muốn highlight tab)
+    }
 
+    // 2. Trường hợp màn hình Phụ cần nút Back: Khách sạn (index 3)
+    else if (index == 3) {
+      // SỬ DỤNG pushNamed để GIỮ HomeScreen lại trong Stack.
+      Navigator.pushNamed(context, routeName);
+
+      // KHÔNG thay đổi _selectedIndex, giữ tab Home (hoặc tab hiện tại) được highlight
+      return;
+    }
+
+    // 3. Trường hợp chuyển đổi giữa các tab chính (0, 1, 4, 5)
+    else {
+      if (index == _selectedIndex) {
+        return; // Tránh điều hướng lại nếu chọn lại tab đang active
+      }
       setState(() {
         _selectedIndex = index;
       });
-      Navigator.pushReplacementNamed(
-        context,
-        ['/home', '/explore', '/booking', '/profile', '/ai_chat'][index],
-      );
+      // Dùng pushReplacementNamed để thay thế màn hình chính hiện tại.
+      Navigator.pushReplacementNamed(context, routeName);
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

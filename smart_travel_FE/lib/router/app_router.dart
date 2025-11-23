@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
+import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:smart_travel/presentation/screens/auth/login_screen.dart';
 import 'package:smart_travel/presentation/screens/auth/register_screen.dart';
@@ -8,6 +9,7 @@ import 'package:smart_travel/presentation/screens/destination/detail_destination
 import 'package:smart_travel/presentation/screens/explore/explore_screen.dart';
 import 'package:smart_travel/presentation/screens/home/home_screen.dart';
 import 'package:smart_travel/presentation/screens/hotel/detail_hotel_screen.dart';
+import 'package:smart_travel/presentation/screens/hotel/hotel_list_screen.dart';
 import 'package:smart_travel/presentation/screens/province/province_detail_screen.dart';
 import 'package:smart_travel/presentation/screens/splash/splash_screen.dart';
 import 'package:smart_travel/router/route_names.dart';
@@ -37,6 +39,15 @@ class AppRouter {
       case RouteNames.destinationDetail:
         return MaterialPageRoute(
           builder: (context) => DetailDestinationScreen(),
+          settings: settings,
+        );
+      case RouteNames.hotelList:
+        return MaterialPageRoute(
+          builder:
+              (context) => BlocProvider(
+                create: (_) => di.sl<HotelBloc>(),
+                child: const HotelListScreen(),
+              ),
           settings: settings,
         );
       case RouteNames.hotelDetail:

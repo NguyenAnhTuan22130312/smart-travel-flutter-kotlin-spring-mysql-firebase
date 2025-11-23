@@ -1,46 +1,52 @@
-import 'package:equatable/equatable.dart';
+    import 'package:equatable/equatable.dart';
 
-abstract class HotelEvent extends Equatable {
-  const HotelEvent();
+    abstract class HotelEvent extends Equatable {
+      const HotelEvent();
 
-  @override
-  List<Object?> get props => [];
-}
+      @override
+      List<Object?> get props => [];
+    }
 
-// Event gọi API lấy danh sách khách sạn
-class LoadHotelsEvent extends HotelEvent {
-  final int? destinationId;
-  final String? keyword;
-  final int? minStars;
-  final int? maxStars;
-  final double? minPrice;
-  final double? maxPrice;
-  final String? city;
-  final int page;
-  final int size;
+    // Event gọi API lấy danh sách khách sạn
+    class LoadHotelsEvent extends HotelEvent {
+      final int? destinationId;
+      final String? keyword;
+      final int? minStars;
+      final int? maxStars;
+      final double? minPrice;
+      final double? maxPrice;
+      final String? city;
+      final int page;
+      final int size;
+      final String? sortBy;
+      final String? sortDir;
 
-  const LoadHotelsEvent({
-    this.destinationId,
-    this.keyword,
-    this.minStars,
-    this.maxStars,
-    this.minPrice,
-    this.maxPrice,
-    this.city,
-    this.page = 0,
-    this.size = 10,
-  });
+      const LoadHotelsEvent({
+        this.destinationId,
+        this.keyword,
+        this.minStars,
+        this.maxStars,
+        this.minPrice,
+        this.maxPrice,
+        this.city,
+        this.page = 0,
+        this.size = 10,
+        this.sortBy = 'pricePerNight',
+        this.sortDir = 'asc',
+      });
 
-  @override
-  List<Object?> get props => [
-    destinationId,
-    keyword,
-    minStars,
-    maxStars,
-    minPrice,
-    maxPrice,
-    city,
-    page,
-    size,
-  ];
-}
+      @override
+      List<Object?> get props => [
+        destinationId,
+        keyword,
+        minStars,
+        maxStars,
+        minPrice,
+        maxPrice,
+        city,
+        page,
+        size,
+        sortBy,
+        sortDir,
+      ];
+    }
