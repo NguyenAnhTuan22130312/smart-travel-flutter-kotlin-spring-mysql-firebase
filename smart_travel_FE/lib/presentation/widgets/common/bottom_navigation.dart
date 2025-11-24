@@ -1,5 +1,6 @@
-    import 'package:flutter/material.dart';
-    import 'package:smart_travel/presentation/theme/app_colors.dart';
+import 'package:flutter/material.dart';
+import 'package:smart_travel/presentation/theme/app_colors.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
     //Bottom Navigation Bar với indicator line
     class AppBottomNavigationWithIndicator extends StatelessWidget {
@@ -20,7 +21,6 @@
         {'icon': Icons.smart_toy_rounded, 'label': 'AI Chat'},
         {'icon': Icons.person_rounded, 'label': 'Cá nhân'},
       ];
-
       @override
       Widget build(BuildContext context) {
         return Container(
@@ -54,8 +54,7 @@
           ),
         );
       }
-
-      Widget _buildNavItemWithIndicator({
+     Widget _buildNavItemWithIndicator({
         required IconData icon,
         required String label,
         required bool isSelected,

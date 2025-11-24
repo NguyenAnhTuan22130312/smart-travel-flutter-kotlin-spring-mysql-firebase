@@ -1,6 +1,7 @@
 package com.example.smart_travel_BE.controller;
 
 import com.example.smart_travel_BE.dto.user.request.ChangePasswordRequest;
+import com.example.smart_travel_BE.dto.user.request.DeleteAccountRequest;
 import com.example.smart_travel_BE.dto.user.request.SettingsRequest;
 import com.example.smart_travel_BE.dto.user.request.UpdateLevelRequest;
 import com.example.smart_travel_BE.dto.user.request.UpdateProfileRequest;
@@ -233,6 +234,36 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     APIResponse.<LevelResponse>builder()
                             .msg("Có lỗi xảy ra khi cập nhật cấp bậc")
+                            .build()
+            );
+        }
+    }
+
+    /**
+     * Xóa tài khoản vĩnh viễn
+     */
+    @DeleteMapping("/account")
+    public ResponseEntity<APIResponse<Void>> deleteAccount(
+            @Valid @RequestBody DeleteAccountRequest request) {
+        try {
+            userService.deleteAccount(request);
+            return ResponseEntity.ok(
+                    APIResponse.<Void>builder()
+                            .msg("Xóa tài khoản thành công")
+                            .build()
+            );
+        } catch (AppException e) {
+            log.error("Delete account failed", e);
+            return ResponseEntity.badRequest().body(
+                    APIResponse.<Void>builder()
+                            .msg(e.getMessage())
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("Unexpected error when deleting account", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    APIResponse.<Void>builder()
+                            .msg("Có lỗi xảy ra khi xóa tài khoản")
                             .build()
             );
         }

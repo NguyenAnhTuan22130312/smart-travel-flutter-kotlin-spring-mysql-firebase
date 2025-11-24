@@ -8,11 +8,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
-// --- IMPORT CHÍNH THỨC TỪ GOOGLE GEN AI SDK ---
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
 
-// Import các Entity và Repository của bạn
 import com.example.smart_travel_BE.entity.Tour;
 import com.example.smart_travel_BE.entity.Hotel;
 import com.example.smart_travel_BE.entity.Destination;
@@ -27,120 +25,106 @@ public class GeminiChatService {
     @Value("${gemini.api.key}")
     private String apiKey;
 
-    // Inject các Repository để lấy dữ liệu
     private final TourRepository tourRepository;
     private final HotelRepository hotelRepository;
     private final DestinationRepository destinationRepository;
 
-    // Client của thư viện mới
     private Client client;
+
+    // Dùng model nhẹ để trích xuất từ khóa cho nhanh
+    private static final String MODEL_ID = "gemini-2.5-pro";
 
     @PostConstruct
     public void init() {
-        // Khởi tạo Client.
-        // Thư viện com.google.genai hỗ trợ Builder để truyền API Key
-        this.client = Client.builder()
-                .apiKey(apiKey)
-                .build();
+        this.client = Client.builder().apiKey(apiKey).build();
     }
 
-    /**
-     * Hàm xử lý chính: Nhận tin nhắn -> Tìm DB -> Gọi Gemini
-     */
     @Transactional(readOnly = true)
     public String sendMessage(String userMessage) {
         try {
-            // 1. Tìm kiếm dữ liệu liên quan trong Database (RAG)
-            String contextData = findRelevantData(userMessage);
+            // BƯỚC 1: TRÍCH XUẤT TỪ KHÓA (Quan trọng nhất)
+            // "Tìm khách sạn ở Bà Nà Hills" -> "Bà Nà Hills"
+            String keyword = extractLocation(userMessage);
 
-            // 2. Tạo System Prompt (Hướng dẫn hành vi cho Bot)
-            String systemInstruction =
-                    "Bạn là trợ lý AI của 'Smart Travel', chuyên tư vấn du lịch Việt Nam.\n" +
-                            "NHIỆM VỤ: Tư vấn tour và khách sạn dựa trên [DỮ LIỆU HỆ THỐNG] được cung cấp dưới đây.\n" +
-                            "QUY TẮC:\n" +
-                            "1. CHỈ được gợi ý các dịch vụ có trong dữ liệu. KHÔNG được bịa ra tour/khách sạn không có thật.\n" +
-                            "2. Nếu dữ liệu trống hoặc không liên quan, hãy nói: 'Hiện tôi chưa tìm thấy dịch vụ phù hợp trong hệ thống, bạn có thể thử tìm địa điểm khác'.\n" +
-                            "3. Trả lời ngắn gọn, chuyên nghiệp, có kèm giá tiền (VND) và địa chỉ/thời gian.";
+            // BƯỚC 2: Tìm dữ liệu bằng từ khóa sạch
+            String contextData = findRelevantData(keyword);
 
-            // 3. Ghép toàn bộ thành một prompt hoàn chỉnh
-            // (Thư viện mới này gọi kiểu REST, nên ta gửi context trong mỗi request)
+            // BƯỚC 3: Tạo Prompt trả lời
             String fullPrompt = String.format(
-                    "%s\n\n[DỮ LIỆU HỆ THỐNG]:\n%s\n\n[CÂU HỎI CỦA KHÁCH]:\n\"%s\"",
-                    systemInstruction,
-                    contextData,
-                    userMessage
+                    "Bạn là trợ lý du lịch Smart Travel. Dựa vào dữ liệu sau để trả lời.\n" +
+                            "Câu hỏi: \"%s\"\n" +
+                            "Dữ liệu hệ thống:\n%s\n" +
+                            "Yêu cầu: Trả lời ngắn gọn, thân thiện. Nếu có khách sạn/tour, hãy nêu tên và giá.",
+                    userMessage,
+                    contextData
             );
 
-            // 4. Gọi API Gemini (Sử dụng model Flash cho nhanh và rẻ)
-            //https://ai.google.dev/gemini-api/docs/models?hl=vi#gemini-2.5-pro
-            // Cú pháp chuẩn của thư viện com.google.genai
-            GenerateContentResponse response = client.models.generateContent(
-                    "gemini-2.5-pro", // Hoặc "gemini-2.0-flash" nếu bạn có quyền truy cập
-                    fullPrompt,
-                    null // Config (nếu muốn chỉnh temperature thì truyền vào đây)
-            );
-
-            // 5. Trả về kết quả text
+            GenerateContentResponse response = client.models.generateContent(MODEL_ID, fullPrompt, null);
             return response.text();
 
         } catch (Exception e) {
-            e.printStackTrace();
-            return "Hệ thống đang gặp sự cố kết nối với AI: " + e.getMessage();
+            e.printStackTrace(); // Xem log lỗi nếu có
+            return "Lỗi hệ thống: " + e.getMessage();
         }
     }
 
     /**
-     * Hàm tìm kiếm thông minh trong Database (Logic RAG)
-     * Không thay đổi so với trước, vì nó hoạt động tốt với JPA
+     * Dùng AI để lọc ra tên địa điểm từ câu nói tự nhiên
      */
+    private String extractLocation(String userMessage) {
+        try {
+            String prompt = "Nhiệm vụ: Trích xuất duy nhất tên địa danh/tỉnh thành từ câu sau. Không giải thích.\n" +
+                    "Ví dụ: 'Tìm khách sạn ở Đà Lạt' -> 'Đà Lạt'\n" +
+                    "Câu: \"" + userMessage + "\"";
+
+            GenerateContentResponse response = client.models.generateContent(MODEL_ID, prompt, null);
+            String extracted = response.text().trim().replace("\n", "").replace(".", "");
+
+            System.out.println("DEBUG - User: " + userMessage + " -> Extracted: " + extracted);
+            return extracted;
+        } catch (Exception e) {
+            return userMessage; // Nếu lỗi thì tìm nguyên câu
+        }
+    }
+
     private String findRelevantData(String keyword) {
         StringBuilder dataBuilder = new StringBuilder();
-        Set<Tour> foundTours = new HashSet<>();
         Set<Hotel> foundHotels = new HashSet<>();
+        Set<Tour> foundTours = new HashSet<>(); // Lưu ý: Bảng Tour có thể chưa có dữ liệu
 
-        // A. Tìm theo Destination (Ví dụ khách chat "Đà Lạt")
+        // 1. Tìm Destination trước
         List<Destination> destinations = destinationRepository.findByNameContainingIgnoreCase(keyword);
+
+        // 2. Nếu tìm thấy địa điểm, lấy hotel/tour của địa điểm đó
         for (Destination dest : destinations) {
-            foundTours.addAll(tourRepository.findByDestination(dest));
             foundHotels.addAll(hotelRepository.findByDestination(dest));
+            foundTours.addAll(tourRepository.findByDestination(dest));
         }
 
-        // B. Tìm theo tên trực tiếp (Ví dụ khách chat "Tour leo núi")
-        foundTours.addAll(tourRepository.findByNameContainingIgnoreCase(keyword));
-        foundHotels.addAll(hotelRepository.findByNameContainingIgnoreCase(keyword));
-
-        // C. Format dữ liệu thành văn bản để gửi cho Gemini
-        if (foundTours.isEmpty() && foundHotels.isEmpty()) {
-            return "Không tìm thấy dữ liệu nào trong database khớp với từ khóa.";
+        // 3. Tìm fallback (tìm trực tiếp trong tên Hotel/Tour)
+        if (destinations.isEmpty()) {
+            foundHotels.addAll(hotelRepository.findByNameContainingIgnoreCase(keyword));
+            foundTours.addAll(tourRepository.findByNameContainingIgnoreCase(keyword));
         }
 
-        if (!foundTours.isEmpty()) {
-            dataBuilder.append("--- DANH SÁCH TOUR CÓ SẴN ---\n");
-            for (Tour t : foundTours) {
-                dataBuilder.append(String.format(
-                        "- Tên: %s | Giá: %s VND | Thời gian: %d ngày %d đêm | Điểm đến: %s | Mô tả: %s\n",
-                        t.getName(),
-                        t.getPricePerPerson(),
-                        t.getDurationDays(),
-                        t.getDurationNights(),
-                        t.getDestination().getName(),
-                        t.getDescription() != null ? t.getDescription().substring(0, Math.min(t.getDescription().length(), 50)) + "..." : ""
-                ));
-            }
-            dataBuilder.append("\n");
+        // 4. Build String kết quả
+        if (foundHotels.isEmpty() && foundTours.isEmpty()) {
+            return "Không tìm thấy dữ liệu về '" + keyword + "' trong hệ thống.";
         }
 
         if (!foundHotels.isEmpty()) {
-            dataBuilder.append("--- DANH SÁCH KHÁCH SẠN CÓ SẴN ---\n");
+            dataBuilder.append("=== KHÁCH SẠN ===\n");
             for (Hotel h : foundHotels) {
-                dataBuilder.append(String.format(
-                        "- Tên: %s | Hạng: %d sao | Giá từ: %s VND | Địa chỉ: %s | Tiện ích: %s\n",
-                        h.getName(),
-                        h.getStarRating(),
-                        h.getPricePerNight(),
-                        h.getAddress(),
-                        h.getAmenities() // Gửi kèm tiện ích (JSON string)
-                ));
+                dataBuilder.append(String.format("- %s (%s sao) | Giá: %.0f VND | ĐC: %s\n",
+                        h.getName(), h.getStarRating(), h.getPricePerNight(), h.getAddress()));
+            }
+        }
+
+        // Lưu ý: SQL Dump của bạn chưa có bảng Tours, nên phần này có thể sẽ trống
+        if (!foundTours.isEmpty()) {
+            dataBuilder.append("=== TOUR ===\n");
+            for (Tour t : foundTours) {
+                dataBuilder.append(String.format("- %s | Giá: %.0f VND\n", t.getName(), t.getPricePerPerson()));
             }
         }
 

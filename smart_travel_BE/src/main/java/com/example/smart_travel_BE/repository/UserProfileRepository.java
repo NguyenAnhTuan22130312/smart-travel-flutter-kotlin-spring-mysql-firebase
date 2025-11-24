@@ -9,5 +9,7 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
     Optional<UserProfile> findByUser(User user);
     
     boolean existsByUser(User user);
+    
+    void deleteByUserId(Long userId);
 }
 

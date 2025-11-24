@@ -12,6 +12,11 @@ import 'package:smart_travel/presentation/widgets/destination/destination_card.d
 import 'package:smart_travel/presentation/widgets/province/province_is_popular_card.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import '../../theme/app_colors.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
+import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
+import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
+import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -24,19 +29,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   int _selectedIndex = 0; // Index cho thanh điều hướng dưới
 
-
-  // Dữ liệu user mẫu từ bảng users & user_profiles
-  final Map<String, dynamic> _currentUser = {
-    'id': 1,
-    'full_name': 'Nguyễn Văn A',
-    'email': 'nguyenvana@gmail.com',
-    'role': 'USER',
-    'profile': {
-      'avatar_url': null, // hoặc 'https://example.com/avatar.jpg'
-      'dark_mode_enabled': false,
-    },
-  };
-
   @override
   void dispose() {
     _searchController.dispose();
@@ -45,11 +37,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     context.read<DestinationBloc>().add(LoadAllDestinations());
     context.read<DestinationBloc>().add(LoadFeaturedDestinations());
     context.read<ProvinceBloc>().add(LoadProvinceIsPopular());
+    // Load profile data
+    context.read<ProfileBloc>().add(LoadProfile());
   }
 
   void _onNavItemTapped(int index) {
@@ -76,7 +69,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     // 3. Trường hợp chuyển đổi giữa các tab chính (0, 1, 4, 5)
-    else {
+    } else if (index == 4) {
+      // Navigate to Profile screen
+      Navigator.pushNamed(context, '/profile');
+    } else {
       if (index == _selectedIndex) {
         return; // Tránh điều hướng lại nếu chọn lại tab đang active
       }
@@ -90,9 +86,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: CustomScrollView(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: CustomScrollView(
           slivers: [
             _buildAppBar(),
             _buildSearchBar(),
@@ -104,7 +99,6 @@ class _HomeScreenState extends State<HomeScreen> {
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
           ],
         ),
-      ),
       bottomNavigationBar: AppBottomNavigationWithIndicator(
         currentIndex: _selectedIndex,
         onTap: _onNavItemTapped,
@@ -112,79 +106,99 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // App Bar với thông tin user từ bảng users & user_profiles
+  // App Bar với thông tin user từ ProfileBloc
   Widget _buildAppBar() {
-    return SliverAppBar(
-      floating: true,
-      backgroundColor: Colors.white,
-      elevation: 0,
-      title: Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: AppColors.primary.withOpacity(0.1),
-            backgroundImage:
-            _currentUser['profile']['avatar_url'] != null
-                ? NetworkImage(_currentUser['profile']['avatar_url'])
-                : null,
-            child:
-            _currentUser['profile']['avatar_url'] == null
-                ? Icon(Icons.person, color: AppColors.primary)
-                : null,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Xin chào 👋',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textGray,
-                    fontWeight: FontWeight.normal,
-                  ),
-                ),
-                Text(
-                  _currentUser['full_name'],
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1F2937),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+    return BlocBuilder<ProfileBloc, ProfileState>(
+      builder: (context, state) {
+        String fullName = 'Khách';
+        String? avatarUrl;
+        
+        if (state is ProfileLoaded) {
+          fullName = state.user.fullName;
+          avatarUrl = state.user.avatarUrl;
+        }
+
+        return SliverAppBar(
+          floating: true,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: AppColors.mainGradient,
             ),
           ),
-          IconButton(
-            icon: Stack(
-              children: [
-                const Icon(
-                  Icons.notifications_outlined,
-                  color: Color(0xFF374151),
-                ),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            onPressed: () {
-              // TODO: Navigate to notifications
+          title: GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, '/profile');
             },
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.white,
+                  backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty
+                      ? NetworkImage(avatarUrl)
+                      : null,
+                  child: avatarUrl == null || avatarUrl.isEmpty
+                      ? Icon(Icons.person, color: AppColors.primary)
+                      : null,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.hello,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white.withOpacity(0.9),
+                          fontWeight: FontWeight.normal,
+                        ),
+                      ),
+                      Text(
+                        fullName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: Stack(
+                    children: [
+                      const Icon(
+                        Icons.notifications_outlined,
+                        color: Colors.white,
+                      ),
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  onPressed: () {
+                    // TODO: Navigate to notifications
+                  },
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -195,11 +209,13 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withOpacity(
+                  Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.05
+                ),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
@@ -208,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: TextField(
             controller: _searchController,
             decoration: InputDecoration(
-              hintText: 'Tìm kiếm địa điểm, tour...',
+              hintText: AppLocalizations.of(context)!.searchHint,
               hintStyle: TextStyle(color: AppColors.textGray, fontSize: 14),
               prefixIcon: Icon(Icons.search, color: AppColors.primary),
               suffixIcon: Container(
@@ -282,9 +298,9 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
-                      'AI Trợ lý du lịch',
+                      AppLocalizations.of(context)!.aiAssistantTitle,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -293,7 +309,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Để AI gợi ý tour phù hợp với bạn',
+                      AppLocalizations.of(context)!.aiAssistantSubtitle,
                       style: TextStyle(color: Colors.white70, fontSize: 12),
                     ),
                   ],
@@ -339,7 +355,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    'Không có điểm đến cho danh mục này',
+                    AppLocalizations.of(context)!.noDestinations,
                     style: TextStyle(
                       color: AppColors.textGray,
                       fontSize: 14,
@@ -360,11 +376,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                        Text(
-                        'Điểm đến du lịch (${destinations.length})',
+                        '${AppLocalizations.of(context)!.travelDestinations} (${destinations.length})',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1F2937),
+                          color: Theme.of(context).textTheme.titleLarge?.color,
                         ),
                       ),
                       TextButton(
@@ -372,7 +388,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           context.read<DestinationBloc>().add(LoadAllDestinations(loadAll: true));
                         },
                         child: Text(
-                          'Xem tất cả',
+                          AppLocalizations.of(context)!.seeAll,
                           style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.w600,
@@ -444,11 +460,11 @@ class _HomeScreenState extends State<HomeScreen> {
         else if (state is FeaturedDestinationLoaded) {
           final featuredDestinations = state.destinations;
           if (featuredDestinations.isEmpty) {
-            return const SliverToBoxAdapter(
+            return SliverToBoxAdapter(
               child: Center(
                 child: Padding(
                   padding: EdgeInsets.all(16),
-                  child: Text("Không có điểm đến nổi bật"),
+                  child: Text(AppLocalizations.of(context)!.noFeaturedDestinations),
                 ),
               ),
             );
@@ -463,11 +479,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                        Text(
-                        'Điểm đến nổi bật (${featuredDestinations.length})',
+                        '${AppLocalizations.of(context)!.featuredDestinations} (${featuredDestinations.length})',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1F2937),
+                          color: Theme.of(context).textTheme.titleLarge?.color,
                         ),
                       ),
                       TextButton(
@@ -475,7 +491,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           context.read<DestinationBloc>().add(LoadFeaturedDestinations(loadAll: true));
                         },
                         child: Text(
-                          'Xem tất cả',
+                          AppLocalizations.of(context)!.seeAll,
                           style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.w600,
@@ -505,11 +521,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         } else if (state is FeaturedDestinationError) {
-          return const SliverToBoxAdapter(
+          return SliverToBoxAdapter(
             child: Center(
               child: Padding(
                 padding: EdgeInsets.all(16),
-                child: Text("Không thể tải điểm đến nổi bật"),
+                child: Text(AppLocalizations.of(context)!.errorLoadFeatured),
               ),
             ),
           );
@@ -539,11 +555,11 @@ class _HomeScreenState extends State<HomeScreen> {
           else if (state is ProvincePopularLoaded) {
             final provinceIsPopulars = state.province;
             if (provinceIsPopulars.isEmpty) {
-              return const SliverToBoxAdapter(
+              return SliverToBoxAdapter(
                 child: Center(
                   child: Padding(
                     padding: EdgeInsets.all(16),
-                    child: Text("Không có tỉnh thành phổ biến"),
+                    child: Text(AppLocalizations.of(context)!.noPopularProvinces),
                   ),
                 ),
               );
@@ -557,11 +573,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                          Text(
-                          'Tỉnh thành phổ biến (${provinceIsPopulars.length})',
+                          '${AppLocalizations.of(context)!.popularProvinces} (${provinceIsPopulars.length})',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF1F2937),
+                            color: Theme.of(context).textTheme.titleLarge?.color,
                           ),
                         ),
                         TextButton(
@@ -569,7 +585,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             // TODO: Navigate to all provinces
                           },
                           child: Text(
-                            'Xem tất cả',
+                            AppLocalizations.of(context)!.seeAll,
                             style: TextStyle(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600,
@@ -599,11 +615,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             );
           } else if (state is ProvinceError) {
-            return const SliverToBoxAdapter(
+            return SliverToBoxAdapter(
               child: Center(
                 child: Padding(
                   padding: EdgeInsets.all(16),
-                  child: Text("Không thể tải tỉnh thành phổ biến"),
+                  child: Text(AppLocalizations.of(context)!.errorLoadProvinces),
                 ),
               ),
             );

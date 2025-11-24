@@ -15,4 +15,6 @@ public interface TourRepository extends JpaRepository<Tour, Long> {
 
     // Tìm theo Tên HOẶC Tên Địa điểm (kết hợp)
     List<Tour> findByNameContainingIgnoreCaseOrDestination_NameContainingIgnoreCase(String tourName, String destName);
+
+
 }

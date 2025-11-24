@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:http/http.dart';
 import 'package:smart_travel/core/constants/api_constants.dart';

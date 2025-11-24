@@ -45,5 +45,15 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	
+	<!-- Camera and Photo Library permissions for Image Picker -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Cần quyền truy cập thư viện ảnh để chọn avatar</string>
+	
+	<key>NSCameraUsageDescription</key>
+	<string>Cần quyền truy cập camera để chụp avatar</string>
+	
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Cần quyền truy cập microphone</string>
 </dict>
 </plist>

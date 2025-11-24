@@ -5,18 +5,22 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:smart_travel/core/services/image_upload_service.dart';
 import 'package:smart_travel/data/data_sources/local/auth_local_data_source.dart';
 import 'package:smart_travel/data/data_sources/remote/destination_data_source.dart';
 import 'package:smart_travel/data/data_sources/remote/hotel_data_source.dart';
 import 'package:smart_travel/data/data_sources/remote/province_data_source.dart';
+import 'package:smart_travel/data/data_sources/remote/user_remote_datasource.dart';
 import 'package:smart_travel/data/repositories/auth_repository_impl.dart';
 import 'package:smart_travel/data/repositories/destination_repository_impl.dart';
 import 'package:smart_travel/data/repositories/hotel_repository_impl.dart';
 import 'package:smart_travel/data/repositories/province_repository_impl.dart';
+import 'package:smart_travel/data/repositories/user_repository_impl.dart';
 import 'package:smart_travel/domain/repositories/auth_repository.dart';
 import 'package:smart_travel/domain/repositories/destination_repository.dart';
 import 'package:smart_travel/domain/repositories/hotel_repository.dart';
 import 'package:smart_travel/domain/repositories/province_repository.dart';
+import 'package:smart_travel/domain/repositories/user_repository.dart';
 import 'package:smart_travel/domain/usecases/auth/facebook_login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/forgot_password_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/google_login_use_case.dart';
@@ -30,10 +34,12 @@ import 'package:smart_travel/domain/usecases/hotel/get_hotels_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/hotel_detail_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/get_all_province_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/province_detail_use_case.dart';
+import 'package:smart_travel/domain/usecases/user/get_profile_usecase.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
+import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/provicne_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/province_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -122,6 +128,20 @@ Future<void> init() async {
   sl.registerFactory(() => HotelBloc(getHotelsUseCase: sl()));
 
 
+  // --- THÊM BLOC PROFILE ---
+  sl.registerFactory(
+    () => ProfileBloc(
+      getProfileUseCase: sl(),
+      updateProfileUseCase: sl(),
+      changePasswordUseCase: sl(),
+      getSettingsUseCase: sl(),
+      updateSettingsUseCase: sl(),
+      getLevelUseCase: sl(),
+      deleteAccountUseCase: sl(),
+      logoutUseCase: sl(),
+    ),
+  );
+
   // Use cases
   // auth
   sl.registerLazySingleton(() => RegisterUseCase(sl()));
@@ -143,6 +163,16 @@ Future<void> init() async {
   // --- THÊM USE CASE HOTEL ---
   sl.registerLazySingleton(() => HotelDetailUseCase(sl()));
   sl.registerLazySingleton(() => GetHotelsUseCase(sl()));
+
+  // --- THÊM USE CASES USER/PROFILE ---
+  sl.registerLazySingleton(() => GetProfileUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateProfileUseCase(sl()));
+  sl.registerLazySingleton(() => ChangePasswordUseCase(sl()));
+  sl.registerLazySingleton(() => GetSettingsUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateSettingsUseCase(sl()));
+  sl.registerLazySingleton(() => GetLevelUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteAccountUseCase(sl()));
+  sl.registerLazySingleton(() => LogoutUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(
@@ -169,6 +199,14 @@ Future<void> init() async {
   sl.registerLazySingleton<HotelRepository>(
     () => HotelRepositoryImpl(hotelDataSource: sl(), networkInfo: sl()),
   );
+
+  // --- THÊM REPO USER ---
+  sl.registerLazySingleton<UserRepository>(
+    () => UserRepositoryImpl(
+      remoteDataSource: sl(),
+      localStorage: sl(),
+    ),
+  );
   // Data sources
   sl.registerLazySingleton<AuthDataSource>(
     () => AuthRemoteDataSourceImpl(client: sl()),
@@ -184,7 +222,17 @@ Future<void> init() async {
   );
   // --- THÊM DATA SOURCE HOTEL ---
   sl.registerLazySingleton<HotelDataSource>(
-        () => HotelDataSourceImpl(client: sl()),
+    () => HotelDataSourceImpl(client: sl()),
+  );
+
+  // --- THÊM DATA SOURCE USER ---
+  sl.registerLazySingleton<UserRemoteDataSource>(
+    () => UserRemoteDataSourceImpl(dioClient: sl()),
+  );
+  
+  // --- IMAGE UPLOAD SERVICE ---
+  sl.registerLazySingleton<ImageUploadService>(
+    () => ImageUploadService(sl()),
   );
 
   //Core
