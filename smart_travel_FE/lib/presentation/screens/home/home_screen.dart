@@ -66,8 +66,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // KHÔNG thay đổi _selectedIndex, giữ tab Home (hoặc tab hiện tại) được highlight
       return;
-    }
-
     // 3. Trường hợp chuyển đổi giữa các tab chính (0, 1, 4, 5)
     } else if (index == 4) {
       // Navigate to Profile screen
