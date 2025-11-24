@@ -18,6 +18,7 @@ import org.mapstruct.MappingTarget;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
@@ -86,9 +87,14 @@ public interface DestinationMapper {
     @AfterMapping
     default void mapHotelImage(Hotel hotel, @MappingTarget HotelSummaryResponse response) {
         if (hotel.getImages() != null && !hotel.getImages().isEmpty()) {
-            response.setImages(List.of(hotel.getImages().get(0).getImageUrl()).toString());
+            // Lấy ảnh chính (isPrimary = true)
+            Optional<HotelImage> primaryImage = hotel.getImages().stream()
+                    .filter(HotelImage::getIsPrimary)
+                    .findFirst();
+            response.setImages(primaryImage.map(HotelImage::getImageUrl)
+                    .orElse(null));
         } else {
-            response.setImages(String.valueOf(new ArrayList<>()));
+            response.setImages(null); // nếu không có ảnh
         }
     }
 

@@ -8,24 +8,29 @@ abstract class HotelState extends Equatable {
   List<Object?> get props => [];
 }
 
-// trạng thái khởi tạo
+// Trạng thái khởi tạo
 class HotelInitial extends HotelState {}
 
-// trạng thái đang load
+// Trạng thái đang tải (Dùng chung cho cả lần đầu và khi chuyển trang)
 class HotelLoading extends HotelState {}
 
-// trạng thái load thành công
+// Trạng thái load thành công
 class HotelLoaded extends HotelState {
   final List<Hotel> hotels;
-  final bool isLimited;
+  final int currentPage; // Để biết đang ở trang nào (để tô màu nút)
+  final int totalPages;  // Để biết có bao nhiêu nút (để vẽ list 1, 2, 3...)
 
-  const HotelLoaded(this.hotels, {this.isLimited = false});
+  const HotelLoaded({
+    required this.hotels,
+    required this.currentPage,
+    required this.totalPages,
+  });
 
   @override
-  List<Object?> get props => [hotels, isLimited];
+  List<Object?> get props => [hotels, currentPage, totalPages];
 }
 
-// trạng thái lỗi
+// Trạng thái lỗi
 class HotelError extends HotelState {
   final String message;
 

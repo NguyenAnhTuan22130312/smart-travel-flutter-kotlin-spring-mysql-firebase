@@ -7,6 +7,7 @@ class RouteNames {
   static const String explore = '/explore';
   static const String destinationDetail = '/destination-detail';
   static const String provinceDetail = '/province/detail';
+  static const String hotelList = '/hotel-list';
   static const String hotelDetail = '/hotel-detail';
   
   // Profile routes
