@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:smart_travel/data/models/destination/destination_image_response_modal.dart';
 import 'package:smart_travel/data/models/hotel/hotel_summary_response_modal.dart';
 import 'package:smart_travel/data/models/province/province_response_modal.dart';
 import 'package:smart_travel/data/models/review/review_response_modal.dart';
@@ -32,7 +33,7 @@ class DestinationDetailResponse {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
-  final List<String>? imageUrls;
+  final List<DestinationImageResponse>? destinationImage;
   final List<HotelSummaryResponse>? hotels;
   final List<TourSummaryResponse>? tours;
   final List<ReviewResponse>? reviews;
@@ -55,7 +56,7 @@ class DestinationDetailResponse {
     this.isFeatured,
     this.createdAt,
     this.updatedAt,
-    this.imageUrls,
+    this.destinationImage,
     this.hotels,
     this.tours,
     this.reviews,
@@ -90,9 +91,12 @@ class DestinationDetailResponse {
       updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'])
           : null,
-      imageUrls: json['imageUrls'] != null
-          ? List<String>.from(json['imageUrls'])
+      destinationImage: json['images'] != null
+          ? (json['images'] as List)
+          .map((e) => DestinationImageResponse.fromJson(e))
+          .toList()
           : [],
+
       hotels: json['hotels'] != null
           ? (json['hotels'] as List)
           .map((e) => HotelSummaryResponse.fromJson(e))
@@ -132,7 +136,7 @@ class DestinationDetailResponse {
       entryFee: entryFee,
       createdAt: createdAt,
       updatedAt: updatedAt,
-      imageUrls: imageUrls,
+      destinationImage : destinationImage?.map((d) => d.toEntity()).toList(),
       hotels: hotels?.map((h) => h.toEntity()).toList(),
       tours: tours?.map((t) => t.toEntity()).toList(),
       reviews: reviews?.map((r) => r.toEntity()).toList(),

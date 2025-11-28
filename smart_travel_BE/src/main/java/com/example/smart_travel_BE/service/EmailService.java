@@ -6,6 +6,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -19,6 +20,10 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     JavaMailSender mailSender;
+
+    @NonFinal
+    @Value("${spring.mail.username}")
+    String fromEmail;
 
     public void sendVerificationEmail(EmailRequest request) {
         try {
@@ -36,6 +41,7 @@ public class EmailService {
 
             MimeMessage userMail = mailSender.createMimeMessage();
             MimeMessageHelper userHelper = new MimeMessageHelper(userMail, true, "UTF-8");
+            userHelper.setFrom(fromEmail);
             userHelper.setTo(request.getTo());
             userHelper.setSubject(subjectUser);
             userHelper.setText(messageUser, true);
@@ -59,6 +65,7 @@ public class EmailService {
 
             MimeMessage userMail = mailSender.createMimeMessage();
             MimeMessageHelper userHelper = new MimeMessageHelper(userMail, true, "UTF-8");
+            userHelper.setFrom(fromEmail);
             userHelper.setTo(email);
             userHelper.setSubject(subjectUser);
             userHelper.setText(messageUser, true);
@@ -85,6 +92,7 @@ public class EmailService {
 
             MimeMessage userMail = mailSender.createMimeMessage();
             MimeMessageHelper messageHelper = new MimeMessageHelper(userMail, true, "UTF-8");
+            messageHelper.setFrom(fromEmail);
             messageHelper.setTo(emailRequest.getTo());
             messageHelper.setSubject(subjectUser);
             messageHelper.setText(messageUser, true);

@@ -11,6 +11,7 @@ class DioClient {
     _dio.options.baseUrl = ApiConstants.baseUrl;
     _dio.options.connectTimeout = ApiConstants.connectionTimeout;
     _dio.options.receiveTimeout = ApiConstants.receiveTimeout;
+    _dio.options.headers['Content-Type'] = 'application/json; charset=utf-8';
 
     _dio.interceptors.add(AuthInterceptor(_storage));
     // Sửa: Thêm ErrorInterceptor
@@ -23,6 +24,14 @@ class DioClient {
 
   Future<Response> post(String path, {dynamic data}) async {
     return _dio.post(path, data: data);
+  }
+
+  Future<Response> put(String path, {dynamic data}) async {
+    return _dio.put(path, data: data);
+  }
+
+  Future<Response> delete(String path) async {
+    return _dio.delete(path);
   }
 }
 

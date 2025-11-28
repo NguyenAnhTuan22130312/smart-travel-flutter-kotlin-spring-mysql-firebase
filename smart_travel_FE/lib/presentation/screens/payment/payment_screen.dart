@@ -44,7 +44,7 @@ class PaymentScreen extends StatelessWidget {
               String returnUrlPath;
               if (state.paymentUrl.contains('momo.vn')) {
                 // Phải khớp với MoMoConfig.java
-                returnUrlPath = "/payment/momo-return";
+                returnUrlPath = ApiConstants.momoReturn;
               } else {
                 // Phải khớp với VnPayConfig.java
                 returnUrlPath = "/payment/vnpay-return";

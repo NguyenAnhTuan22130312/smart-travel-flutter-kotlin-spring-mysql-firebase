@@ -11,6 +11,7 @@ import 'package:smart_travel/domain/entities/tour.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
+import 'package:smart_travel/router/route_names.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme/app_colors.dart';
@@ -49,11 +50,15 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
   }
 
   void _startAutoPlay(List<String> images) {
+    if (images.isEmpty) return; // nếu không có ảnh, dừng
+
+    _timer?.cancel(); // nếu có timer trước, hủy
+
     _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
-      if (_pageController.hasClients && images.isNotEmpty) {
-        final nextPage = (_currentImageIndex + 1) % images.length;
+      if (_pageController.hasClients) {
+        _currentImageIndex = (_currentImageIndex + 1) % images.length; // cập nhật index
         _pageController.animateToPage(
-          nextPage,
+          _currentImageIndex,
           duration: const Duration(milliseconds: 600),
           curve: Curves.easeInOut,
         );
@@ -114,7 +119,9 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
 
           if (state is GetDetailDestinationLoaded) {
             final destination = state.destinationEntity;
-            final images = destination.imageUrls ?? [];
+            final images = destination.destinationImage
+                ?.map((img) => img.imageUrl ?? '')
+                .toList() ?? [];
             _startAutoPlay(images);
 
             return CustomScrollView(
@@ -551,7 +558,14 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
             borderRadius: BorderRadius.circular(16),
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
-              onTap: () {},
+              onTap: () {
+                // (Tôi giả sử thuộc tính ID của bạn là 'id')
+                Navigator.pushNamed(
+                  context,
+                  RouteNames.hotelDetail,
+                  arguments: h.id, // <-- GỬI ID (int)
+                );
+              },
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Row(

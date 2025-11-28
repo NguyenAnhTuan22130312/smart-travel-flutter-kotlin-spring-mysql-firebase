@@ -9,9 +9,15 @@ class ApiConstants {
   static const String googleLogin = '/auth/google-login';
   static const String facebookLogin = '/auth/facebook-login';
   static const String forgotPassword = '/auth/forgot-password';
+  static const String deleteAccount = '/users/account';
+  static const String logout = '/auth/logout';
 
+
+  //Payment
   static const String createOnlinePayment = '/payment/create-online-payment';
   static const String confirmCashPayment = '/payment/confirm-cash-payment';
+  static const String vnpayReturn = '/payment/vnpay-return';
+  static const String momoReturn = '/payment/momo-return';
   static const String createBooking = '/bookings';
 
   //Destination
@@ -23,6 +29,18 @@ class ApiConstants {
   //Province
   static const String provinceAll = '/province/all';
   static const String provinceDetail = '/province/detail/';
+
+  //Hotel
+  static const String hotel = '/hotels';
+
+  //User Profile
+  static const String getProfile = '/users/profile';
+  static const String updateProfile = '/users/profile';
+  static const String changePassword = '/users/change-password';
+  static const String getSettings = '/users/settings';
+  static const String updateSettings = '/users/settings';
+  static const String getLevel = '/users/level';
+  static const String updateLevel = '/users/level';
 
 
   // Timeout

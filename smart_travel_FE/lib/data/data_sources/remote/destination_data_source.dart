@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:smart_travel/core/constants/api_constants.dart';
@@ -58,6 +57,7 @@ class DestinationDataSourceImpl implements DestinationDataSource{
         final destinations = apiResponse.data!
             .map((item) => DestinationFeaturedResponseModel.fromJson(item))
             .toList();
+
 
         return destinations;
       } else if (response.statusCode == 400) {

@@ -5,10 +5,14 @@ import com.example.smart_travel_BE.dto.user.response.LoginResponse;
 import com.example.smart_travel_BE.dto.user.response.RegisterResponse;
 import com.example.smart_travel_BE.entity.EmailVerificationToken;
 import com.example.smart_travel_BE.entity.User;
+import com.example.smart_travel_BE.entity.UserProfile;
 import com.example.smart_travel_BE.exception.AppException;
 import com.example.smart_travel_BE.exception.ErrorCode;
 import com.example.smart_travel_BE.mapper.UserMapper;
 import com.example.smart_travel_BE.repository.EmailVerificationTokenRepository;
+import com.example.smart_travel_BE.repository.UserProfileRepository;
+import com.example.smart_travel_BE.repository.RefreshTokenRepository;
+import com.example.smart_travel_BE.repository.UserProfileRepository;
 import com.example.smart_travel_BE.repository.UserRepository;
 import com.example.smart_travel_BE.util.JwtUtil;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -16,6 +20,8 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseToken;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,20 +31,20 @@ import org.springframework.stereotype.Service;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AuthService {
     private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
     private final EmailVerificationTokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final UserMapper userMapper;
     private final JwtUtil jwtUtil;
+    private final RefreshTokenRepository refreshTokenRepository;
 
 
     /**
@@ -72,7 +78,6 @@ public class AuthService {
         user.setEmailVerified(false);
 
         userRepository.save(user);
-
 
         log.info("User created successfully: {}", user.getEmail());
 
@@ -139,8 +144,21 @@ public class AuthService {
 
         // Cập nhật trạng thái xác thực
         User user = verificationToken.getUser();
+        log.info("Verifying email for user: {} (ID: {})", user.getEmail(), user.getId());
+        log.info("Current emailVerified status: {}", user.getEmailVerified());
+
         user.setEmailVerified(true);
         userRepository.save(user);
+        userRepository.flush(); // Đảm bảo thay đổi được commit ngay
+
+        // Refresh user để đảm bảo lấy dữ liệu mới nhất
+        user = userRepository.findById(user.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+
+        log.info("After save - emailVerified status: {}", user.getEmailVerified());
+
+        // Tạo UserProfile sau khi email đã được xác thực
+        createUserProfile(user);
 
         verificationToken.setVerifiedAt(LocalDateTime.now());
         tokenRepository.save(verificationToken);
@@ -152,7 +170,8 @@ public class AuthService {
             log.error("Failed to send welcome email", e);
         }
 
-        log.info("Email verified successfully for user: {}", user.getEmail());
+        log.info("Email verified successfully for user: {} - emailVerified: {}",
+                user.getEmail(), user.getEmailVerified());
     }
 
     /**
@@ -218,6 +237,35 @@ public class AuthService {
                 .build();
 
 
+    }
+    public LoginResponse loginAdmin(LoginRequest request) {
+        log.info("Login attempt for email: {}", request.getEmail());
+
+        // Tìm user theo email
+        var user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.EMAIL_NOT_EXISTED));
+
+        // Kiểm tra mật khẩu
+        boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
+        if (!authenticated) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        if (!user.getEmailVerified()) {
+            throw new AppException(ErrorCode.IS_VERIFY_EMAIL);
+        }
+
+        // Tạo token JWT
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("id", user.getId());
+        claims.put("role", user.getRole()); // Có thể thêm thông tin khác vào claims
+        String token = jwtUtil.generateToken(user.getId(), claims);
+        String refreshToken = jwtUtil.generateRefreshToken(user.getId());
+
+        return LoginResponse.builder()
+                .token(token)
+                .refreshToken(refreshToken)
+                .role(String.valueOf(user.getRole()))
+                .build();
     }
 
     /**
@@ -312,11 +360,16 @@ public class AuthService {
                 User newUser = new User();
                 newUser.setEmail(email);
                 newUser.setFullName(name);
-                newUser.setEmailVerified(true);
+                newUser.setEmailVerified(true); // Google đã verify email
                 newUser.setIsActive(true);
                 newUser.setRole("USER");
                 newUser.setAuthProvider("GOOGLE");
-                return userRepository.save(newUser);
+                User savedUser = userRepository.save(newUser);
+
+                // Tạo UserProfile sau khi email đã được xác thực (Google đã verify)
+                createUserProfile(savedUser);
+
+                return savedUser;
             });
 
             // Sinh JWT cho backend
@@ -365,11 +418,16 @@ public class AuthService {
                 User newUser = new User();
                 newUser.setEmail(email);
                 newUser.setFullName(name);
-                newUser.setEmailVerified(true);
+                newUser.setEmailVerified(true); // Facebook đã verify email
                 newUser.setIsActive(true);
                 newUser.setRole("USER");
-                newUser.setAuthProvider("GOOGLE");
-                return userRepository.save(newUser);
+                newUser.setAuthProvider("FACEBOOK");
+                User savedUser = userRepository.save(newUser);
+
+                // Tạo UserProfile sau khi email đã được xác thực (Facebook đã verify)
+                createUserProfile(savedUser);
+
+                return savedUser;
             });
 
             // Sinh JWT cho backend
@@ -393,7 +451,68 @@ public class AuthService {
         }
     }
 
+    /**
+     * Tạo UserProfile mặc định cho user mới
+     */
+    private void createUserProfile(User user) {
+        // Kiểm tra xem UserProfile đã tồn tại chưa
+        if (!userProfileRepository.existsByUser(user)) {
+            UserProfile userProfile = UserProfile.builder()
+                    .user(user)
+                    .darkModeEnabled(false)
+                    .languageSettings("{\"lang\": \"vi\"}")
+                    .build();
+            userProfileRepository.save(userProfile);
+            log.info("UserProfile created for user: {}", user.getEmail());
+        }
+    }
+
+    /**
+     * Lấy user theo email (dùng để debug)
+     */
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
+    }
+    //Refresh token
+    public LoginResponse refreshToken(HttpServletRequest request) {
+
+        // Lấy refreshToken từ cookie
+        String refreshToken = Arrays.stream(Optional.ofNullable(request.getCookies()).orElse(new Cookie[0]))
+                .filter(cookie -> "refreshToken".equals(cookie.getName()))
+                .findFirst()
+                .map(Cookie::getValue)
+                .orElse(null);
 
 
+        var tokenInDb = refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHORIZED));
 
+        if (tokenInDb.isRevoked()) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        // Lấy userId từ token (subject)
+        String userId = jwtUtil.extractSubjectAsUserId(refreshToken);
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", userRepository.findById(Long.valueOf(userId))
+                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHORIZED))
+                .getRole());
+
+        String newToken = jwtUtil.generateToken(Long.valueOf(userId), claims);
+
+
+        return LoginResponse.builder()
+                .token(newToken)
+                .build();
+    }
+
+    //Đăng xuất
+    public void logoutAdmin(String token) {
+        var storedToken = refreshTokenRepository.findByToken(token)
+                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHORIZED));
+
+        storedToken.setRevoked(true);
+        refreshTokenRepository.save(storedToken);
+    }
 }
