@@ -573,7 +573,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.network(
-                        h.images!,
+                        h.images ?? "Đang cập nhật",
                         width: 80,
                         height: 80,
                         fit: BoxFit.cover,
@@ -602,7 +602,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                           const SizedBox(height: 6),
                           Text(
                             '${_formatPrice(h.pricePerNight!)}đ / đêm',
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF00C853), fontSize: 14),
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2DBBAA), fontSize: 14),
                           ),
                         ],
                       ),
@@ -616,7 +616,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                           const SizedBox(width: 4),
                           Text(
                             h.averageRating!.toStringAsFixed(1),
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 13),
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2DBBAA), fontSize: 13),
                           ),
                         ],
                       ),
