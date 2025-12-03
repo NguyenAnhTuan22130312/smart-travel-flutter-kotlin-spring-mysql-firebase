@@ -1,0 +1,899 @@
+{
+	"info": {
+		"_postman_id": "user-management-apis-001",
+		"name": "User Management APIs - Smart Travel",
+		"description": "Collection để test các API quản lý tài khoản người dùng cho Admin.\n\n## Endpoints:\n1. GET /api/v1/admin/users - Lấy danh sách users\n2. GET /api/v1/admin/users/{id} - Xem chi tiết user\n3. PUT /api/v1/admin/users/{id} - Cập nhật thông tin user\n4. POST /api/v1/admin/users/{id}/lock - Khóa tài khoản\n5. POST /api/v1/admin/users/{id}/unlock - Mở khóa tài khoản\n\n## Setup:\n- Đặt biến `baseUrl` trong environment (mặc định: http://localhost:8080)\n- Đặt biến `adminToken` với JWT token của admin",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Get All Users (Pagination & Search)",
+			"item": [
+				{
+					"name": "Get All Users - Page 1 (Default)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has correct structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('msg');",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData.data).to.have.property('content');",
+									"    pm.expect(jsonData.data).to.have.property('currentPage');",
+									"    pm.expect(jsonData.data).to.have.property('totalPages');",
+									"    pm.expect(jsonData.data).to.have.property('totalElements');",
+									"});",
+									"",
+									"pm.test(\"Content is array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.content).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{adminUserId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/users?page=0&size=10&sortBy=createdAt&sortDirection=DESC",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"admin",
+								"users"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0",
+									"description": "Số thứ tự trang (bắt đầu từ 0)"
+								},
+								{
+									"key": "size",
+									"value": "10",
+									"description": "Số lượng items mỗi trang"
+								},
+								{
+									"key": "sortBy",
+									"value": "createdAt",
+									"description": "Field để sắp xếp"
+								},
+								{
+									"key": "sortDirection",
+									"value": "DESC",
+									"description": "ASC hoặc DESC"
+								}
+							]
+						},
+						"description": "Lấy danh sách users với pagination mặc định (trang 0, 10 items)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Users - Search by Name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Search results contain keyword\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data.content.length > 0) {",
+									"        var firstUser = jsonData.data.content[0];",
+									"        var keyword = pm.variables.get('searchKeyword').toLowerCase();",
+									"        var matchFound = false;",
+									"        ",
+									"        if (firstUser.fullName && firstUser.fullName.toLowerCase().includes(keyword)) {",
+									"            matchFound = true;",
+									"        }",
+									"        if (firstUser.email && firstUser.email.toLowerCase().includes(keyword)) {",
+									"            matchFound = true;",
+									"        }",
+									"        if (firstUser.phone && firstUser.phone.includes(keyword)) {",
+									"            matchFound = true;",
+									"        }",
+									"        ",
+									"        pm.expect(matchFound).to.be.true;",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.variables.set('searchKeyword', 'admin');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{adminUserId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/users?page=0&size=10&searchKeyword=admin",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"admin",
+								"users"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "searchKeyword",
+									"value": "admin",
+									"description": "Tìm kiếm theo tên/email/SĐT"
+								}
+							]
+						},
+						"description": "Tìm kiếm users theo keyword (tên, email, hoặc số điện thoại)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Users - Search by Email",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{adminUserId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/users?page=0&size=10&searchKeyword=gmail.com",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"admin",
+								"users"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "searchKeyword",
+									"value": "gmail.com",
+									"description": "Tìm theo email"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Users - Page 2",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{adminUserId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/users?page=1&size=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"admin",
+								"users"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Trang thứ 2 (index=1)"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints để test phân trang và tìm kiếm users"
+		},
+		{
+			"name": "2. Get User Detail",
+			"item": [
+				{
+					"name": "Get User Detail - Valid ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has user details\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('id');",
+									"    pm.expect(jsonData.data).to.have.property('email');",
+									"    pm.expect(jsonData.data).to.have.property('fullName');",
+									"    pm.expect(jsonData.data).to.have.property('phone');",
+									"    pm.expect(jsonData.data).to.have.property('role');",
+									"    pm.expect(jsonData.data).to.have.property('isActive');",
+									"    pm.expect(jsonData.data).to.have.property('createdAt');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{adminUserId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/users/{{testUserId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"admin",
+								"users",
+								"{{testUserId}}"
+							]
+						},
+						"description": "Lấy thông tin chi tiết của một user"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Detail - Invalid ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test(\"Error message is correct\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.msg).to.include('không tồn tại');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{adminUserId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/users/99999",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"admin",
+								"users",
+								"99999"
+							]
+						},
+						"description": "Test với user ID không tồn tại"
+					},
+					"response": []
+				}
+			],
+			"description": "Test xem chi tiết thông tin user"
+		},
+		{
+			"name": "3. Update User",
+			"item": [
+				{
+					"name": "Update User - Full Name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Full name updated\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.fullName).to.eql('Nguyen Van Updated');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{adminUserId}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fullName\": \"Nguyen Van Updated\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/users/{{testUserId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"admin",
+								"users",
+								"{{testUserId}}"
+							]
+						},
+						"description": "Cập nhật tên user"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User - Phone",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Phone updated\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.phone).to.eql('0987654321');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{adminUserId}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"phone\": \"0987654321\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/users/{{testUserId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"admin",
+								"users",
+								"{{testUserId}}"
+							]
+						},
+						"description": "Cập nhật số điện thoại"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User - Role to ADMIN",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Role updated to ADMIN\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.role).to.eql('ADMIN');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{adminUserId}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"role\": \"ADMIN\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/users/{{testUserId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"admin",
+								"users",
+								"{{testUserId}}"
+							]
+						},
+						"description": "Nâng role lên ADMIN"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User - All Fields",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{adminUserId}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fullName\": \"Tran Thi Complete\",\n    \"phone\": \"0912345678\",\n    \"role\": \"USER\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/users/{{testUserId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"admin",
+								"users",
+								"{{testUserId}}"
+							]
+						},
+						"description": "Cập nhật tất cả các trường"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User - Invalid Phone Format",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{adminUserId}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"phone\": \"123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/users/{{testUserId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"admin",
+								"users",
+								"{{testUserId}}"
+							]
+						},
+						"description": "Test validation với phone format không hợp lệ"
+					},
+					"response": []
+				}
+			],
+			"description": "Test cập nhật thông tin user"
+		},
+		{
+			"name": "4. Lock User Account",
+			"item": [
+				{
+					"name": "Lock User - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Success message\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.msg).to.include('Khóa tài khoản thành công');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{adminUserId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/users/{{testUserId}}/lock",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"admin",
+								"users",
+								"{{testUserId}}",
+								"lock"
+							]
+						},
+						"description": "Khóa tài khoản user"
+					},
+					"response": []
+				},
+				{
+					"name": "Lock User - Already Locked",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Error message correct\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.msg).to.include('đã bị khóa');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{adminUserId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/users/{{testUserId}}/lock",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"admin",
+								"users",
+								"{{testUserId}}",
+								"lock"
+							]
+						},
+						"description": "Test khóa user đã bị khóa"
+					},
+					"response": []
+				},
+				{
+					"name": "Lock User - Invalid ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{adminUserId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/users/99999/lock",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"admin",
+								"users",
+								"99999",
+								"lock"
+							]
+						},
+						"description": "Test với user ID không tồn tại"
+					},
+					"response": []
+				}
+			],
+			"description": "Test khóa tài khoản user"
+		},
+		{
+			"name": "5. Unlock User Account",
+			"item": [
+				{
+					"name": "Unlock User - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Success message\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.msg).to.include('Mở khóa tài khoản thành công');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{adminUserId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/users/{{testUserId}}/unlock",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"admin",
+								"users",
+								"{{testUserId}}",
+								"unlock"
+							]
+						},
+						"description": "Mở khóa tài khoản user đã bị khóa"
+					},
+					"response": []
+				},
+				{
+					"name": "Unlock User - Already Unlocked",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Error message correct\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.msg).to.include('đã được mở khóa');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{adminUserId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/users/{{testUserId}}/unlock",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"admin",
+								"users",
+								"{{testUserId}}",
+								"unlock"
+							]
+						},
+						"description": "Test mở khóa user đã được mở khóa"
+					},
+					"response": []
+				}
+			],
+			"description": "Test mở khóa tài khoản user"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "adminUserId",
+			"value": "1",
+			"type": "string",
+			"description": "ID của admin user (thay đổi theo database)"
+		},
+		{
+			"key": "testUserId",
+			"value": "2",
+			"type": "string",
+			"description": "ID của user để test (thay đổi theo database)"
+		}
+	]
+}
