@@ -30,6 +30,9 @@ class ApiConstants {
   static const String provinceAll = '/province/all';
   static const String provinceDetail = '/province/detail/';
 
+  // Tour
+  static const String tour = '/tours';
+  static const String tourDetail = '/tours/';
   //Hotel
   static const String hotel = '/hotels';
 

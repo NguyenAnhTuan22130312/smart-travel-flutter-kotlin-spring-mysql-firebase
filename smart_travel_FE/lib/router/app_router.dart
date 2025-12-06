@@ -19,6 +19,7 @@ import 'package:smart_travel/presentation/screens/profile/user_level_screen.dart
 import 'package:smart_travel/presentation/screens/province/province_detail_screen.dart';
 import 'package:smart_travel/presentation/screens/splash/splash_screen.dart';
 import 'package:smart_travel/router/route_names.dart';
+import 'package:smart_travel/presentation/screens/tour/tour_detail_screen.dart';
 import '../injection_container.dart' as di;
 
 class AppRouter {
@@ -93,7 +94,13 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (context) => const UserLevelScreen(),
         );
-      default:
+      case RouteNames.tourDetail:
+        final id = settings.arguments as int;
+        return MaterialPageRoute(
+          builder: (_) => TourDetailScreen(tourId: id),
+          settings: settings,
+        );
+        default:
         return MaterialPageRoute(
           builder:
               (_) => const Scaffold(

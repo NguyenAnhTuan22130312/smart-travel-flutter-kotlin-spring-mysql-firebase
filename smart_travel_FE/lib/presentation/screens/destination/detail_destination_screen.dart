@@ -13,7 +13,8 @@ import 'package:smart_travel/presentation/blocs/destiantion/destination_event.da
 import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
 import 'package:smart_travel/router/route_names.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:smart_travel/router/route_names.dart';
+import 'package:smart_travel/presentation/screens/tour/tour_detail_screen.dart';
 import '../../theme/app_colors.dart';
 
 class DetailDestinationScreen extends StatefulWidget {
@@ -650,7 +651,13 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
             borderRadius: BorderRadius.circular(16),
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
-              onTap: () {},
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  RouteNames.tourDetail,
+                  arguments: t.id,
+                );
+              },
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Row(

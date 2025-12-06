@@ -57,6 +57,11 @@ import 'package:smart_travel/data/data_sources/remote/booking_data_source.dart';
 import 'package:smart_travel/data/repositories/booking_repository_impl.dart';
 import 'package:smart_travel/domain/repositories/booking_repository.dart';
 import 'package:smart_travel/domain/usecases/booking/create_booking_usecase.dart';
+import 'package:smart_travel/data/data_sources/remote/tour_remote_data_source.dart';
+import 'package:smart_travel/data/repositories/tour_repository_impl.dart';
+import 'package:smart_travel/domain/repositories/tour_repository.dart';
+import 'package:smart_travel/presentation/blocs/tour/tour_bloc.dart';
+import 'package:smart_travel/domain/usecases/tour/get_tour_detail_usecase.dart';
 
 final sl = GetIt.instance;
 
@@ -142,7 +147,14 @@ Future<void> init() async {
     ),
   );
 
+  //Bloc tour
+  sl.registerFactory(
+        () => TourBloc(sl()),
+  );
   // Use cases
+  sl.registerLazySingleton<GetTourDetailUseCase>(
+        () => GetTourDetailUseCase(sl()),
+  );
   // auth
   sl.registerLazySingleton(() => RegisterUseCase(sl()));
   sl.registerLazySingleton(() => LoginUseCase(sl()));
@@ -207,6 +219,10 @@ Future<void> init() async {
       localStorage: sl(),
     ),
   );
+  sl.registerLazySingleton<TourRepository>(
+        () => TourRepositoryImpl(sl()),
+  );
+
   // Data sources
   sl.registerLazySingleton<AuthDataSource>(
     () => AuthRemoteDataSourceImpl(client: sl()),
@@ -223,6 +239,10 @@ Future<void> init() async {
   // --- THÊM DATA SOURCE HOTEL ---
   sl.registerLazySingleton<HotelDataSource>(
     () => HotelDataSourceImpl(client: sl()),
+  );
+  
+  sl.registerLazySingleton<TourRemoteDataSource>(
+        () => TourRemoteDataSourceImpl(client: sl()),
   );
 
   // --- THÊM DATA SOURCE USER ---
