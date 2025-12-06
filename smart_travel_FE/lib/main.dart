@@ -9,7 +9,8 @@ import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import 'package:smart_travel/presentation/screens/splash/splash_screen.dart';
 import 'package:smart_travel/router/app_router.dart';
 import 'package:smart_travel/router/route_names.dart';
-
+import 'package:smart_travel/presentation/screens/tour/tour_detail_screen.dart';
+import 'package:smart_travel/presentation/blocs/tour/tour_bloc.dart';
 import 'injection_container.dart' as di;
 
 void main() async {
@@ -41,6 +42,7 @@ class MyApp extends StatelessWidget {
           BlocProvider(
             create: (_) => di.sl<ProvinceDetailBloc>(),
           ),
+          BlocProvider(create: (_) => di.sl<TourBloc>()),
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,

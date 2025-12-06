@@ -24,6 +24,9 @@ class ApiConstants {
   static const String provinceAll = '/province/all';
   static const String provinceDetail = '/province/detail/';
 
+  // Tour
+  static const String tour = '/tours';
+  static const String tourDetail = '/tours/';
 
   // Timeout
   static const Duration connectionTimeout = Duration(seconds: 30);
