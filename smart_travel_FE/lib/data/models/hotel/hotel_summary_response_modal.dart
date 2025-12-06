@@ -41,7 +41,7 @@ class HotelSummaryResponse {
       pricePerNight: pricePerNight,
       starRating: starRating,
       averageRating: averageRating,
-      images: images,
+      images: images, // ảnh đại diện
     );
   }
 }

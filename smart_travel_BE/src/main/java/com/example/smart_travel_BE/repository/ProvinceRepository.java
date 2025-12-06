@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ProvinceRepository  extends JpaRepository<Province, Long> {
     List<Province> findByIsPopularTrue();
+    boolean existsByCode(String code);
 }

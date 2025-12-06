@@ -16,6 +16,11 @@ spring:
       ddl-auto: update
     database-platform: org.hibernate.dialect.MySQLDialect
 
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -33,6 +38,9 @@ jwt:
   valid-duration: 3600 #5p
   refreshable-duration: 604800 #7 ngày
 
+gemini:
+  api:
+    key: AIzaSyCNxZOFgazS4QjKJWT6TdumkLJON6aXtug
 
 cloudinary:
   cloud-name: dcwqv4rng

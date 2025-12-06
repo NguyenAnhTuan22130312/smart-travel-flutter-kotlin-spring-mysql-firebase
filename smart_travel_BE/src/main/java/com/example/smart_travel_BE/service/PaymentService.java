@@ -10,6 +10,7 @@ import com.example.smart_travel_BE.repository.BookingRepository;
 import com.example.smart_travel_BE.repository.PaymentRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +24,7 @@ public class PaymentService { // Đây là class, không phải interface
     private final BookingRepository bookingRepository;
     private final PaymentRepository paymentRepository;
     private final VnPayService vnPayService; // Inject VnPayService
-    // private final MoMoService moMoService; // Sẽ thêm sau
+    private final MoMoService moMoService; // Sẽ thêm sau
 
     @Transactional
     public PaymentUrlResponse createOnlinePayment(PaymentRequest request, HttpServletRequest httpServletRequest) {
@@ -43,12 +44,12 @@ public class PaymentService { // Đây là class, không phải interface
         payment.setUpdatedAt(LocalDateTime.now());
         Payment savedPayment = paymentRepository.save(payment);
 
+
         String paymentUrl;
         if ("VNPAY".equalsIgnoreCase(request.getPaymentMethod())) {
             paymentUrl = vnPayService.createPaymentUrl(savedPayment, httpServletRequest);
         } else if ("MOMO".equalsIgnoreCase(request.getPaymentMethod())) {
-            // paymentUrl = moMoService.createPaymentUrl(savedPayment, httpServletRequest);
-            throw new AppException(ErrorCode.PAYMENT_METHOD_NOT_SUPPORTED);
+            paymentUrl = moMoService.createPaymentUrl(savedPayment, httpServletRequest);
         } else {
             throw new AppException(ErrorCode.PAYMENT_METHOD_NOT_SUPPORTED);
         }
@@ -108,6 +109,28 @@ public class PaymentService { // Đây là class, không phải interface
             payment.setStatus("FAILED");
             paymentRepository.save(payment);
             return "Thanh toán thất bại. Mã lỗi: " + vnp_ResponseCode;
+        }
+    }
+    @Transactional
+    public String handleMoMoReturn(Map<String, String> params) {
+        // Tái sử dụng logic xử lý trong MoMoService để đơn giản hóa
+        return moMoService.handleMoMoReturn(params);
+
+        // **Lưu ý:** Trong thực tế, bạn nên **thực hiện logic cập nhật DB** ở đây
+        // (Tương tự như handleVnPayReturn: findById, kiểm tra chữ ký, cập nhật status, save)
+    }
+
+    // Thêm phương thức xử lý IPN (POST)
+    @Transactional
+    public ResponseEntity<String> handleMoMoIpn(Map<String, Object> ipnData) {
+        // MoMo IPN là cơ chế Server-to-Server, response nên là HTTP 204 hoặc JSON báo thành công.
+        try {
+            moMoService.handleMoMoIpn(ipnData);
+            // MoMo mong đợi response 204 No Content hoặc JSON chứa {"message": "Success"}
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            // Log lỗi và trả về lỗi nếu không xử lý được để MoMo có thể thử lại
+            return ResponseEntity.status(500).body("Error processing IPN: " + e.getMessage());
         }
     }
 }

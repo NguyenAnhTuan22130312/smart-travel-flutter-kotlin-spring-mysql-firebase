@@ -29,35 +29,40 @@ public class HotelService {
     @Autowired
     private RoomTypeRepository roomTypeRepository;
 
-    /**
-     * Lấy danh sách khách sạn có phân trang + filter
-     */
-    public Page<HotelResponse> getHotels(HotelFilterRequest filter) {
-        int page = (filter.getPage() != null && filter.getPage() >= 0) ? filter.getPage() : 0;
-        int size = (filter.getSize() != null && filter.getSize() > 0) ? filter.getSize() : 10;
+        /**
+         * Lấy danh sách khách sạn có phân trang + filter
+         */
+        public Page<HotelResponse> getHotels(HotelFilterRequest filter) {
+            int page = (filter.getPage() != null && filter.getPage() >= 0) ? filter.getPage() : 0;
+            int size = (filter.getSize() != null && filter.getSize() > 0) ? filter.getSize() : 10;
 
-        // Sắp xếp mặc định theo giá tăng dần
-        Sort sort = Sort.by(Sort.Direction.ASC, "pricePerNight");
-        Pageable pageable = PageRequest.of(page, size, sort);
+            Sort.Direction direction =
+                    "desc".equalsIgnoreCase(filter.getSortDir())
+                            ? Sort.Direction.DESC
+                            : Sort.Direction.ASC;
 
-        // Specification filter
-        var spec = HotelSpecification.filter(filter);
-        Page<Hotel> hotelPage = hotelRepository.findAll(spec, pageable);
+            Sort sort = Sort.by(direction, filter.getSortBy());
 
-        // Map sang DTO
-        return hotelPage.map(hotel -> HotelResponse.builder()
-                .id(hotel.getId())
-                .name(hotel.getName())
-                .address(hotel.getAddress())
-                .minPrice(hotel.getMinPrice())
-                .stars(hotel.getStarRating())
-                .rating(hotel.getAverageRating() != null ? hotel.getAverageRating().doubleValue() : null)
-                .numOfReviews(hotel.getReviewCount())
-                .thumbnail(hotel.getThumbnail())
-                .destinationId(hotel.getDestination() != null ? hotel.getDestination().getId() : null)
-                .destinationName(hotel.getDestination() != null ? hotel.getDestination().getName() : null)
-                .build());
-    }
+            Pageable pageable = PageRequest.of(page, size, sort);
+
+            // Specification filter
+            var spec = HotelSpecification.filter(filter);
+            Page<Hotel> hotelPage = hotelRepository.findAll(spec, pageable);
+
+            // Map sang DTO
+            return hotelPage.map(hotel -> HotelResponse.builder()
+                    .id(hotel.getId())
+                    .name(hotel.getName())
+                    .address(hotel.getAddress())
+                    .minPrice(hotel.getMinPrice())
+                    .stars(hotel.getStarRating())
+                    .rating(hotel.getAverageRating() != null ? hotel.getAverageRating().doubleValue() : null)
+                    .numOfReviews(hotel.getReviewCount())
+                    .thumbnail(hotel.getThumbnail())
+                    .destinationId(hotel.getDestination() != null ? hotel.getDestination().getId() : null)
+                    .destinationName(hotel.getDestination() != null ? hotel.getDestination().getName() : null)
+                    .build());
+        }
 
     /**
      * Lấy chi tiết khách sạn kèm danh sách phòng khả dụng
@@ -101,6 +106,8 @@ public class HotelService {
                                 ? hotel.getDestination().getProvince().getName()
                                 : null
                 )
+                .latitude(hotel.getLatitude())
+                .longitude(hotel.getLongitude())
                 .rooms(roomResponses)
                 .build();
     }

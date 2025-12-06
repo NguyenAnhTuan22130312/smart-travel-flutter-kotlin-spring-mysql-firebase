@@ -4,8 +4,6 @@ import 'package:smart_travel/domain/usecases/auth/forgot_password_use_case.dart'
 import 'package:smart_travel/domain/usecases/auth/google_login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/register_use_case.dart';
-// Import AuthEntity để biết kiểu dữ liệu
-import 'package:smart_travel/domain/entities/auth.dart';
 import '../../../core/usecases/usecase.dart';
 import '../../../data/data_sources/local/auth_local_data_source.dart';
 import 'auth_event.dart';
@@ -33,12 +31,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<ForgotPasswordSubmitted>(_onForgotPasswordSubmitted);
     on<GoogleLoginSubmitted>(_onGoogleLoginSubmitted);
     on<FacebookLoginSubmitted>(_onFacebookLoginSubmitted);
-    // Lưu ý: Code cũ của bạn không có Logout, nếu cần bạn phải thêm
-    // on<LogoutSubmitted>(_onLogoutSubmitted);
   }
 
   Future<void> _onAppStarted(AppStarted event, Emitter<AuthState> emit) async {
-    // (Giữ nguyên code cũ, đã đúng)
     emit(AuthLoading());
     final token = await authLocalDataSource.getToken();
 
@@ -52,9 +47,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onRegisterSubmitted(RegisterSubmitted event,
       Emitter<AuthState> emit,) async {
-    // (Giữ nguyên code cũ, đã đúng)
     emit(AuthLoading());
+
     final result = await registerUser(event.params);
+
     result.fold(
           (failure) => emit(AuthError(failure.message)),
           (response) => emit(RegisterSuccess(response)),
@@ -64,38 +60,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onLoginSubmitted(LoginSubmitted event,
       Emitter<AuthState> emit,) async {
     emit(AuthLoading());
+
     final result = await loginUseCase(event.params);
 
-    // --- SỬA LỖI TỔNG HỢP (SỬA CẢ 3 VẤN ĐỀ) ---
-    await result.fold(
-          (failure) async {
-        // Thêm async/await để sửa lỗi emit
-        emit(AuthError(failure.message));
-      },
-          (authResponse) async {
-        // 1. SỬA LỖI TOKEN: Lưu token trước
-        final token = authResponse.token;
-        if (token == null || token.isEmpty) {
-          emit(AuthError("Đăng nhập thất bại: Không nhận được token."));
-          return;
-        }
-        final userRole = authResponse.role ?? 'USER';
-        await authLocalDataSource.saveToken(token);
-        await authLocalDataSource.saveRefreshToken(authResponse.refreshToken ?? '');
-        await authLocalDataSource.saveRole(userRole);
-        await authLocalDataSource.saveFullName(authResponse.fullName ?? '');
-
-        // 2. GIỮ LOGIC CŨ: Vẫn emit LoginSuccess để UI của bạn bắt được
-        emit(LoginSuccess(authResponse));
-      },
+    result.fold(
+          (failure) => emit(AuthError(failure.message)),
+          (response) => emit(LoginSuccess(response)),
     );
   }
 
   Future<void> _onForgotPasswordSubmitted(ForgotPasswordSubmitted event,
       Emitter<AuthState> emit,) async {
-    // (Giữ nguyên code cũ, đã đúng)
     emit(AuthLoading());
+
     final result = await forgotPasswordUseCase(event.email);
+
     result.fold(
           (failure) => emit(AuthError(failure.message)),
           (response) => emit(ForgotPasswordSuccess(response)),
@@ -106,28 +85,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onGoogleLoginSubmitted(GoogleLoginSubmitted event,
       Emitter<AuthState> emit,) async {
     emit(AuthLoading());
+
     final result = await googleLoginUseCase(NoParams());
 
-    // --- SỬA LỖI TỔNG HỢP (SỬA CẢ 3 VẤN ĐỀ) ---
-    await result.fold(
-          (failure) async {
+    result.fold(
+          (failure) {
         emit(AuthError(failure.message));
       },
-          (authResponse) async {
-        // 1. SỬA LỖI TOKEN: Lưu token trước
-        final token = authResponse.token;
-        if (token == null || token.isEmpty) {
-          emit(AuthError("Đăng nhập thất bại: Không nhận được token."));
-          return;
-        }
-        final userRole = authResponse.role ?? 'USER';
-        await authLocalDataSource.saveToken(token);
-        await authLocalDataSource.saveRefreshToken(authResponse.refreshToken ?? '');
-        await authLocalDataSource.saveRole(userRole);
-        await authLocalDataSource.saveFullName(authResponse.fullName ?? '');
-
-        // 2. GIỮ LOGIC CŨ: Vẫn emit LoginSuccess để UI của bạn bắt được
-        emit(LoginSuccess(authResponse));
+          (auth) {
+        emit(LoginSuccess(auth));
       },
     );
   }
@@ -136,30 +102,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       FacebookLoginSubmitted event,
       Emitter<AuthState> emit,) async {
     emit(AuthLoading());
+
     final result = await facebookLoginUseCase(NoParams());
 
-    // --- SỬA LỖI TỔNG HỢP (SỬA CẢ 3 VẤN ĐỀ) ---
-    await result.fold(
-          (failure) async {
+    result.fold(
+          (failure) {
         emit(AuthError(failure.message));
       },
-          (authResponse) async {
-        // 1. SỬA LỖI TOKEN: Lưu token trước
-        final token = authResponse.token;
-        if (token == null || token.isEmpty) {
-          emit(AuthError("Đăng nhập thất bại: Không nhận được token."));
-          return;
-        }
-        final userRole = authResponse.role ?? 'USER';
-        await authLocalDataSource.saveToken(token);
-        await authLocalDataSource.saveRefreshToken(authResponse.refreshToken ?? '');
-        await authLocalDataSource.saveRole(userRole);
-        await authLocalDataSource.saveFullName(authResponse.fullName ?? '');
-
-        // 2. GIỮ LOGIC CŨ: Vẫn emit LoginSuccess để UI của bạn bắt được
-        emit(LoginSuccess(authResponse));
+          (auth) {
+        emit(LoginSuccess(auth));
       },
     );
   }
 }
-
