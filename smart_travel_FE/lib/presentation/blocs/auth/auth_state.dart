@@ -44,9 +44,16 @@ class ForgotPasswordSuccess extends AuthState {
   List<Object?> get props => [response];
 }
 
-class Authenticated extends AuthState {
+class AdminAuthenticated extends AuthState {
   final String role;
-  const Authenticated(this.role);
+  const AdminAuthenticated(this.role);
+
+  @override
+  List<Object?> get props => [role];
+}
+class UserAuthenticated extends AuthState {
+  final String role;
+  const UserAuthenticated(this.role);
 
   @override
   List<Object?> get props => [role];

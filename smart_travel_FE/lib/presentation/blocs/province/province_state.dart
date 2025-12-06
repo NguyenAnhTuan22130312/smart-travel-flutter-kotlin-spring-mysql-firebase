@@ -42,3 +42,12 @@ class ProvinceError extends ProvinceState{
   @override
   List<Object?> get props => [message];
 }
+
+// state khi thêm tỉnh thành lỗi
+class AddProvinceError extends ProvinceState{
+  final String message;
+
+  const AddProvinceError(this.message);
+  @override
+  List<Object?> get props => [message];
+}
