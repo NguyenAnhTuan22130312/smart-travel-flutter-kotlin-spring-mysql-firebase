@@ -1,4 +1,10 @@
 class RouteNames {
+
+  ///ADMIN
+  static const String dashboard = '/dashboard';
+  static const String adminProvinces = '/admin/provinces';
+
+  /// USER
   static const String splashScreen = '/';
   static const String login = '/login';
   static const String register = '/register';

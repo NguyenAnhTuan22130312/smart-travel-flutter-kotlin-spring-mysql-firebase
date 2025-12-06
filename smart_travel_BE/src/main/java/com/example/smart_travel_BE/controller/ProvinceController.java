@@ -27,7 +27,7 @@ public class ProvinceController {
 
 
     /**
-     * Lấy danh sách tỉnh thành phổ biến
+     * Lấy danh sách tỉnh thành
      */
     @GetMapping("/all")
     public ResponseEntity<APIResponse<List<ProvinceResponse>>> getAllProvince(){
