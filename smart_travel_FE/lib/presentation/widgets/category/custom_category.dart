@@ -17,7 +17,7 @@ class _CustomCategoryState extends State<CustomCategory> {
   final List<Map<String, dynamic>> _categories = [
     {
       'id': 'ALL',
-      'icon': Icons.explore,
+      'icon': Icons.all_inclusive,
       'label': 'Tất cả',
       'gradient': [AppColors.primary, AppColors.green],
     },

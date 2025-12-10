@@ -1,10 +1,12 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:smart_travel/data/models/auth/login_response_modal.dart';
 abstract class AuthLocalDataSource {
   Future<void> saveToken(String token);
-  Future<void> saveRefreshToken(String refreshToken);
   Future<void> saveRole(String role);
+  Future<void> saveRefreshToken(String refreshToken);
   Future<void> saveFullName(String role);
   Future<String?> getToken();
+  Future<String?> getRefreshToken();
   Future<String?> getRole();
   Future<String?> getFullName();
   Future<void> clear();
@@ -17,8 +19,8 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   AuthLocalDataSourceImpl({required this.storage});
 
   static const _keyToken = 'token';
-  static const _keyRefreshToken = 'refresh_token';
   static const _keyRole = 'role';
+  static const _keyRefreshToken = 'refresh_token';
   static const _keyFullName = 'fullName';
 
 
@@ -37,6 +39,9 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   @override
   Future<String?> getToken() async =>
       await storage.read(key: _keyToken);
+  @override
+  Future<String?> getRefreshToken() async =>
+      await storage.read(key: _keyRefreshToken);
 
   @override
   Future<String?> getRole() async =>
@@ -52,5 +57,6 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
 
   @override
   Future<void> clear() async => await storage.deleteAll();
+
 
 }

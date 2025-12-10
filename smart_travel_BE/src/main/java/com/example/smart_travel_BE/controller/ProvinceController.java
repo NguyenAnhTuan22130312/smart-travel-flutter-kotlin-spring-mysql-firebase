@@ -64,7 +64,7 @@ public class ProvinceController {
     public ResponseEntity<APIResponse<ProvinceResponse>> addProvince(
             @Valid @RequestPart("data") ProvinceAddRequest request,
             @RequestPart(value = "image", required = false) MultipartFile image) {
-
+        log.info("ADĐ");
         try{
             ProvinceResponse response = provinceService.addProvince(request, image);
             return ResponseEntity.status(HttpStatus.CREATED).body(
@@ -84,6 +84,7 @@ public class ProvinceController {
     // Xóa
     @DeleteMapping("/{provinceId}")
     public ResponseEntity<APIResponse<Void>> deleteProvince(@PathVariable("provinceId") long provinceId){
+        log.info("DLETE", provinceId);
         try {
             provinceService.deleteProvince(provinceId);
             return ResponseEntity.status(HttpStatus.OK).body(

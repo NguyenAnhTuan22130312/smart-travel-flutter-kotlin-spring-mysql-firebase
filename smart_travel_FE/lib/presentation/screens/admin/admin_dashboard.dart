@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
+import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
 
@@ -44,10 +47,10 @@ class AdminDashboardScreen extends StatelessWidget {
           },
         ),
       ),
+
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: thêm logic xoá token nếu có
-          Navigator.pushReplacementNamed(context, '/login');
+          _showLogoutDialog(context);
         },
         tooltip: 'Đăng xuất',
         child: const Icon(Icons.logout),
@@ -106,4 +109,31 @@ class AdminDashboardScreen extends StatelessWidget {
       ),
     );
   }
+}
+void _showLogoutDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder:
+        (dialogContext) => AlertDialog(
+      title: Text("Xác nhận đăng xuất"),
+      content: Text("Bạn có muốn đăng xuất khỏi tài khoản này?"),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext),
+          child: Text("Hủy"),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.pop(dialogContext);
+            context.read<ProfileBloc>().add(Logout());
+            Navigator.pushReplacementNamed(context, '/login');
+          },
+          child: Text(
+            "Xác nhận",
+            style: const TextStyle(color: Colors.red),
+          ),
+        ),
+      ],
+    ),
+  );
 }
