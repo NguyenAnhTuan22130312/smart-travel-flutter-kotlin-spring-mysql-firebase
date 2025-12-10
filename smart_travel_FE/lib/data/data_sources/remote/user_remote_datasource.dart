@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:smart_travel/core/constants/api_constants.dart';
 import 'package:smart_travel/core/network/dio_client.dart';
 import 'package:smart_travel/data/models/user/user_model.dart';
+import 'package:smart_travel/data/models/user/user_level_model.dart';
+import 'package:smart_travel/data/models/user/user_settings_model.dart';
 
 abstract class UserRemoteDataSource {
   Future<UserModel> getProfile();
@@ -34,7 +36,7 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
 
       if (response.data['code'] == 1000) {
         final data = response.data['data'];
-        
+
         if (data == null) {
           throw DioException(
             requestOptions: RequestOptions(path: ApiConstants.getProfile),
@@ -42,10 +44,10 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
             type: DioExceptionType.badResponse,
           );
         }
-        
+
         // Debug: Print response data
         print('Profile API Response: ${response.data}');
-        
+
         return UserModel.fromJson(data as Map<String, dynamic>);
       } else {
         throw DioException(
@@ -193,9 +195,7 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   @override
   Future<void> deleteAccount() async {
     try {
-      final response = await dioClient.delete(
-        ApiConstants.deleteAccount,
-      );
+      final response = await dioClient.delete(ApiConstants.deleteAccount);
 
       if (response.data['code'] != 1000) {
         throw DioException(

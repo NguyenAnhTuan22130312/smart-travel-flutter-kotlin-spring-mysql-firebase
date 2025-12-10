@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
@@ -101,7 +102,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.settings),
-        backgroundColor: AppColors.primary,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.mainGradient),
+        ),
         foregroundColor: Colors.white,
       ),
       body: BlocConsumer<ProfileBloc, ProfileState>(
@@ -144,59 +147,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
         },
         builder: (context, state) {
           if (state is ProfileLoading && state is! SettingsLoaded) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: Lottie.asset(
+                'assets/lottie/travel_is_fun.json',
+                width: 200,
+                height: 500,
+                repeat: true,
+              ),
+            );
           }
 
           return ListView(
+            padding: const EdgeInsets.all(16),
             children: [
               // Language Section
-              _buildSectionHeader(AppLocalizations.of(context)!.language),
-              _buildLanguageTile(),
-              const Divider(height: 1),
+              _buildSection(AppLocalizations.of(context)!.language, [
+                _buildLanguageTile(),
+              ]),
 
               const SizedBox(height: 16),
 
               // Appearance Section
-              _buildSectionHeader(AppLocalizations.of(context)!.appearance),
-              _buildDarkModeTile(),
-              const Divider(height: 1),
+              _buildSection(AppLocalizations.of(context)!.appearance, [
+                _buildDarkModeTile(),
+              ]),
 
               const SizedBox(height: 16),
 
               // Notifications Section
-              _buildSectionHeader(AppLocalizations.of(context)!.notifications),
-              _buildNotificationTile(
-                title: AppLocalizations.of(context)!.emailNotifications,
-                value: _emailNotifications,
-                onChanged: (value) {
-                  setState(() {
-                    _emailNotifications = value;
-                  });
-                  _updateNotifications();
-                },
-              ),
-              const Divider(height: 1, indent: 16),
-              _buildNotificationTile(
-                title: AppLocalizations.of(context)!.pushNotifications,
-                value: _pushNotifications,
-                onChanged: (value) {
-                  setState(() {
-                    _pushNotifications = value;
-                  });
-                  _updateNotifications();
-                },
-              ),
-              const Divider(height: 1, indent: 16),
-              _buildNotificationTile(
-                title: AppLocalizations.of(context)!.smsNotifications,
-                value: _smsNotifications,
-                onChanged: (value) {
-                  setState(() {
-                    _smsNotifications = value;
-                  });
-                  _updateNotifications();
-                },
-              ),
+              _buildSection(AppLocalizations.of(context)!.notifications, [
+                _buildNotificationTile(
+                  title: AppLocalizations.of(context)!.emailNotifications,
+                  value: _emailNotifications,
+                  onChanged: (value) {
+                    setState(() {
+                      _emailNotifications = value;
+                    });
+                    _updateNotifications();
+                  },
+                ),
+                const Divider(height: 1),
+                _buildNotificationTile(
+                  title: AppLocalizations.of(context)!.pushNotifications,
+                  value: _pushNotifications,
+                  onChanged: (value) {
+                    setState(() {
+                      _pushNotifications = value;
+                    });
+                    _updateNotifications();
+                  },
+                ),
+                const Divider(height: 1),
+                _buildNotificationTile(
+                  title: AppLocalizations.of(context)!.smsNotifications,
+                  value: _smsNotifications,
+                  onChanged: (value) {
+                    setState(() {
+                      _smsNotifications = value;
+                    });
+                    _updateNotifications();
+                  },
+                ),
+              ]),
             ],
           );
         },
@@ -204,75 +216,88 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: Colors.grey[600],
-          letterSpacing: 0.5,
-        ),
+  Widget _buildSection(String title, List<Widget> children) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+          ...children,
+        ],
       ),
     );
   }
 
   Widget _buildLanguageTile() {
-    return Container(
-      color: Theme.of(context).cardColor,
-      child: ListTile(
-        leading: const Icon(Icons.language, color: Color(0xFF4A5568)),
-        title: Text(
-          AppLocalizations.of(context)!.language,
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-        ),
-        trailing: DropdownButton<String>(
-          value: _selectedLanguage,
-          underline: const SizedBox(),
-          items: const [
-            DropdownMenuItem(
-              value: 'vi',
-              child: Row(
-                children: [
-                  Text('🇻🇳', style: TextStyle(fontSize: 20)),
-                  SizedBox(width: 8),
-                  Text('Tiếng Việt'),
-                ],
-              ),
+    return ListTile(
+      leading: const Icon(Icons.language, color: Color(0xFF4A5568)),
+      title: Text(
+        AppLocalizations.of(context)!.language,
+        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+      ),
+      trailing: DropdownButton<String>(
+        value: _selectedLanguage,
+        underline: const SizedBox(),
+        items: const [
+          DropdownMenuItem(
+            value: 'vi',
+            child: Row(
+              children: [
+                Text('🇻🇳', style: TextStyle(fontSize: 20)),
+                SizedBox(width: 8),
+                Text('Tiếng Việt'),
+              ],
             ),
-            DropdownMenuItem(
-              value: 'en',
-              child: Row(
-                children: [
-                  Text('🇬🇧', style: TextStyle(fontSize: 20)),
-                  SizedBox(width: 8),
-                  Text('English'),
-                ],
-              ),
+          ),
+          DropdownMenuItem(
+            value: 'en',
+            child: Row(
+              children: [
+                Text('🇬🇧', style: TextStyle(fontSize: 20)),
+                SizedBox(width: 8),
+                Text('English'),
+              ],
             ),
-          ],
-          onChanged: _updateLanguage,
-        ),
+          ),
+        ],
+        onChanged: _updateLanguage,
       ),
     );
   }
 
   Widget _buildDarkModeTile() {
-    return Container(
-      color: Theme.of(context).cardColor,
-      child: SwitchListTile(
-        secondary: const Icon(Icons.dark_mode, color: Color(0xFF4A5568)),
-        title: Text(
-          AppLocalizations.of(context)!.darkMode,
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-        ),
-        subtitle: Text(AppLocalizations.of(context)!.systemDefault),
-        value: _darkModeEnabled,
-        onChanged: _updateDarkMode,
-        activeColor: AppColors.primary,
+    return SwitchListTile(
+      secondary: const Icon(Icons.dark_mode, color: Color(0xFF4A5568)),
+      title: Text(
+        AppLocalizations.of(context)!.darkMode,
+        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
       ),
+      subtitle: Text(AppLocalizations.of(context)!.systemDefault),
+      value: _darkModeEnabled,
+      onChanged: _updateDarkMode,
+      activeColor: AppColors.primary,
     );
   }
 
@@ -281,21 +306,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
-    return Container(
-      color: Theme.of(context).cardColor,
-      child: SwitchListTile(
-        secondary: const Icon(
-          Icons.notifications_outlined,
-          color: Color(0xFF4A5568),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-        ),
-        value: value,
-        onChanged: onChanged,
-        activeColor: AppColors.primary,
+    return SwitchListTile(
+      secondary: const Icon(
+        Icons.notifications_outlined,
+        color: Color(0xFF4A5568),
       ),
+      title: Text(
+        title,
+        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+      ),
+      value: value,
+      onChanged: onChanged,
+      activeColor: AppColors.primary,
     );
   }
 }

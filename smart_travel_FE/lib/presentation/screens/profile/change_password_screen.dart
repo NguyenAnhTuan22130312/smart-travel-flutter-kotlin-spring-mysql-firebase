@@ -36,12 +36,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   void _handleChangePassword() {
     if (_formKey.currentState!.validate()) {
       context.read<ProfileBloc>().add(
-            ChangePassword(
-              currentPassword: _currentPasswordController.text,
-              newPassword: _newPasswordController.text,
-              confirmNewPassword: _confirmPasswordController.text,
-            ),
-          );
+        ChangePassword(
+          currentPassword: _currentPasswordController.text,
+          newPassword: _newPasswordController.text,
+          confirmNewPassword: _confirmPasswordController.text,
+        ),
+      );
     }
   }
 
@@ -50,7 +50,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.changePasswordTitle),
-        backgroundColor: AppColors.primary,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.mainGradient),
+        ),
         foregroundColor: Colors.white,
       ),
       body: BlocConsumer<ProfileBloc, ProfileState>(
@@ -100,20 +102,22 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.blue[50],
+                      color: AppColors.primary.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blue[200]!),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.2),
+                      ),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.info_outline, color: Colors.blue[700]),
+                        Icon(Icons.info_outline, color: AppColors.primary),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             AppLocalizations.of(context)!.passwordInfo,
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.blue[700],
+                              color: AppColors.primary,
                             ),
                           ),
                         ),
@@ -156,7 +160,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return AppLocalizations.of(context)!.pleaseEnterCurrentPassword;
+                        return AppLocalizations.of(
+                          context,
+                        )!.pleaseEnterCurrentPassword;
                       }
                       return null;
                     },
@@ -197,13 +203,17 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return AppLocalizations.of(context)!.pleaseEnterNewPassword;
+                        return AppLocalizations.of(
+                          context,
+                        )!.pleaseEnterNewPassword;
                       }
                       if (value.length < 8) {
                         return AppLocalizations.of(context)!.passwordAtLeast8;
                       }
                       if (value == _currentPasswordController.text) {
-                        return AppLocalizations.of(context)!.newPasswordDifferent;
+                        return AppLocalizations.of(
+                          context,
+                        )!.newPasswordDifferent;
                       }
                       return null;
                     },
@@ -244,7 +254,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return AppLocalizations.of(context)!.pleaseConfirmNewPassword;
+                        return AppLocalizations.of(
+                          context,
+                        )!.pleaseConfirmNewPassword;
                       }
                       if (value != _newPasswordController.text) {
                         return AppLocalizations.of(context)!.confirmNotMatch;
@@ -256,7 +268,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
                   // Change Password Button
                   PrimaryButton(
-                    text: isLoading ? AppLocalizations.of(context)!.changingPassword : AppLocalizations.of(context)!.changePasswordButton,
+                    text:
+                        isLoading
+                            ? AppLocalizations.of(context)!.changingPassword
+                            : AppLocalizations.of(
+                              context,
+                            )!.changePasswordButton,
                     onPressed: isLoading ? () {} : _handleChangePassword,
                   ),
                 ],
