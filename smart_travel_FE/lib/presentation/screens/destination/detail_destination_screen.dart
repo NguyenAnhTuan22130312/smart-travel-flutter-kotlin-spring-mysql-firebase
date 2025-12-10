@@ -358,7 +358,6 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
               decoration: BoxDecoration(
-
                 color: AppColors.button,
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [

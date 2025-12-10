@@ -23,9 +23,8 @@ import 'injection_container.dart' as di;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Initialize dependency injection
-  await di.init();
   await Firebase.initializeApp();
-
+  await di.init();
   // Set status bar color to transparent
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,

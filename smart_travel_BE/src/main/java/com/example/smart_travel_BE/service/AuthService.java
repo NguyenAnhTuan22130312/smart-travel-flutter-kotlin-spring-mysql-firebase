@@ -238,35 +238,6 @@ public class AuthService {
 
 
     }
-    public LoginResponse loginAdmin(LoginRequest request) {
-        log.info("Login attempt for email: {}", request.getEmail());
-
-        // Tìm user theo email
-        var user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new AppException(ErrorCode.EMAIL_NOT_EXISTED));
-
-        // Kiểm tra mật khẩu
-        boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
-        if (!authenticated) {
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
-        }
-        if (!user.getEmailVerified()) {
-            throw new AppException(ErrorCode.IS_VERIFY_EMAIL);
-        }
-
-        // Tạo token JWT
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("id", user.getId());
-        claims.put("role", user.getRole()); // Có thể thêm thông tin khác vào claims
-        String token = jwtUtil.generateToken(user.getId(), claims);
-        String refreshToken = jwtUtil.generateRefreshToken(user.getId());
-
-        return LoginResponse.builder()
-                .token(token)
-                .refreshToken(refreshToken)
-                .role(String.valueOf(user.getRole()))
-                .build();
-    }
 
     /**
      * Quên mật khẩu
@@ -474,17 +445,10 @@ public class AuthService {
         return userRepository.findByEmail(email).orElse(null);
     }
     //Refresh token
-    public LoginResponse refreshToken(HttpServletRequest request) {
-
-        // Lấy refreshToken từ cookie
-        String refreshToken = Arrays.stream(Optional.ofNullable(request.getCookies()).orElse(new Cookie[0]))
-                .filter(cookie -> "refreshToken".equals(cookie.getName()))
-                .findFirst()
-                .map(Cookie::getValue)
-                .orElse(null);
+    public LoginResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
 
 
-        var tokenInDb = refreshTokenRepository.findByToken(refreshToken)
+        var tokenInDb = refreshTokenRepository.findByToken(refreshTokenRequest.getRefreshToken())
                 .orElseThrow(() -> new AppException(ErrorCode.UNAUTHORIZED));
 
         if (tokenInDb.isRevoked()) {
@@ -492,7 +456,7 @@ public class AuthService {
         }
 
         // Lấy userId từ token (subject)
-        String userId = jwtUtil.extractSubjectAsUserId(refreshToken);
+        String userId = jwtUtil.extractSubjectAsUserId(refreshTokenRequest.getRefreshToken());
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", userRepository.findById(Long.valueOf(userId))
