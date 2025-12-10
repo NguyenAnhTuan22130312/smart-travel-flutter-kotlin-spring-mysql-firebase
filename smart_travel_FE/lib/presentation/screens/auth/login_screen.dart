@@ -103,8 +103,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   BlocConsumer<AuthBloc, AuthState>(
                     listener: (context, state) {
                       if (state is LoginSuccess) {
-                        if (state.response.role == 'ADMIN') {
-                          Navigator.pushReplacementNamed(context, '/admin');
+                        if (state.response.role == "ADMIN") {
+                          Navigator.pushReplacementNamed(context, '/dashboard');
                         } else {
                           Navigator.pushReplacementNamed(context, '/home');
                         }
@@ -128,7 +128,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     builder: (context, state) {
                       final isLoading = state is AuthLoading;
-
                       return Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(

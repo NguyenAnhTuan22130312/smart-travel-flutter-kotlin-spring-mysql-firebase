@@ -1,4 +1,10 @@
 class RouteNames {
+
+  ///ADMIN
+  static const String dashboard = '/dashboard';
+  static const String adminProvinces = '/admin/provinces';
+
+  /// USER
   static const String splashScreen = '/';
   static const String login = '/login';
   static const String register = '/register';
@@ -7,6 +13,11 @@ class RouteNames {
   static const String explore = '/explore';
   static const String destinationDetail = '/destination-detail';
   static const String provinceDetail = '/province/detail';
+  
+  // Tour routes
+  static const String tourDetail = '/tour-detail';
+  
+  // Hotel routes
   static const String hotelList = '/hotel-list';
   static const String hotelDetail = '/hotel-detail';
   

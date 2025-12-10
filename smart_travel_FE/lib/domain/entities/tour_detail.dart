@@ -1,23 +1,32 @@
-class TourDetailEntity {
+import 'tour_image.dart';
+import 'tour_schedule.dart';
+
+class TourDetail {
   final int id;
   final String name;
   final String description;
   final int durationDays;
   final int durationNights;
   final double pricePerPerson;
-  final double rating;
-  final List<TourImageEntity> images;
-  final List<TourScheduleEntity> schedules;
+  final double averageRating;
+  final List<TourImage> images;
+  final List<TourSchedule> schedules;
+  final Map<String, dynamic> included;
+  final Map<String, dynamic> excluded;
 
-  TourDetailEntity({
+  List<String> get imageUrls => images.map((e) => e.imageUrl).toList();
+
+  TourDetail({
     required this.id,
     required this.name,
     required this.description,
     required this.durationDays,
     required this.durationNights,
     required this.pricePerPerson,
-    required this.rating,
+    required this.averageRating,
     required this.images,
     required this.schedules,
+    required this.included,
+    required this.excluded,
   });
 }

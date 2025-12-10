@@ -36,10 +36,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onAppStarted(AppStarted event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     final token = await authLocalDataSource.getToken();
-
     if (token != null && token.isNotEmpty) {
-      final role = await authLocalDataSource.getRole(); // lấy role từ storage
-      emit(Authenticated(role ?? 'USER'));
+      final role = await authLocalDataSource.getRole();
+      if (role == 'ADMIN') {
+        emit(AdminAuthenticated(role!));
+      } else {
+        emit(UserAuthenticated(role!));
+      }
     } else {
       emit(Unauthenticated());
     }

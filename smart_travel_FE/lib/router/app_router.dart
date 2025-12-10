@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
+import 'package:smart_travel/presentation/screens/admin/admin_dashboard.dart';
+import 'package:smart_travel/presentation/screens/admin/province/province_mgt.dart';
 import 'package:smart_travel/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:smart_travel/presentation/screens/auth/login_screen.dart';
 import 'package:smart_travel/presentation/screens/auth/register_screen.dart';
@@ -19,11 +21,24 @@ import 'package:smart_travel/presentation/screens/profile/user_level_screen.dart
 import 'package:smart_travel/presentation/screens/province/province_detail_screen.dart';
 import 'package:smart_travel/presentation/screens/splash/splash_screen.dart';
 import 'package:smart_travel/router/route_names.dart';
+import 'package:smart_travel/presentation/screens/tour/tour_detail_screen.dart';
 import '../injection_container.dart' as di;
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
+
+
     switch (settings.name) {
+    ///ADMIN
+      case RouteNames.dashboard:
+        return MaterialPageRoute(
+          builder: (_) => const AdminDashboardScreen(),
+        );
+      case RouteNames.adminProvinces:
+        return MaterialPageRoute(
+          builder: (_) => const ProvinceManagementScreen(),
+        );
+    /// USER
       case RouteNames.provinceDetail:
         return MaterialPageRoute(
           builder: (context) => ProvinceDetailScreen(),
@@ -93,7 +108,13 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (context) => const UserLevelScreen(),
         );
-      default:
+      case RouteNames.tourDetail:
+        final id = settings.arguments as int;
+        return MaterialPageRoute(
+          builder: (_) => TourDetailScreen(tourId: id),
+          settings: settings,
+        );
+        default:
         return MaterialPageRoute(
           builder:
               (_) => const Scaffold(

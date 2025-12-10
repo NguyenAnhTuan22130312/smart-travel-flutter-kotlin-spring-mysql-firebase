@@ -6,6 +6,7 @@ class ApiConstants {
   static const String verifyEmail = '/auth/verify-email';
   static const String resendVerification = '/auth/resend-verification';
   static const String login = '/auth/login';
+  static const String refreshToken = '/auth/refresh';
   static const String googleLogin = '/auth/google-login';
   static const String facebookLogin = '/auth/facebook-login';
   static const String forgotPassword = '/auth/forgot-password';
@@ -25,11 +26,20 @@ class ApiConstants {
   static const String destinationAll = '/destination/destination-all';
   static const String destinationFilter = '/destination/destination-filter';
   static const String destinationDetail = '/destination/detail/';
+  static const String addDestination = '/destination';
+  static const String updateDestination = '/destination/';
+  static const String deleteDestination = '/destination/';
 
   //Province
   static const String provinceAll = '/province/all';
   static const String provinceDetail = '/province/detail/';
+  static const String addProvince = '/province';
+  static const String deleteProvince = '/province/';
+  static const String updateProvince = '/province/';
 
+  // Tour
+  static const String tour = '/tours';
+  static const String tourDetail = '/tours/';
   //Hotel
   static const String hotel = '/hotels';
 

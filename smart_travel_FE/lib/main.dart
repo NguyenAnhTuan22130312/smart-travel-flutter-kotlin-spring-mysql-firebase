@@ -13,19 +13,18 @@ import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import 'package:smart_travel/presentation/screens/splash/splash_screen.dart';
 import 'package:smart_travel/router/app_router.dart';
 import 'package:smart_travel/router/route_names.dart';
-
+import 'package:smart_travel/presentation/screens/tour/tour_detail_screen.dart';
+import 'package:smart_travel/presentation/blocs/tour/tour_bloc.dart';
 import 'dart:convert';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
 import 'injection_container.dart' as di;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Initialize dependency injection
-  await di.init();
   await Firebase.initializeApp();
-
+  await di.init();
   // Set status bar color to transparent
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
@@ -62,6 +61,9 @@ class _MyAppState extends State<MyApp> {
           ),
           BlocProvider(
             create: (_) => di.sl<ProvinceDetailBloc>(),
+          ),
+          BlocProvider(
+            create: (_) => di.sl<TourBloc>(),
           ),
           BlocProvider(
             create: (_) => di.sl<ProfileBloc>()..add(LoadSettings()),
