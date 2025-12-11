@@ -33,12 +33,14 @@ class UserModel extends User {
       role: json['role'] as String? ?? 'USER',
       authProvider: json['authProvider'] as String? ?? 'LOCAL',
       emailVerified: json['emailVerified'] as bool? ?? false,
-      createdAt: json['createdAt'] != null 
-          ? DateTime.parse(json['createdAt'] as String)
-          : DateTime.now(),
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.parse(json['updatedAt'] as String)
-          : DateTime.now(),
+      createdAt:
+          json['createdAt'] != null
+              ? DateTime.parse(json['createdAt'] as String)
+              : DateTime.now(),
+      updatedAt:
+          json['updatedAt'] != null
+              ? DateTime.parse(json['updatedAt'] as String)
+              : DateTime.now(),
       avatarUrl: json['avatarUrl'] as String?,
       bio: json['bio'] as String?,
       gender: json['gender'] as String?,
@@ -81,57 +83,6 @@ class UserModel extends User {
       'languageSettings': languageSettings,
       'darkModeEnabled': darkModeEnabled,
       'profileUpdatedAt': profileUpdatedAt?.toIso8601String(),
-    };
-  }
-}
-
-class UserLevelModel extends UserLevel {
-  const UserLevelModel({
-    required super.currentLevel,
-    required super.experiencePoints,
-    super.nextLevelAt,
-    required super.progressPercentage,
-  });
-
-  factory UserLevelModel.fromJson(Map<String, dynamic> json) {
-    return UserLevelModel(
-      currentLevel: json['currentLevel'] as String,
-      experiencePoints: json['experiencePoints'] as int,
-      nextLevelAt: json['nextLevelAt'] as int?,
-      progressPercentage: (json['progressPercentage'] as num).toDouble(),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'currentLevel': currentLevel,
-      'experiencePoints': experiencePoints,
-      'nextLevelAt': nextLevelAt,
-      'progressPercentage': progressPercentage,
-    };
-  }
-}
-
-class UserSettingsModel extends UserSettings {
-  const UserSettingsModel({
-    super.languageSettings,
-    required super.darkModeEnabled,
-    super.notificationSettings,
-  });
-
-  factory UserSettingsModel.fromJson(Map<String, dynamic> json) {
-    return UserSettingsModel(
-      languageSettings: json['languageSettings'] as String?,
-      darkModeEnabled: json['darkModeEnabled'] as bool? ?? false,
-      notificationSettings: json['notificationSettings'] as String?,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'languageSettings': languageSettings,
-      'darkModeEnabled': darkModeEnabled,
-      'notificationSettings': notificationSettings,
     };
   }
 }

@@ -1,5 +1,6 @@
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/injection_container.dart' as di;
 import 'package:smart_travel/data/data_sources/local/auth_local_data_source.dart';
@@ -20,7 +21,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  int _selectedIndex = 4; // Profile tab index
+  int _selectedIndex = 5; // Profile tab index (Cá nhân)
 
   @override
   void initState() {
@@ -52,12 +53,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         context,
         MaterialPageRoute(builder: (context) => const BookingScreen()),
       );
-    } else if (index == 4) {
+    } else if (index == 5) {
       return; // Already on Profile
     } else {
       Navigator.pushReplacementNamed(
         context,
-        ['/home', '/explore', '/booking', '/profile', '/ai_chat'][index],
+        [
+          '/home',
+          '/explore',
+          '/booking',
+          '/hotel',
+          '/ai_chat',
+          '/profile',
+        ][index],
       );
     }
   }
@@ -93,7 +101,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         },
         builder: (context, state) {
           if (state is ProfileLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: Lottie.asset(
+                'assets/lottie/travel_is_fun.json',
+                width: 200,
+                height: 500,
+                repeat: true,
+              ),
+            );
           }
 
           if (state is ProfileLoaded) {
@@ -160,7 +175,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     user.email,
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: Colors.white.withOpacity(0.9),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.9,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -194,7 +211,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   '/profile/edit',
                                 );
                                 if (context.mounted) {
-                                  context.read<ProfileBloc>().add(LoadProfile());
+                                  context.read<ProfileBloc>().add(
+                                    LoadProfile(),
+                                  );
                                 }
                               },
                             ),
@@ -217,7 +236,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   '/profile/level',
                                 );
                                 if (context.mounted) {
-                                  context.read<ProfileBloc>().add(LoadProfile());
+                                  context.read<ProfileBloc>().add(
+                                    LoadProfile(),
+                                  );
                                 }
                               },
                             ),
@@ -232,7 +253,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           items: [
                             ProfileMenuItemWidget(
                               icon: Icons.settings_outlined,
-                              title: AppLocalizations.of(context)!.generalSettings,
+                              title:
+                                  AppLocalizations.of(context)!.generalSettings,
                               iconColor: AppColors.primary,
                               onTap: () async {
                                 await Navigator.pushNamed(
@@ -240,7 +262,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   '/profile/settings',
                                 );
                                 if (context.mounted) {
-                                  context.read<ProfileBloc>().add(LoadProfile());
+                                  context.read<ProfileBloc>().add(
+                                    LoadProfile(),
+                                  );
                                 }
                               },
                             ),
@@ -273,11 +297,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // Section 5: Quản lý tài khoản
                         _buildSection(
                           context,
-                          title: AppLocalizations.of(context)!.accountManagement,
+                          title:
+                              AppLocalizations.of(context)!.accountManagement,
                           items: [
                             ProfileMenuItemWidget(
                               icon: Icons.lock_outline,
-                              title: AppLocalizations.of(context)!.changePassword,
+                              title:
+                                  AppLocalizations.of(context)!.changePassword,
                               iconColor: AppColors.primary,
                               onTap: () async {
                                 await Navigator.pushNamed(
@@ -285,13 +311,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   '/profile/change-password',
                                 );
                                 if (context.mounted) {
-                                  context.read<ProfileBloc>().add(LoadProfile());
+                                  context.read<ProfileBloc>().add(
+                                    LoadProfile(),
+                                  );
                                 }
                               },
                             ),
                             ProfileMenuItemWidget(
                               icon: Icons.delete_outline,
-                              title: AppLocalizations.of(context)!.deleteAccount,
+                              title:
+                                  AppLocalizations.of(context)!.deleteAccount,
                               iconColor: Colors.red,
                               onTap: () async {
                                 await Navigator.pushNamed(
@@ -299,7 +328,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   '/profile/account-management',
                                 );
                                 if (context.mounted) {
-                                  context.read<ProfileBloc>().add(LoadProfile());
+                                  context.read<ProfileBloc>().add(
+                                    LoadProfile(),
+                                  );
                                 }
                               },
                             ),
@@ -363,7 +394,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
