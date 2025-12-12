@@ -11,6 +11,7 @@ import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart'
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import '../../theme/app_colors.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:smart_travel/presentation/screens/booking/booking_args.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -47,12 +48,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _onNavItemTapped(int index) {
-    if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const BookingScreen()),
-      );
-    } else if (index == 4) {
+    // if (index == 2) {
+    //   Navigator.push(
+    //     context,
+    //     MaterialPageRoute(builder: (context) => const BookingScreen()),
+    //   );
+    // } else
+      if (index == 4) {
       return; // Already on Profile
     } else {
       Navigator.pushReplacementNamed(

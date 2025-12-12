@@ -3,24 +3,26 @@ import 'package:equatable/equatable.dart';
 abstract class BookingEvent extends Equatable {
   const BookingEvent();
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class CreateBookingSubmitted extends BookingEvent {
-  // --- SỬA THEO Ý BẠN: Gửi tourId ---
-  final String tourId;
-  // ---------------------------------
+  final String bookingType; // 'TOUR' hoặc 'HOTEL'
+  final int id;             // ID của tour hoặc hotel
   final DateTime startDate;
+  final DateTime? endDate;  // Null nếu là Tour (Optional)
   final int numberOfPeople;
-  final double totalPrice;
+  final int numberOfRooms;  // 0 nếu là Tour
 
   const CreateBookingSubmitted({
-    required this.tourId,
+    required this.bookingType,
+    required this.id,
     required this.startDate,
+    this.endDate,
     required this.numberOfPeople,
-    required this.totalPrice,
+    required this.numberOfRooms,
   });
 
   @override
-  List<Object> get props => [tourId, startDate, numberOfPeople, totalPrice];
+  List<Object?> get props => [bookingType, id, startDate, endDate, numberOfPeople, numberOfRooms];
 }

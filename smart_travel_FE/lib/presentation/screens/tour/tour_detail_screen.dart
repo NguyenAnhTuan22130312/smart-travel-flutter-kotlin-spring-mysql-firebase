@@ -4,6 +4,8 @@ import 'package:smart_travel/presentation/blocs/tour/tour_bloc.dart';
 import 'package:smart_travel/presentation/blocs/tour/tour_event.dart';
 import 'package:smart_travel/presentation/blocs/tour/tour_state.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
+import 'package:smart_travel/presentation/screens/booking/booking_args.dart';
+
 
 class TourDetailScreen extends StatefulWidget {
   final int tourId;
@@ -97,9 +99,21 @@ class _TourDetailScreenState extends State<TourDetailScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => BookingScreen(),
+                        builder: (_) => BookingScreen(
+                          // Truyền dữ liệu tour hiện tại vào BookingArgs
+                          args: BookingArgs(
+                            bookingType: 'TOUR', // Đánh dấu là đặt Tour
+                            id: t.id,
+                            name: t.name ?? "Tour du lịch",
+                            price: t.pricePerPerson ?? 0.0,
+                            imageUrl: (t.imageUrls != null && t.imageUrls!.isNotEmpty)
+                                ? t.imageUrls!.first
+                                : "",
+                          ),
+                        ),
                       ),
                     );
+
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
