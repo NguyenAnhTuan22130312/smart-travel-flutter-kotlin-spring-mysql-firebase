@@ -1,15 +1,15 @@
 class RouteNames {
-
   ///ADMIN
   static const String dashboard = '/dashboard';
   static const String adminProvinces = '/admin/provinces';
+  static const String adminUsers = '/admin/users';
   static const String adminDestination = '/admin/destination';
 
   /// USER
   static const String splashScreen = '/';
   static const String login = '/login';
   static const String register = '/register';
-  static const String forgotPassword ='/forgot-password';
+  static const String forgotPassword = '/forgot-password';
   static const String home = '/home';
   static const String explore = '/explore';
 
@@ -19,14 +19,14 @@ class RouteNames {
 
 
   static const String provinceDetail = '/province/detail';
-  
+
   // Tour routes
   static const String tourDetail = '/tour-detail';
-  
+
   // Hotel routes
   static const String hotelList = '/hotel-list';
   static const String hotelDetail = '/hotel-detail';
-  
+
   // Profile routes
   static const String profile = '/profile';
   static const String editProfile = '/profile/edit';
