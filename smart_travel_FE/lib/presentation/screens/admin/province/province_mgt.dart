@@ -9,6 +9,7 @@ import 'package:smart_travel/presentation/blocs/province/province_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/province_event.dart';
 import 'package:smart_travel/presentation/blocs/province/province_state.dart';
 import 'package:smart_travel/presentation/screens/admin/province/province_form_modal.dart';
+import 'package:smart_travel/presentation/theme/app_colors.dart';
 
 class ProvinceManagementScreen extends StatefulWidget {
   const ProvinceManagementScreen({Key? key}) : super(key: key);
@@ -267,11 +268,17 @@ class _ProvinceManagementScreenState extends State<ProvinceManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Quản Lý Tỉnh Thành', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         centerTitle: false,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: AppColors.mainGradient, // ✔ gradient ở đây!
+          ),
+        ),
       ),
       body: BlocConsumer<ProvinceBloc, ProvinceState>(
         listener: (context, state) {
@@ -366,7 +373,7 @@ class _ProvinceManagementScreenState extends State<ProvinceManagementScreen> {
         onPressed: () => _showProvinceModal(),
         label: const Text("Thêm mới"),
         icon: const Icon(Icons.add),
-        backgroundColor: Colors.blue,
+        backgroundColor: AppColors.green,
       ),
     );
   }

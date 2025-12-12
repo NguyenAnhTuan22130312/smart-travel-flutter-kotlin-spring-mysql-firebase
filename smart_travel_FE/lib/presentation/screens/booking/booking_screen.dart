@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_travel/domain/entities/province.dart';
 import 'package:smart_travel/presentation/blocs/booking/booking_bloc.dart';
 import 'package:smart_travel/presentation/blocs/booking/booking_event.dart';
 import 'package:smart_travel/presentation/blocs/booking/booking_state.dart';
@@ -13,7 +14,7 @@ import 'package:smart_travel/injection_container.dart' as di; // Import DI
 final DestinationEntity mockDestination = DestinationEntity(
   id: 1,
   name: 'Vé tham quan Vịnh Hạ Long',
-  province: 'Quảng Ninh',
+  province: ProvinceEntity(id: 1, name: "s", code: "s", region: "Miền Nam", description: "MN", imageUrl: "https://", isPopular: true),
   entryFee: 300000.0,
   averageRating: 4.8,
   imageUrl: 'assets/images/img_1.png',
@@ -230,7 +231,7 @@ class _BookingScreenState extends State<BookingScreen> {
               SizedBox(height: 24),
               Text(destination.name, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textGray)),
               SizedBox(height: 16),
-              _buildInfoRow(icon: Icons.location_on_outlined, title: 'Địa điểm', value: destination.province),
+              _buildInfoRow(icon: Icons.location_on_outlined, title: 'Địa điểm', value: destination.province!.name),
               SizedBox(height: 8),
               _buildInfoRow(icon: Icons.price_change_outlined, title: 'Giá vé', value: '$priceString / người'),
               SizedBox(height: 24),

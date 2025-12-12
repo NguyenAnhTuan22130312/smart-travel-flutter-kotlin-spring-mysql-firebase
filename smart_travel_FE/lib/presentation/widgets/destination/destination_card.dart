@@ -154,7 +154,7 @@ class _DestinationFeaturedState extends State<DestinationCart> {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          destination.province,
+                          destination.province!.name,
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.textGray,

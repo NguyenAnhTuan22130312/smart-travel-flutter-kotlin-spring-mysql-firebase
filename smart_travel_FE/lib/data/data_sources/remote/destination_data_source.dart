@@ -1,12 +1,16 @@
 import 'dart:convert';
-
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:smart_travel/core/constants/api_constants.dart';
 import 'package:smart_travel/core/error/exceptions.dart';
+import 'package:smart_travel/core/network/dio_client.dart';
 import 'package:smart_travel/data/models/api_response_model.dart';
+import 'package:smart_travel/data/models/destination/destination_add_request.dart';
 import 'package:smart_travel/data/models/destination/destination_detail_response_modal.dart';
 import 'package:smart_travel/data/models/destination/destination_response_modal.dart';
+import 'package:smart_travel/data/models/destination/destination_upate_request.dart';
 import 'package:smart_travel/data/models/destination/destinations-featured-response-modal.dart';
+import 'package:smart_travel/domain/params/destination_update_params.dart';
 
 abstract class DestinationDataSource {
 
@@ -22,85 +26,72 @@ abstract class DestinationDataSource {
   ///Xem chi tiết địa điểm
   Future<DestinationDetailResponse> getDestinationDetail(int id);
 
+  ///thêm địa điểm
+  Future<DestinationDetailResponse> addDestination(DestinationAddRequest request, List<XFile>? imageXFile);
+
+  ///Cập nhật địa điểm
+  Future<DestinationDetailResponse> updateDestination(int destinationId, DestinationUpdateRequest request, List<XFile>? imageXFile);
+
+
+  ///Xóa địa điểm
+  Future<String> deleteDestination(int destinationId);
 
 }
 class DestinationDataSourceImpl implements DestinationDataSource{
-  final http.Client client;
+  final DioClient client;
 
   DestinationDataSourceImpl({required this.client});
 
+  ///Lấy danh sách địa điểm nổi bật
   @override
   Future<List<DestinationFeaturedResponseModel>> getAllDestinationFeatured() async {
     try {
       final response = await client
-          .get(
-        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.destinationFeatured}'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      )
-          .timeout(ApiConstants.connectionTimeout);
+          .get('${ApiConstants.destinationFeatured}');
 
       if (response.statusCode == 200) {
         // Parse JSON body
         final apiResponse = ApiResponseModel<List<dynamic>>.fromJson(
-          jsonDecode(response.body),
+          response.data,
               (data) => data as List<dynamic>,
         );
-
-        // Kiểm tra data null
-        if (apiResponse.data == null) {
-          throw const ServerException('Không nhận được dữ liệu từ server');
-        }
 
         // Convert từng phần tử JSON trong list thành model
         final destinations = apiResponse.data!
             .map((item) => DestinationFeaturedResponseModel.fromJson(item))
             .toList();
 
-
         return destinations;
       } else if (response.statusCode == 400) {
         final apiResponse = ApiResponseModel.fromJson(
-          jsonDecode(response.body),
+          response.data,
           null,
         );
         throw ServerException(apiResponse.msg);
       } else {
         throw ServerException(
-            'Lỗi server: ${response.statusCode} - ${response.reasonPhrase}');
+            'Lỗi server: ${response.statusCode} - ${response.statusMessage}');
       }
-    } on http.ClientException catch (e) {
-      throw NetworkException('Lỗi kết nối: ${e.message}');
+    } on DioException catch (e) {
+      throw ServerException(e.message ?? "Lỗi không xác định");
     } catch (e) {
       if (e is ServerException || e is NetworkException) rethrow;
       throw ServerException('Lỗi không mong muốn: ${e.toString()}');
     }
   }
 
+  /// Lấy danh sách địa điểm
   @override
   Future<List<DestinationResponseModal>> getAllDestination() async {
     try {
       final response = await client
-          .get(
-        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.destinationAll}'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      )
-          .timeout(ApiConstants.connectionTimeout);
+          .get('${ApiConstants.destinationAll}');
 
-      if (response.statusCode == 200) {
         // Parse JSON body
         final apiResponse = ApiResponseModel<List<dynamic>>.fromJson(
-          jsonDecode(response.body),
+       response.data,
               (data) => data as List<dynamic>,
         );
-
-        // Kiểm tra data null
-        if (apiResponse.data == null) {
-          throw const ServerException('Không nhận được dữ liệu từ server');
-        }
 
         // Convert từng phần tử JSON trong list thành model
         final destinations = apiResponse.data!
@@ -108,110 +99,172 @@ class DestinationDataSourceImpl implements DestinationDataSource{
             .toList();
 
         return destinations;
-      } else if (response.statusCode == 400) {
-        final apiResponse = ApiResponseModel.fromJson(
-          jsonDecode(response.body),
-          null,
-        );
-        throw ServerException(apiResponse.msg);
-      } else {
-        throw ServerException(
-            'Lỗi server: ${response.statusCode} - ${response.reasonPhrase}');
-      }
-    } on http.ClientException catch (e) {
-      throw NetworkException('Lỗi kết nối: ${e.message}');
+    } on DioException catch (e) {
+      throw ServerException(e.message ?? "Lỗi không xác định");
     } catch (e) {
       if (e is ServerException || e is NetworkException) rethrow;
       throw ServerException('Lỗi không mong muốn: ${e.toString()}');
     }
   }
 
+  ///Lọc địa điểm theo danh mục
   @override
   Future<List<DestinationResponseModal>> filterDestinationsByCategory(String category) async {
     try {
       final response = await client
           .get(
-        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.destinationFilter}?category=$category'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      )
-          .timeout(ApiConstants.connectionTimeout);
+        '${ApiConstants.destinationFilter}?category=$category'
+      );
 
-      if (response.statusCode == 200) {
         // Parse JSON body
         final apiResponse = ApiResponseModel<List<DestinationResponseModal>>.fromJson(
-          jsonDecode(response.body),
+          response.data,
               (data) => (data as List)
                   .map((e) => DestinationResponseModal.fromJson(e))
                   .toList(),
         );
 
-        // Kiểm tra data null
-        if (apiResponse.data == null) {
-          throw const ServerException('Không nhận được dữ liệu từ server');
-        }
         return apiResponse.data!;
-      } else if (response.statusCode == 400) {
-        final apiResponse = ApiResponseModel.fromJson(
-          jsonDecode(response.body),
-          null,
-        );
-        throw ServerException(apiResponse.msg);
-      } else {
-        throw ServerException(
-            'Lỗi server: ${response.statusCode} - ${response.reasonPhrase}');
-      }
-    } on http.ClientException catch (e) {
-      throw NetworkException('Lỗi kết nối: ${e.message}');
+
+    } on DioException catch (e) {
+      throw ServerException(e.message ?? "Lỗi không xác định");
     } catch (e) {
       if (e is ServerException || e is NetworkException) rethrow;
       throw ServerException('Lỗi không mong muốn: ${e.toString()}');
     }
   }
 
+  ///Xem chi tiết dđịa điểm
   @override
   Future<DestinationDetailResponse> getDestinationDetail(int id) async {
     try {
       final response = await client
-          .get(
-        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.destinationDetail}$id'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      )
-          .timeout(ApiConstants.connectionTimeout);
+          .get('${ApiConstants.destinationDetail}$id');
 
-      if (response.statusCode == 200) {
+
         // Parse JSON body
         final apiResponse = ApiResponseModel<DestinationDetailResponse>.fromJson(
-          jsonDecode(response.body),
+         response.data,
               (data) => DestinationDetailResponse.fromJson(data),
         );
-        print(apiResponse);
-        // Kiểm tra data null
-        if (apiResponse.data == null) {
-          throw const ServerException('Không nhận được dữ liệu từ server');
-        }
+
         return apiResponse.data!;
 
-      } else if (response.statusCode == 400) {
-        final apiResponse = ApiResponseModel.fromJson(
-          jsonDecode(response.body),
-          null,
-        );
-        throw ServerException(apiResponse.msg);
-      } else {
-        throw ServerException(
-            'Lỗi server: ${response.statusCode} - ${response.reasonPhrase}');
-      }
-    } on http.ClientException catch (e) {
-      throw NetworkException('Lỗi kết nối: ${e.message}');
+    } on DioException catch (e) {
+      throw ServerException(e.message ?? "Lỗi không xác định");
     } catch (e) {
       if (e is ServerException || e is NetworkException) rethrow;
       throw ServerException('Lỗi không mong muốn: ${e.toString()}');
     }
   }
 
+  ///Thêm địa điểm
+  @override
+  Future<DestinationDetailResponse> addDestination(DestinationAddRequest request, List<XFile>? imageFiles) async {
+    try {
+      // Chuẩn bị JSON part
+      final jsonPart = await MultipartFile.fromString(
+        jsonEncode(request.toJson()),
+        filename: 'request.json',
+        contentType: DioMediaType('application', 'json'), // hoặc MediaType.json
+      );
 
+      // Chuẩn bị danh sách ảnh
+      List<MultipartFile> imageParts = [];
+      if (imageFiles != null && imageFiles.isNotEmpty) {
+        imageParts = await Future.wait(
+          imageFiles.map((file) => MultipartFile.fromFile(
+            file.path,
+            filename: file.name,
+          )),
+        );
+      }
+
+      //Tạo FormData
+      final formData = FormData.fromMap({
+        'request': jsonPart,
+        if (imageParts.isNotEmpty) 'imageFiles': imageParts,
+      });
+
+      final response = await client.post(
+          ApiConstants.addDestination,
+          data: formData
+      );
+      final apiResponse = ApiResponseModel<DestinationDetailResponse>.fromJson(
+          response.data,
+              (data) => DestinationDetailResponse.fromJson(data)
+      );
+      return apiResponse.data!;
+    } on DioException catch (e) {
+      throw ServerException(e.message ?? "Lỗi không xác định");
+    } catch (e) {
+      if (e is ServerException || e is NetworkException) rethrow;
+      throw ServerException('Lỗi không mong muốn: ${e.toString()}');
+  }
+  }
+
+  ///Cập nhật địa điểm
+  @override
+  Future<DestinationDetailResponse> updateDestination(int destinationId, DestinationUpdateRequest request, List<XFile>? imageFiles) async {
+    try {
+      // Chuẩn bị JSON part
+      final jsonPart = await MultipartFile.fromString(
+        jsonEncode(request.toJson()),
+        filename: 'request.json',
+        contentType: DioMediaType('application', 'json'), // hoặc MediaType.json
+      );
+
+      // Chuẩn bị danh sách ảnh
+      List<MultipartFile> imageParts = [];
+      if (imageFiles != null && imageFiles.isNotEmpty) {
+        imageParts = await Future.wait(
+          imageFiles.map((file) => MultipartFile.fromFile(
+            file.path,
+            filename: file.name,
+          )),
+        );
+      }
+
+      //Tạo FormData
+      final formData = FormData.fromMap({
+        'request': jsonPart,
+        if (imageParts.isNotEmpty) 'imageFiles': imageParts,
+      });
+
+      final response = await client.put(
+          '${ApiConstants.updateDestination}${destinationId}',
+          data: formData
+      );
+      final apiResponse = ApiResponseModel<DestinationDetailResponse>.fromJson(
+          response.data,
+              (data) => DestinationDetailResponse.fromJson(data)
+      );
+      return apiResponse.data!;
+    } on DioException catch (e) {
+      throw ServerException(e.message ?? "Lỗi không xác định");
+    } catch (e) {
+      if (e is ServerException || e is NetworkException) rethrow;
+      throw ServerException('Lỗi không mong muốn: ${e.toString()}');
+    }
+  }
+
+  /// Xóa địa điểm
+  @override
+  Future<String> deleteDestination(int destinationId) async {
+    try {
+      final response = await client.delete(
+        '${ApiConstants.deleteDestination}$destinationId',
+      );
+      final apiResponse = ApiResponseModel<dynamic>.fromJson(
+        response.data,
+            (data) => data,
+      );
+      return apiResponse.msg;
+    } on DioException catch (e) {
+      if (e.error is ServerException) {
+        throw e.error as ServerException;
+      }
+      throw ServerException(e.message ?? 'Lỗi khi xóa tỉnh thành');
+    }
+  }
 }

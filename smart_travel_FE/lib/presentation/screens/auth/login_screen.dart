@@ -1,7 +1,7 @@
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:smart_travel/domain/params/LoginParams.dart';
+import 'package:smart_travel/domain/params/login_params.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_event.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_state.dart';
