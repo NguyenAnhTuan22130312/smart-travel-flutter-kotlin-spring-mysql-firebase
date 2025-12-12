@@ -8,13 +8,11 @@ import 'package:smart_travel/domain/entities/destinations.dart';
 import 'package:smart_travel/domain/entities/hotel.dart';
 import 'package:smart_travel/domain/entities/review.dart';
 import 'package:smart_travel/domain/entities/tour.dart';
-import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
-import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
-import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_bloc.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_event.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_state.dart';
 import 'package:smart_travel/router/route_names.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:smart_travel/router/route_names.dart';
-import 'package:smart_travel/presentation/screens/tour/tour_detail_screen.dart';
 import '../../theme/app_colors.dart';
 
 class DetailDestinationScreen extends StatefulWidget {
@@ -35,10 +33,9 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final id = ModalRoute.of(context)!.settings.arguments as int ;
-      context.read<DestinationBloc>().add(GetDetailDestinationEvent(id));
+      final arguments = ModalRoute.of(context)?.settings.arguments;
+      context.read<DestinationDetailBloc>().add(GetDetailDestinationEvent(arguments as int));
     });
 
     _tabController = TabController(length: 4, vsync: this);
@@ -79,25 +76,22 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocConsumer<DestinationBloc, DestinationState>(
+      body: BlocConsumer<DestinationDetailBloc, DestinationDetailState>(
         listener: (context, state) {
-
-          // Không cần setState ở đây vì BlocBuilder sẽ rebuild
         },
         builder: (context, state) {
-          if (state is GetDetailDestinationLoading) {
+          if (state is DestinationDetailLoading) {
             return Center(
               child: Lottie.asset(
                 'assets/lottie/travel_is_fun.json',
                 width: 200,
                 height: 500,
                 repeat: true,
-
               ),
             );
           }
 
-          if (state is GetDetailDestinationError) {
+          if (state is DestinationDetailError) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -109,7 +103,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                   ElevatedButton(
                     onPressed: () {
                       final id = ModalRoute.of(context)!.settings.arguments as int;
-                      context.read<DestinationBloc>().add(GetDetailDestinationEvent(id));
+                      context.read<DestinationDetailBloc>().add(GetDetailDestinationEvent(id));
                     },
                     child: const Text('Thử lại'),
                   ),
@@ -118,8 +112,8 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
             );
           }
 
-          if (state is GetDetailDestinationLoaded) {
-            final destination = state.destinationEntity;
+          if (state is DestinationDetailLoaded) {
+            final destination = state.response;
             final images = destination.destinationImage
                 ?.map((img) => img.imageUrl ?? '')
                 .toList() ?? [];

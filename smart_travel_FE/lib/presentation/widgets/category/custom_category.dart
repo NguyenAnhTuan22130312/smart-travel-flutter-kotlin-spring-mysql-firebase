@@ -54,7 +54,7 @@ class _CustomCategoryState extends State<CustomCategory> {
     },
   ];
 
-  String _selectedCategory = 'ALL';
+  String _selectedCategory = 'Tất cả';
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +77,7 @@ class _CustomCategoryState extends State<CustomCategory> {
                 });
 
                 //Nếu có DestinationBloc, kích hoạt filter
-                if (category['id'] == 'ALL') {
+                if (category['id'] == 'Tất cả') {
                   context.read<DestinationBloc>().add(LoadAllDestinations());
                 } else {
                   context

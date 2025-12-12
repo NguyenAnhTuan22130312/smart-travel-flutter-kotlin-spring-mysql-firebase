@@ -3,6 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_event.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_state.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
+import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
+import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
+import 'package:smart_travel/presentation/blocs/province/province_bloc.dart';
+import 'package:smart_travel/presentation/blocs/province/province_event.dart';
 import 'dart:async';
 import '../../theme/app_colors.dart';
 
@@ -23,7 +29,18 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     super.initState();
     // Gửi sự kiện kiểm tra đăng nhập
     context.read<AuthBloc>().add(AppStarted());
+    //Load tất cả dữ liệu
+    _loadInitialAppData();
     _setupAnimations();
+  }
+  void _loadInitialAppData() {
+    // Dùng Future.microtask để đảm bảo context đã sẵn sàng
+    Future.microtask(() {
+      // Load tất cả dữ liệu bạn cần cho HomeScreen
+      context.read<DestinationBloc>().add(LoadAllDestinations());
+      context.read<ProvinceBloc>().add(LoadProvince());
+      context.read<ProfileBloc>().add(LoadProfile());
+    });
   }
 
   void _setupAnimations() {
