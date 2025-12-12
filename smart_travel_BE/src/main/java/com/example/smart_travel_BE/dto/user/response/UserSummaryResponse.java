@@ -19,4 +19,5 @@ public class UserSummaryResponse {
     private String role;
     private Boolean isActive;
     private LocalDateTime createdAt;
+    private String avatarUrl; // Avatar từ UserProfile
 }

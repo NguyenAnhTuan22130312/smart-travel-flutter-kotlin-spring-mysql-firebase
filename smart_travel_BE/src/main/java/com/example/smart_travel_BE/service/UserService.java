@@ -304,7 +304,10 @@ public class UserService {
         Page<User> userPage = userRepository.findAll(spec, pageable);
 
         List<UserSummaryResponse> userSummaries = userPage.getContent().stream()
-                .map(userMapper::toUserSummaryResponse)
+                .map(user -> {
+                    UserProfile userProfile = userProfileRepository.findByUser(user).orElse(null);
+                    return userMapper.toUserSummaryResponse(user, userProfile);
+                })
                 .collect(Collectors.toList());
 
         return PageResponse.<UserSummaryResponse>builder()

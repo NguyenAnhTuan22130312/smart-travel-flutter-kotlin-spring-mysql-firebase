@@ -15,7 +15,9 @@ public interface UserMapper {
     RegisterResponse toRegisterResponse(User user);
     
     // Admin mapping methods
-    UserSummaryResponse toUserSummaryResponse(User user);
+    @Mapping(target = "id", source = "user.id")
+    @Mapping(target = "avatarUrl", source = "userProfile.avatarUrl")
+    UserSummaryResponse toUserSummaryResponse(User user, UserProfile userProfile);
     
     @Mapping(target = "id", source = "user.id")
     @Mapping(target = "updatedAt", source = "user.updatedAt")
