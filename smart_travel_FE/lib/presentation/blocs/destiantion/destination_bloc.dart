@@ -10,6 +10,7 @@ import 'package:smart_travel/domain/usecases/destination/get_all_destination_fea
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_detail_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/update_destination_use_case.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_state.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
 
@@ -17,48 +18,23 @@ class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
   final GetAllDestinationFeaturedUseCase destinationFeaturedUseCase;
   final GetAllDestinationsUseCase getAllDestinationUseCase;
   final FilterDestinationsByCategoryUseCase filterByCategoryUseCase;
-  final GetDetailDestinationUseCase getDetailDestinationUseCase;
   final AddDestinationUseCase addDestinationUseCase;
   final UpdateDestinationUseCase updateDestinationUseCase;
   final DeleteDestinationUseCase deleteDestinationUseCase;
-  
+
   DestinationBloc({required this.destinationFeaturedUseCase,
-    required this.filterByCategoryUseCase, required this.getAllDestinationUseCase, required this.getDetailDestinationUseCase,
+    required this.filterByCategoryUseCase, required this.getAllDestinationUseCase,
     required this.addDestinationUseCase, required this.updateDestinationUseCase, required this.deleteDestinationUseCase})
       : super(FeaturedDestinationInitial()) {
-    on<LoadFeaturedDestinations>(_onLoadFeaturedDestinations);
     on<LoadAllDestinations>(_onLoadAllDestinations);
     on<FilterDestinationsByCategory>(_onFilterDestinationsByCategory);
     on<FilterDestinationsEvent>(_onFilterDestinationsEvent);
     on<SearchDestinationEvent>(_onSearchDestinationEvent);
-    on<GetDetailDestinationEvent> (_onGetDetailDestinationEvent);
     on<AddDestinationEvent> (_onAddDestinationEvent);
     on<UpdateDestinationEvent> (_onUpdateDestinationEvent);
     on<DeleteDestinationEvent> (_onDeleteDestinationEvent);
   }
 
-  ///Lấy danh sách địa điểm nổi bật
-  Future<void> _onLoadFeaturedDestinations(LoadFeaturedDestinations event,
-      Emitter<DestinationState> emit,) async {
-    emit(FeaturedDestinationLoading());
-
-    final result = await destinationFeaturedUseCase(const NoParams());
-
-    result.fold(
-          (failure) => emit(FeaturedDestinationError(failure.message)),
-          (destinations) {
-            List<DestinationEntity> displayList = destinations;
-            // Nếu loadAll == false chỉ lấy 6 cái
-            if (event.loadAll == false) {
-              displayList = destinations.take(6).toList();
-            }
-            emit(FeaturedDestinationLoaded(
-              displayList,
-              isLimited: event.loadAll == false, // true nếu chỉ load 6
-            ));
-          }
-    );
-  }
 
   ///Lấy tất cả danh sách địa điểm
   Future<void> _onLoadAllDestinations(
@@ -196,22 +172,6 @@ class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
     }
   }
 
-  ///Xem chi tiết địa điểm
-  Future<void> _onGetDetailDestinationEvent(
-      GetDetailDestinationEvent event,
-      Emitter<DestinationState> emit) async{
-    emit(GetDetailDestinationLoading());
-    try{
-      final result = await getDetailDestinationUseCase(event.id);
-      result.fold(
-          (failure)=> emit(GetDetailDestinationError(failure.message)),
-          (destinationDetail)=> emit(GetDetailDestinationLoaded(destinationDetail))
-      );
-    }catch(e){
-      emit(GetDetailDestinationError(e.toString()));
-    }
-
-  }
 
 
   ///Thêm địa điểm
@@ -222,7 +182,7 @@ class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
     emit(AddDestinationLoading());
     final result = await addDestinationUseCase(event.destinationAddParams);
     result.fold((failure)=> emit(AddDestinationError(failure.message)),
-        (success) async {
+            (success) async {
           emit(AddDestinationSuccess(success));
           add(LoadAllDestinations(loadAll: true));
         });
@@ -236,7 +196,7 @@ class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
     emit(UpdateDestinationLoading());
     final result = await updateDestinationUseCase(event.destinationUpdateParams);
     result.fold((failure)=> emit(UpdateDestinationError(failure.message)),
-        (success) async {
+            (success) async {
           emit(UpdateDestinationSuccess(success));
           add(LoadAllDestinations(loadAll: true));
         });
@@ -249,9 +209,9 @@ class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
     emit(DeleteDestinationLoading());
     final result = await deleteDestinationUseCase(event.destinationId);
     result.fold((failure)=> emit(DeleteDestinationError(failure.message)),
-        (success) async{
-        emit(DeleteDestinationSuccess(success));
-        add(LoadAllDestinations());
+            (success) async{
+          emit(DeleteDestinationSuccess(success));
+          add(LoadAllDestinations());
         });
   }
 }

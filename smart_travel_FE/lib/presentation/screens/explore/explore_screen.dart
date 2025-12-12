@@ -3,11 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
+import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/province_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/province_event.dart';
 import 'package:smart_travel/presentation/blocs/province/province_state.dart';
 import 'package:smart_travel/presentation/widgets/category/custom_category.dart';
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
+import 'package:smart_travel/presentation/widgets/common/refreshable_scroll_view.dart';
 import 'package:smart_travel/presentation/widgets/destination/destination_card.dart';
 import 'package:smart_travel/presentation/widgets/province/province_is_popular_card.dart';
 import '../../theme/app_colors.dart';
@@ -40,8 +42,6 @@ class _ExploreScreenState extends State<ExploreScreen>
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    context.read<DestinationBloc>().add(LoadAllDestinations());
-    context.read<ProvinceBloc>().add(LoadProvince());
   }
 
   @override
@@ -477,18 +477,16 @@ class _ExploreScreenState extends State<ExploreScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            _buildAppBar(),
-            _buildSearchBar(),
-            const CustomCategory(),
-            _buildExploreDestinations(),
-            _buildProvinces(),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-          ],
-        ),
-      ),
+      body: RefreshableScrollView(
+            slivers: [
+              _buildAppBar(),
+              _buildSearchBar(),
+              const CustomCategory(),
+              _buildExploreDestinations(),
+              _buildProvinces(),
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            ],
+          ),
       bottomNavigationBar: AppBottomNavigationWithIndicator(
         currentIndex: _selectedIndex,
         onTap: _onNavItemTapped,
@@ -499,17 +497,15 @@ class _ExploreScreenState extends State<ExploreScreen>
   //APPBAR
   Widget _buildAppBar() {
     return SliverAppBar(
+      pinned: true,
       floating: true,
-      backgroundColor: Colors.white,
       elevation: 0,
-      expandedHeight: 70,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
+      automaticallyImplyLeading: false,
+      flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: AppColors.mainGradient,
           ),
         ),
-      ),
       title: Row(
         children: [
           Container(
@@ -607,13 +603,7 @@ class _ExploreScreenState extends State<ExploreScreen>
 
   Widget _buildExploreDestinations() {
     return BlocBuilder<DestinationBloc, DestinationState>(
-      buildWhen: (previous, current) {
-        // Chỉ rebuild khi state là FilterDestination*
-        return current is FilterDestinationLoading ||
-            current is FilterDestinationLoaded ||
-            current is FilterDestinationError;
-      },
-      builder: (context, state) {
+       builder: (context, state) {
         // 1. Đang loading → hiện loading
         if (state is FilterDestinationLoading) {
           return const SliverToBoxAdapter(
