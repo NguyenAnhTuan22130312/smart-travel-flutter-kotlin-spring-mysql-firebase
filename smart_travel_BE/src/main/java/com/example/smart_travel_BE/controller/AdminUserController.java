@@ -26,7 +26,6 @@ public class AdminUserController {
 
     /**
      * Lấy danh sách users với pagination và tìm kiếm
-     * GET /api/v1/admin/users?page=0&size=10&searchKeyword=john&sortBy=createdAt&sortDirection=DESC
      */
     @GetMapping
     public ResponseEntity<APIResponse<PageResponse<UserSummaryResponse>>> getAllUsers(
@@ -42,7 +41,6 @@ public class AdminUserController {
 
     /**
      * Xem chi tiết thông tin user
-     * GET /api/v1/admin/users/{id}
      */
     @GetMapping("/{id}")
     public ResponseEntity<APIResponse<UserDetailResponse>> getUserDetail(@PathVariable Long id) {
@@ -57,7 +55,6 @@ public class AdminUserController {
 
     /**
      * Chỉnh sửa thông tin user cơ bản
-     * PUT /api/v1/admin/users/{id}
      */
     @PutMapping("/{id}")
     public ResponseEntity<APIResponse<UserDetailResponse>> updateUser(
@@ -74,7 +71,6 @@ public class AdminUserController {
 
     /**
      * Khóa tài khoản user
-     * POST /api/v1/admin/users/{id}/lock
      */
     @PostMapping("/{id}/lock")
     public ResponseEntity<APIResponse<Void>> lockUser(@PathVariable Long id) {
@@ -88,7 +84,6 @@ public class AdminUserController {
 
     /**
      * Mở khóa tài khoản user
-     * POST /api/v1/admin/users/{id}/unlock
      */
     @PostMapping("/{id}/unlock")
     public ResponseEntity<APIResponse<Void>> unlockUser(@PathVariable Long id) {

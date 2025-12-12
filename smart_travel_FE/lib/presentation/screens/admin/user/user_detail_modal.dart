@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 class UserDetailModal extends StatelessWidget {
@@ -9,144 +10,191 @@ class UserDetailModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: SingleChildScrollView(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Header with Avatar
             _buildHeader(context),
 
-            // Content
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Name and Role
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // Scrollable Content
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          user.fullName,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
+                      // Name and Role
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              user.fullName,
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                        ),
+                          _buildRoleBadge(user.role),
+                        ],
                       ),
-                      _buildRoleBadge(user.role),
+                      const SizedBox(height: 8),
+
+                      // Status Badge
+                      _buildStatusBadge(user.isActive ?? true),
+
+                      const SizedBox(height: 20),
+
+                      // Level & Experience Section (NEW!)
+                      if (user.currentLevel != null ||
+                          user.experiencePoints != null)
+                        _buildLevelSection(),
+
+                      // Contact Information
+                      _buildSectionCard(
+                        icon: Icons.contacts_rounded,
+                        title: 'Thông tin liên hệ',
+                        color: Colors.blue,
+                        children: [
+                          _buildCopyableInfoRow(
+                            Icons.email_rounded,
+                            'Email',
+                            user.email,
+                            context,
+                          ),
+                          if (user.phone != null)
+                            _buildCopyableInfoRow(
+                              Icons.phone_rounded,
+                              'Số điện thoại',
+                              user.phone!,
+                              context,
+                            ),
+                        ],
+                      ),
+
+                      // Personal Information
+                      if (user.bio != null ||
+                          user.gender != null ||
+                          user.dateOfBirth != null)
+                        _buildSectionCard(
+                          icon: Icons.person_rounded,
+                          title: 'Thông tin cá nhân',
+                          color: Colors.purple,
+                          children: [
+                            if (user.bio != null)
+                              _buildInfoRow(
+                                Icons.info_outline,
+                                'Bio',
+                                user.bio!,
+                              ),
+                            if (user.gender != null)
+                              _buildInfoRow(
+                                Icons.wc_rounded,
+                                'Giới tính',
+                                _formatGender(user.gender!),
+                              ),
+                            if (user.dateOfBirth != null)
+                              _buildInfoRow(
+                                Icons.cake_rounded,
+                                'Ngày sinh',
+                                _formatDateOnly(user.dateOfBirth!),
+                              ),
+                          ],
+                        ),
+
+                      // Location Info
+                      if (user.address != null ||
+                          user.city != null ||
+                          user.country != null)
+                        _buildSectionCard(
+                          icon: Icons.location_on_rounded,
+                          title: 'Địa chỉ',
+                          color: Colors.green,
+                          children: [
+                            if (user.address != null)
+                              _buildInfoRow(
+                                Icons.home_rounded,
+                                'Địa chỉ',
+                                user.address!,
+                              ),
+                            if (user.city != null)
+                              _buildInfoRow(
+                                Icons.location_city_rounded,
+                                'Thành phố',
+                                user.city!,
+                              ),
+                            if (user.country != null)
+                              _buildInfoRow(
+                                Icons.flag_rounded,
+                                'Quốc gia',
+                                user.country!,
+                              ),
+                          ],
+                        ),
+
+                      // Account Information
+                      _buildSectionCard(
+                        icon: Icons.shield_rounded,
+                        title: 'Thông tin tài khoản',
+                        color: Colors.orange,
+                        children: [
+                          _buildInfoRow(
+                            user.emailVerified
+                                ? Icons.verified_user_rounded
+                                : Icons.cancel_rounded,
+                            'Email đã xác thực',
+                            user.emailVerified ? 'Có' : 'Chưa',
+                            valueColor:
+                                user.emailVerified
+                                    ? Colors.green[700]
+                                    : Colors.red[700],
+                          ),
+                          _buildInfoRow(
+                            Icons.login_rounded,
+                            'Loại tài khoản',
+                            _formatAuthProvider(user.authProvider),
+                          ),
+                          _buildInfoRow(
+                            Icons.calendar_today_rounded,
+                            'Ngày tạo',
+                            _formatDate(user.createdAt),
+                          ),
+                          _buildInfoRow(
+                            Icons.update_rounded,
+                            'Cập nhật lần cuối',
+                            _formatDate(user.updatedAt),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                ),
+              ),
+            ),
 
-                  // Status Badge
-                  _buildStatusBadge(user.isActive ?? true),
-
-                  const SizedBox(height: 16),
-                  const Divider(),
-                  const SizedBox(height: 16),
-
-                  // Contact Information
-                  _buildSectionTitle('Thông tin liên hệ'),
-                  _buildInfoRow(Icons.email_outlined, 'Email', user.email),
-                  if (user.phone != null)
-                    _buildInfoRow(
-                      Icons.phone_outlined,
-                      'Số điện thoại',
-                      user.phone!,
-                    ),
-
-                  const SizedBox(height: 16),
-
-                  // Account Information
-                  _buildSectionTitle('Thông tin tài khoản'),
-                  _buildInfoRow(
-                    Icons.verified_user_outlined,
-                    'Email đã xác thực',
-                    user.emailVerified ? 'Có' : 'Chưa',
-                  ),
-                  _buildInfoRow(
-                    Icons.login_outlined,
-                    'Loại tài khoản',
-                    user.authProvider,
-                  ),
-                  _buildInfoRow(
-                    Icons.calendar_today_outlined,
-                    'Ngày tạo',
-                    _formatDate(user.createdAt),
-                  ),
-                  _buildInfoRow(
-                    Icons.update_outlined,
-                    'Cập nhật lần cuối',
-                    _formatDate(user.updatedAt),
-                  ),
-
-                  // Additional Profile Info
-                  if (user.bio != null ||
-                      user.gender != null ||
-                      user.dateOfBirth != null) ...[
-                    const SizedBox(height: 16),
-                    _buildSectionTitle('Thông tin cá nhân'),
-                  ],
-
-                  if (user.bio != null)
-                    _buildInfoRow(Icons.info_outline, 'Bio', user.bio!),
-                  if (user.gender != null)
-                    _buildInfoRow(
-                      Icons.person_outline,
-                      'Giới tính',
-                      user.gender!,
-                    ),
-                  if (user.dateOfBirth != null)
-                    _buildInfoRow(
-                      Icons.cake_outlined,
-                      'Ngày sinh',
-                      _formatDate(user.dateOfBirth!),
-                    ),
-
-                  // Location Info
-                  if (user.address != null ||
-                      user.city != null ||
-                      user.country != null) ...[
-                    const SizedBox(height: 16),
-                    _buildSectionTitle('Địa chỉ'),
-                  ],
-
-                  if (user.address != null)
-                    _buildInfoRow(
-                      Icons.home_outlined,
-                      'Địa chỉ',
-                      user.address!,
-                    ),
-                  if (user.city != null)
-                    _buildInfoRow(
-                      Icons.location_city_outlined,
-                      'Thành phố',
-                      user.city!,
-                    ),
-                  if (user.country != null)
-                    _buildInfoRow(
-                      Icons.flag_outlined,
-                      'Quốc gia',
-                      user.country!,
-                    ),
-
-                  const SizedBox(height: 24),
-
-                  // Close Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: const Text('Đóng'),
+            // Bottom Action Button
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                ],
+                  child: const Text(
+                    'Đóng',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                ),
               ),
             ),
           ],
@@ -159,47 +207,52 @@ class UserDetailModal extends StatelessWidget {
     return Stack(
       children: [
         Container(
-          height: 150,
+          height: 180,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.blue[400]!, Colors.blue[600]!],
+              colors: [Colors.blue[400]!, Colors.blue[700]!],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Center(
-            child: CircleAvatar(
-              radius: 50,
-              backgroundColor: Colors.white,
-              child:
-                  user.avatarUrl != null
-                      ? ClipOval(
-                        child: Image.network(
-                          user.avatarUrl!,
-                          width: 96,
-                          height: 96,
-                          fit: BoxFit.cover,
-                          errorBuilder:
-                              (_, __, ___) => const Icon(
-                                Icons.person,
-                                size: 50,
-                                color: Colors.grey,
-                              ),
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 15,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: CircleAvatar(
+                radius: 55,
+                backgroundColor: Colors.white,
+                child:
+                    user.avatarUrl != null
+                        ? ClipOval(
+                          child: Image.network(
+                            user.avatarUrl!,
+                            width: 106,
+                            height: 106,
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (_, __, ___) => const Icon(
+                                  Icons.person_rounded,
+                                  size: 55,
+                                  color: Colors.grey,
+                                ),
+                          ),
+                        )
+                        : const Icon(
+                          Icons.person_rounded,
+                          size: 55,
+                          color: Colors.grey,
                         ),
-                      )
-                      : const Icon(Icons.person, size: 50, color: Colors.grey),
-            ),
-          ),
-        ),
-        Positioned(
-          top: 8,
-          right: 8,
-          child: CircleAvatar(
-            backgroundColor: Colors.white,
-            child: IconButton(
-              icon: const Icon(Icons.close, color: Colors.black),
-              onPressed: () => Navigator.pop(context),
+              ),
             ),
           ),
         ),
@@ -207,21 +260,200 @@ class UserDetailModal extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
+  Widget _buildLevelSection() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.amber[50]!, Colors.orange[50]!],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.orange[200]!, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.orange.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.orange[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.emoji_events_rounded,
+                  color: Colors.orange[700],
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Cấp độ & Điểm kinh nghiệm',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange[900],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              // Level Display
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.orange[100]!),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.star_rounded,
+                        color: Colors.amber[600],
+                        size: 32,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Cấp độ',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        user.currentLevel ?? 'N/A',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Experience Points Display
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.orange[100]!),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.bolt_rounded,
+                        color: Colors.orange[600],
+                        size: 32,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Điểm kinh nghiệm',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        user.experiencePoints != null
+                            ? '${user.experiencePoints} XP'
+                            : 'N/A',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
+  Widget _buildSectionCard({
+    required IconData icon,
+    required String title,
+    required Color color,
+    required List<Widget> children,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section Header
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(icon, color: color, size: 24),
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color.lerp(color, Colors.black, 0.3),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Section Content
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(children: children),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(
+    IconData icon,
+    String label,
+    String value, {
+    Color? valueColor,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -235,14 +467,19 @@ class UserDetailModal extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
+                    color: valueColor ?? Colors.black87,
                   ),
                 ),
               ],
@@ -253,53 +490,133 @@ class UserDetailModal extends StatelessWidget {
     );
   }
 
+  Widget _buildCopyableInfoRow(
+    IconData icon,
+    String label,
+    String value,
+    BuildContext context,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: Colors.grey[600]),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.copy_rounded, size: 18, color: Colors.grey[600]),
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: value));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Đã sao chép $label'),
+                  duration: const Duration(seconds: 2),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            tooltip: 'Sao chép',
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildRoleBadge(String role) {
     final isAdmin = role.toUpperCase() == 'ADMIN';
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: isAdmin ? Colors.red[50] : Colors.blue[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isAdmin ? Colors.red[200]! : Colors.blue[200]!,
+        gradient: LinearGradient(
+          colors:
+              isAdmin
+                  ? [Colors.red[400]!, Colors.red[600]!]
+                  : [Colors.blue[400]!, Colors.blue[600]!],
         ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: (isAdmin ? Colors.red : Colors.blue).withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Text(
-        role,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: isAdmin ? Colors.red[700] : Colors.blue[700],
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isAdmin ? Icons.admin_panel_settings : Icons.person,
+            size: 16,
+            color: Colors.white,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            role.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildStatusBadge(bool isActive) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: isActive ? Colors.green[50] : Colors.grey[100],
-        borderRadius: BorderRadius.circular(4),
+        color: isActive ? Colors.green[50] : Colors.red[50],
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isActive ? Colors.green[200]! : Colors.grey[300]!,
+          color: isActive ? Colors.green[200]! : Colors.red[200]!,
+          width: 1.5,
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.circle,
-            size: 8,
-            color: isActive ? Colors.green[700] : Colors.grey[600],
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: isActive ? Colors.green[500] : Colors.red[500],
+              shape: BoxShape.circle,
+            ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 8),
           Text(
-            isActive ? 'Đang hoạt động' : 'Không hoạt động',
+            isActive ? 'Đang hoạt động' : 'Đã khóa',
             style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: isActive ? Colors.green[700] : Colors.grey[600],
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: isActive ? Colors.green[700] : Colors.red[700],
             ),
           ),
         ],
@@ -309,5 +626,35 @@ class UserDetailModal extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     return DateFormat('dd/MM/yyyy HH:mm').format(date);
+  }
+
+  String _formatDateOnly(DateTime date) {
+    return DateFormat('dd/MM/yyyy').format(date);
+  }
+
+  String _formatGender(String gender) {
+    switch (gender.toLowerCase()) {
+      case 'male':
+        return 'Nam';
+      case 'female':
+        return 'Nữ';
+      case 'other':
+        return 'Khác';
+      default:
+        return gender;
+    }
+  }
+
+  String _formatAuthProvider(String provider) {
+    switch (provider.toUpperCase()) {
+      case 'LOCAL':
+        return 'Tài khoản nội bộ';
+      case 'GOOGLE':
+        return 'Google';
+      case 'FACEBOOK':
+        return 'Facebook';
+      default:
+        return provider;
+    }
   }
 }

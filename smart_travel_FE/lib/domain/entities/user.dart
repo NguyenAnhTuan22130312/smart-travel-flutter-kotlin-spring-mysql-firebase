@@ -22,6 +22,8 @@ class User extends Equatable {
   final bool darkModeEnabled;
   final DateTime? profileUpdatedAt;
   final bool? isActive; // Admin: User account status
+  final String? currentLevel; // User level from profile
+  final int? experiencePoints; // Experience points from profile
 
   const User({
     required this.id,
@@ -45,6 +47,8 @@ class User extends Equatable {
     required this.darkModeEnabled,
     this.profileUpdatedAt,
     this.isActive,
+    this.currentLevel,
+    this.experiencePoints,
   });
 
   @override
@@ -70,6 +74,8 @@ class User extends Equatable {
     darkModeEnabled,
     profileUpdatedAt,
     isActive,
+    currentLevel,
+    experiencePoints,
   ];
 }
 

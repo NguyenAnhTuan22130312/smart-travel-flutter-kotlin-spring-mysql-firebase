@@ -23,6 +23,8 @@ class UserModel extends User {
     required super.darkModeEnabled,
     super.profileUpdatedAt,
     super.isActive,
+    super.currentLevel,
+    super.experiencePoints,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -60,6 +62,8 @@ class UserModel extends User {
               ? DateTime.parse(json['profileUpdatedAt'] as String)
               : null,
       isActive: json['isActive'] as bool?,
+      currentLevel: json['currentLevel'] as String?,
+      experiencePoints: json['experiencePoints'] as int?,
     );
   }
 
@@ -86,6 +90,8 @@ class UserModel extends User {
       'darkModeEnabled': darkModeEnabled,
       'profileUpdatedAt': profileUpdatedAt?.toIso8601String(),
       'isActive': isActive,
+      'currentLevel': currentLevel,
+      'experiencePoints': experiencePoints,
     };
   }
 }
