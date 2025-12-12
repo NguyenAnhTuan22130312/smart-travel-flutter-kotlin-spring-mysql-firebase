@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:smart_travel/core/error/failures.dart';
 import 'package:smart_travel/domain/entities/user.dart';
+import 'package:smart_travel/data/models/admin/admin_user_response.dart';
 
 abstract class UserRepository {
   // Profile APIs
@@ -44,4 +45,13 @@ abstract class UserRepository {
   Future<Either<Failure, void>> deleteAccount();
 
   Future<Either<Failure, void>> logout();
+
+  // Admin: Get user list with pagination and search
+  Future<Either<Failure, AdminUserResponse>> getUserList({
+    int? page,
+    int? size,
+    String? searchKeyword,
+    String? sortBy,
+    String? sortDirection,
+  });
 }

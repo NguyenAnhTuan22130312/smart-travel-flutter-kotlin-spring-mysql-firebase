@@ -21,6 +21,7 @@ class User extends Equatable {
   final String? languageSettings;
   final bool darkModeEnabled;
   final DateTime? profileUpdatedAt;
+  final bool? isActive; // Admin: User account status
 
   const User({
     required this.id,
@@ -43,6 +44,7 @@ class User extends Equatable {
     this.languageSettings,
     required this.darkModeEnabled,
     this.profileUpdatedAt,
+    this.isActive,
   });
 
   @override
@@ -67,6 +69,7 @@ class User extends Equatable {
     languageSettings,
     darkModeEnabled,
     profileUpdatedAt,
+    isActive,
   ];
 }
 

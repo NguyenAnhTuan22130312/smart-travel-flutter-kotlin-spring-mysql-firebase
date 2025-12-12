@@ -22,6 +22,7 @@ class UserModel extends User {
     super.languageSettings,
     required super.darkModeEnabled,
     super.profileUpdatedAt,
+    super.isActive,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -58,6 +59,7 @@ class UserModel extends User {
           json['profileUpdatedAt'] != null
               ? DateTime.parse(json['profileUpdatedAt'] as String)
               : null,
+      isActive: json['isActive'] as bool?,
     );
   }
 
@@ -83,6 +85,7 @@ class UserModel extends User {
       'languageSettings': languageSettings,
       'darkModeEnabled': darkModeEnabled,
       'profileUpdatedAt': profileUpdatedAt?.toIso8601String(),
+      'isActive': isActive,
     };
   }
 }

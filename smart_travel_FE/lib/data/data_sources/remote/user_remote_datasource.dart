@@ -5,6 +5,8 @@ import 'package:smart_travel/data/models/user/user_model.dart';
 import 'package:smart_travel/data/models/user/user_level_model.dart';
 import 'package:smart_travel/data/models/user/user_settings_model.dart';
 
+import 'package:smart_travel/data/models/admin/admin_user_response.dart';
+
 abstract class UserRemoteDataSource {
   Future<UserModel> getProfile();
   Future<UserModel> updateProfile(Map<String, dynamic> data);
@@ -14,6 +16,15 @@ abstract class UserRemoteDataSource {
   Future<UserLevelModel> getLevel();
   Future<UserLevelModel> updateLevel(Map<String, dynamic> data);
   Future<void> deleteAccount();
+
+  // Admin: Get user list with pagination and search
+  Future<AdminUserResponse> getUserList({
+    int? page,
+    int? size,
+    String? searchKeyword,
+    String? sortBy,
+    String? sortDirection,
+  });
 }
 
 class UserRemoteDataSourceImpl implements UserRemoteDataSource {
@@ -205,6 +216,72 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
         );
       }
     } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<AdminUserResponse> getUserList({
+    int? page,
+    int? size,
+    String? searchKeyword,
+    String? sortBy,
+    String? sortDirection,
+  }) async {
+    try {
+      // Build query string manually
+      final StringBuffer queryString = StringBuffer('?');
+
+      if (page != null) queryString.write('page=$page&');
+      if (size != null) queryString.write('size=$size&');
+      if (searchKeyword != null && searchKeyword.isNotEmpty) {
+        queryString.write('searchKeyword=$searchKeyword&');
+      }
+      if (sortBy != null) queryString.write('sortBy=$sortBy&');
+      if (sortDirection != null)
+        queryString.write('sortDirection=$sortDirection&');
+
+      // Remove trailing '&' or '?'
+      String finalQuery = queryString.toString();
+      if (finalQuery.endsWith('&')) {
+        finalQuery = finalQuery.substring(0, finalQuery.length - 1);
+      }
+      if (finalQuery == '?') finalQuery = '';
+
+      final response = await dioClient.get(
+        '${ApiConstants.adminUsers}$finalQuery',
+      );
+
+      if (response.data == null) {
+        throw DioException(
+          requestOptions: RequestOptions(path: ApiConstants.adminUsers),
+          message: 'Response data is null',
+          type: DioExceptionType.badResponse,
+        );
+      }
+
+      if (response.data['code'] == 1000) {
+        final data = response.data['data'];
+
+        if (data == null) {
+          throw DioException(
+            requestOptions: RequestOptions(path: ApiConstants.adminUsers),
+            message: 'User list data is null in response',
+            type: DioExceptionType.badResponse,
+          );
+        }
+
+        return AdminUserResponse.fromJson(data as Map<String, dynamic>);
+      } else {
+        throw DioException(
+          requestOptions: RequestOptions(path: ApiConstants.adminUsers),
+          response: response,
+          message: response.data['message'] ?? 'Failed to get user list',
+          type: DioExceptionType.badResponse,
+        );
+      }
+    } catch (e) {
+      print('Error in getUserList: $e');
       rethrow;
     }
   }
