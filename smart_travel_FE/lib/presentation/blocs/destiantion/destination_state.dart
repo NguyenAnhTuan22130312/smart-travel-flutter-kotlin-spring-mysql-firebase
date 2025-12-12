@@ -7,6 +7,7 @@ abstract class DestinationState extends Equatable {
   @override
   List<Object?> get props => [];
 }
+
 class FeaturedDestinationInitial extends DestinationState {}
 // State khi đang load
 class FeaturedDestinationLoading extends DestinationState {}
@@ -19,6 +20,7 @@ class FeaturedDestinationLoaded extends DestinationState {
   @override
   List<Object?> get props => [destinations];
 }
+
 // State khi có lỗi
 class FeaturedDestinationError extends DestinationState {
   final String message;
@@ -38,22 +40,13 @@ class FilterDestinationLoaded extends DestinationState {
   final bool isLimited;
   FilterDestinationLoaded(this.destinations, {this.isLimited = false}); // true = chỉ load 6, có thể hiện "Xem tất cả"
 }
- //Lỗi
+//Lỗi
 class FilterDestinationError extends DestinationState {
   final String message;
   FilterDestinationError(this.message);
 }
 
-//Load để lấy dữu liệu chi tiết địa điểm
-class GetDetailDestinationLoading extends DestinationState{}
-class GetDetailDestinationLoaded extends DestinationState{
-  final DestinationEntity destinationEntity;
-  GetDetailDestinationLoaded(this.destinationEntity);
-}
-class GetDetailDestinationError extends DestinationState{
-  final String message;
-  GetDetailDestinationError(this.message);
-}
+
 
 //thêm địa điểm
 class AddDestinationLoading extends DestinationState{}
@@ -87,7 +80,6 @@ class DeleteDestinationError extends DestinationState{
   final String message;
   DeleteDestinationError(this.message);
 }
-
 
 
 

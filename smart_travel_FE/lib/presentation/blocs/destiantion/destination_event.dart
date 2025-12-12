@@ -4,16 +4,8 @@ import 'package:smart_travel/domain/params/destination_add_params.dart';
 import 'package:smart_travel/domain/params/destination_update_params.dart';
 
 abstract class DestinationEvent extends Equatable {
-
   @override
   List<Object?> get props => [];
-}
-// load danh sách điểm đến nổi bật
-class LoadFeaturedDestinations extends DestinationEvent {
-  final bool? loadAll;
-
-  LoadFeaturedDestinations({this.loadAll = false});
-
 }
 
 //Lọc địa điểm theo danh mục
@@ -51,12 +43,6 @@ class SearchDestinationEvent extends DestinationEvent{
 
   SearchDestinationEvent(this.query);
 
-}
-
-//Xem chi tiết địa điểm
-class GetDetailDestinationEvent extends DestinationEvent{
-  final int id;
-  GetDetailDestinationEvent(this.id);
 }
 
 

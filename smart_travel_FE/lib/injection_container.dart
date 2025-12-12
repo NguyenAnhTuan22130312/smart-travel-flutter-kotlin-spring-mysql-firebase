@@ -51,6 +51,7 @@ import 'package:smart_travel/domain/usecases/user/logout_usecase.dart';
 
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
@@ -225,7 +226,7 @@ Future<void> init() async {
 
   sl.registerLazySingleton<ImageUploadService>(() => ImageUploadService(sl()));
 
-  //BLOCs (cuối cùng)
+  //BLOCs
   sl.registerFactory(
     () => AuthBloc(
       registerUser: sl(),
@@ -242,10 +243,14 @@ Future<void> init() async {
       destinationFeaturedUseCase: sl(),
       getAllDestinationUseCase: sl(),
       filterByCategoryUseCase: sl(),
-      getDetailDestinationUseCase: sl(),
       addDestinationUseCase: sl(),
       updateDestinationUseCase: sl(),
       deleteDestinationUseCase: sl(),
+    ),
+  );
+  sl.registerFactory(
+        () => DestinationDetailBloc(
+      getDetailDestinationUseCase: sl(),
     ),
   );
 
