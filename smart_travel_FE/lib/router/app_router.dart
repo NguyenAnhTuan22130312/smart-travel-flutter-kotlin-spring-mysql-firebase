@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/screens/admin/admin_dashboard.dart';
+import 'package:smart_travel/presentation/screens/admin/destination/destination_management_screen.dart';
 import 'package:smart_travel/presentation/screens/admin/province/province_mgt.dart';
 import 'package:smart_travel/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:smart_travel/presentation/screens/auth/login_screen.dart';
@@ -37,6 +38,10 @@ class AppRouter {
       case RouteNames.adminProvinces:
         return MaterialPageRoute(
           builder: (_) => const ProvinceManagementScreen(),
+        );
+      case RouteNames.adminDestination:
+        return MaterialPageRoute(
+          builder: (_) => const DestinationManagementScreen(),
         );
     /// USER
       case RouteNames.provinceDetail:

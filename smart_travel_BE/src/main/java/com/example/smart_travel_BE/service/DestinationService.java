@@ -50,16 +50,16 @@ public class DestinationService {
      * Lấy tất cả danh sách địa điểm
      */
     public List<DestinationDetailResponse> getAllDestinations() {
-        List<Destination> destinations = destinationRepository.findAll();
-
-        return destinations.stream().map(destinationMapper::toDestinationDetailResponse)
+        return destinationRepository.findByIsActiveTrue()
+                .stream()
+                .map(destinationMapper::toDestinationDetailResponse)
                 .collect(Collectors.toList());
     }
     /**
      * Lấy danh sách địa điểm nổi bật
      */
     public List<DestinationDetailResponse> getAllDestinationsFeatured() {
-        List<Destination> destinations = destinationRepository.findByIsFeaturedTrue();
+        List<Destination> destinations = destinationRepository.findByIsFeaturedTrueAndIsActiveTrue();
 
         return destinations.stream().map(destinationMapper::toDestinationDetailResponse)
                 .collect(Collectors.toList());
@@ -84,6 +84,8 @@ public class DestinationService {
         Destination destination = destinationRepository.findById(id).orElseThrow(
                 () -> new AppException(ErrorCode.DESTINATION_NOT_EXISTED)
         );
+        destination.setViewCount(destination.getViewCount() + 1);
+        destinationRepository.save(destination);
 
         return  destinationMapper.toDestinationDetailResponse(destination);
     }
@@ -112,7 +114,6 @@ public class DestinationService {
         Destination destination = destinationMapper.toDestination(request);
         destination.setProvince(province);
         destination.setIsActive(true);
-        destination.setIsFeatured(false);
         destination.setViewCount(0L);
         destination.setReviewCount(0);
         destination.setAverageRating(BigDecimal.ZERO);
@@ -132,6 +133,7 @@ public class DestinationService {
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public DestinationDetailResponse updateDestination(Long id, DestinationUpdateRequest request, List<MultipartFile> images) {
+        log.info(request.toString());
         Destination destination = destinationRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.DESTINATION_NOT_EXISTED));
 
@@ -154,7 +156,23 @@ public class DestinationService {
         destination.setProvince(province);
 
         destination = destinationRepository.save(destination);
-        log.info("Admin updated destination ID: {}", id);
+        // xử lý xóa ảnh cũ theo imageIds
+        if (request.getImageIds() != null && !request.getImageIds().isEmpty()) {
+            List<DestinationImage> imagesToDelete = destination.getImages().stream()
+                    .filter(img -> request.getImageIds().contains(img.getId().intValue()))
+                    .toList();
+
+            for (DestinationImage img : imagesToDelete) {
+                try {
+                    cloudinaryService.deleteFile(img.getImageUrl()); // xóa trên Cloudinary
+                } catch (Exception e) {
+                    log.warn("Cannot delete file on Cloudinary: {}", img.getImageUrl());
+                }
+                destination.getImages().remove(img);
+                imageRepository.delete(img);
+            }
+            log.info("Deleted {} images by request", imagesToDelete.size());
+        }
 
         // Cập nhật ảnh
         handleDestinationImageFiles(destination, images);
