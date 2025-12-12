@@ -54,4 +54,18 @@ abstract class UserRepository {
     String? sortBy,
     String? sortDirection,
   });
+
+  // Admin: Update user
+  Future<Either<Failure, User>> updateUser({
+    required int userId,
+    String? fullName,
+    String? phone,
+    String? role,
+  });
+
+  // Admin: Lock user account
+  Future<Either<Failure, void>> lockUser(int userId);
+
+  // Admin: Unlock user account
+  Future<Either<Failure, void>> unlockUser(int userId);
 }

@@ -225,6 +225,80 @@ class UserRepositoryImpl implements UserRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, User>> updateUser({
+    required int userId,
+    String? fullName,
+    String? phone,
+    String? role,
+  }) async {
+    try {
+      final data = <String, dynamic>{};
+
+      if (fullName != null) data['fullName'] = fullName;
+      if (phone != null) data['phone'] = phone;
+      if (role != null) data['role'] = role;
+
+      final result = await remoteDataSource.updateUser(userId, data);
+      return Right(result);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        return const Left(AuthFailure(message: 'Unauthorized access'));
+      } else if (e.response?.statusCode == 403) {
+        return const Left(
+          AuthFailure(message: 'Forbidden: Admin access required'),
+        );
+      }
+      return Left(
+        ServerFailure(e.response?.data['msg'] ?? 'Failed to update user'),
+      );
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> lockUser(int userId) async {
+    try {
+      await remoteDataSource.lockUser(userId);
+      return const Right(null);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        return const Left(AuthFailure(message: 'Unauthorized access'));
+      } else if (e.response?.statusCode == 403) {
+        return const Left(
+          AuthFailure(message: 'Forbidden: Admin access required'),
+        );
+      }
+      return Left(
+        ServerFailure(e.response?.data['msg'] ?? 'Failed to lock user'),
+      );
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> unlockUser(int userId) async {
+    try {
+      await remoteDataSource.unlockUser(userId);
+      return const Right(null);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        return const Left(AuthFailure(message: 'Unauthorized access'));
+      } else if (e.response?.statusCode == 403) {
+        return const Left(
+          AuthFailure(message: 'Forbidden: Admin access required'),
+        );
+      }
+      return Left(
+        ServerFailure(e.response?.data['msg'] ?? 'Failed to unlock user'),
+      );
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
   Failure _handleDioError(DioException e) {
     if (e.response != null && e.response!.data != null) {
       final data = e.response!.data;

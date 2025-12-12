@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:smart_travel/presentation/blocs/admin_user/admin_user_bloc.dart';
+import 'package:smart_travel/presentation/blocs/admin_user/admin_user_event.dart';
+import 'package:smart_travel/presentation/blocs/admin_user/admin_user_state.dart';
+import 'package:smart_travel/presentation/screens/admin/user/user_edit_modal.dart';
+import 'package:smart_travel/presentation/theme/app_colors.dart';
 
 class UserDetailModal extends StatelessWidget {
   final dynamic user;
@@ -177,26 +184,8 @@ class UserDetailModal extends StatelessWidget {
               ),
             ),
 
-            // Bottom Action Button
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Đóng',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-            ),
+            // Bottom Action Buttons
+            _buildActionButtons(context),
           ],
         ),
       ),
@@ -209,11 +198,7 @@ class UserDetailModal extends StatelessWidget {
         Container(
           height: 180,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue[400]!, Colors.blue[700]!],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            gradient: AppColors.mainGradient,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Center(
@@ -656,5 +641,198 @@ class UserDetailModal extends StatelessWidget {
       default:
         return provider;
     }
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
+    final isActive = user.isActive ?? true;
+
+    return BlocListener<AdminUserBloc, AdminUserState>(
+      listener: (context, state) {
+        if (state is AdminUserLockSuccess) {
+          Navigator.pop(context);
+          final snackBar = SnackBar(
+            elevation: 0,
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            content: AwesomeSnackbarContent(
+              title: 'Thành công',
+              message: state.message,
+              contentType: ContentType.success,
+            ),
+          );
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(snackBar);
+        }
+        if (state is AdminUserLockError) {
+          final snackBar = SnackBar(
+            elevation: 0,
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            content: AwesomeSnackbarContent(
+              title: 'Lỗi',
+              message: state.message,
+              contentType: ContentType.failure,
+            ),
+          );
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(snackBar);
+        }
+        if (state is AdminUserUnlockSuccess) {
+          Navigator.pop(context);
+          final snackBar = SnackBar(
+            elevation: 0,
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            content: AwesomeSnackbarContent(
+              title: 'Thành công',
+              message: state.message,
+              contentType: ContentType.success,
+            ),
+          );
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(snackBar);
+        }
+        if (state is AdminUserUnlockError) {
+          final snackBar = SnackBar(
+            elevation: 0,
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            content: AwesomeSnackbarContent(
+              title: 'Lỗi',
+              message: state.message,
+              contentType: ContentType.failure,
+            ),
+          );
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(snackBar);
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      final bloc = context.read<AdminUserBloc>();
+                      Navigator.pop(context);
+                      showDialog(
+                        context: context,
+                        builder:
+                            (dialogContext) => BlocProvider.value(
+                              value: bloc,
+                              child: UserEditModal(user: user),
+                            ),
+                      );
+                    },
+                    icon: const Icon(Icons.edit),
+                    label: const Text('Sửa'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: BorderSide(color: Colors.blue[700]!, width: 2),
+                      foregroundColor: Colors.blue[700],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: (isActive ? Colors.red : Colors.green)
+                              .withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        _showLockUnlockConfirm(context, isActive);
+                      },
+                      icon: Icon(isActive ? Icons.lock : Icons.lock_open),
+                      label: Text(isActive ? 'Khóa' : 'Mở khóa'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor:
+                            isActive ? Colors.red[600] : Colors.green[600],
+                        foregroundColor: Colors.white,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close),
+                label: const Text('Đóng'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: BorderSide(color: Colors.grey[400]!),
+                  foregroundColor: Colors.grey[700],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLockUnlockConfirm(BuildContext context, bool isActive) {
+    showDialog(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            title: Text(isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản'),
+            content: Text(
+              isActive
+                  ? 'Bạn có chắc muốn khóa tài khoản "${user.fullName}" không?'
+                  : 'Bạn có chắc muốn mở khóa tài khoản "${user.fullName}" không?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Hủy'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                  if (isActive) {
+                    context.read<AdminUserBloc>().add(LockUser(user.id));
+                  } else {
+                    context.read<AdminUserBloc>().add(UnlockUser(user.id));
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isActive ? Colors.red : Colors.green,
+                ),
+                child: Text(isActive ? 'Khóa' : 'Mở khóa'),
+              ),
+            ],
+          ),
+    );
   }
 }

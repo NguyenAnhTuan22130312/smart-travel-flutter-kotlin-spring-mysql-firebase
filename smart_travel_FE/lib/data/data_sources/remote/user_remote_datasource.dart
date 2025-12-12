@@ -25,6 +25,15 @@ abstract class UserRemoteDataSource {
     String? sortBy,
     String? sortDirection,
   });
+
+  // Admin: Update user
+  Future<UserModel> updateUser(int userId, Map<String, dynamic> data);
+
+  // Admin: Lock user account
+  Future<void> lockUser(int userId);
+
+  // Admin: Unlock user account
+  Future<void> unlockUser(int userId);
 }
 
 class UserRemoteDataSourceImpl implements UserRemoteDataSource {
@@ -282,6 +291,123 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       }
     } catch (e) {
       print('Error in getUserList: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<UserModel> updateUser(int userId, Map<String, dynamic> data) async {
+    try {
+      // Remove null values
+      data.removeWhere((key, value) => value == null);
+
+      final response = await dioClient.put(
+        '${ApiConstants.adminUserUpdate}$userId',
+        data: data,
+      );
+
+      if (response.data == null) {
+        throw DioException(
+          requestOptions: RequestOptions(
+            path: '${ApiConstants.adminUserUpdate}$userId',
+          ),
+          message: 'Response data is null',
+          type: DioExceptionType.badResponse,
+        );
+      }
+
+      if (response.data['code'] == 1000) {
+        final userData = response.data['data'];
+
+        if (userData == null) {
+          throw DioException(
+            requestOptions: RequestOptions(
+              path: '${ApiConstants.adminUserUpdate}$userId',
+            ),
+            message: 'User data is null in response',
+            type: DioExceptionType.badResponse,
+          );
+        }
+
+        return UserModel.fromJson(userData as Map<String, dynamic>);
+      } else {
+        throw DioException(
+          requestOptions: RequestOptions(
+            path: '${ApiConstants.adminUserUpdate}$userId',
+          ),
+          response: response,
+          message: response.data['message'] ?? 'Failed to update user',
+          type: DioExceptionType.badResponse,
+        );
+      }
+    } catch (e) {
+      print('Error in updateUser: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> lockUser(int userId) async {
+    try {
+      final response = await dioClient.post(
+        '${ApiConstants.adminUserLock}$userId/lock',
+      );
+
+      if (response.data == null) {
+        throw DioException(
+          requestOptions: RequestOptions(
+            path: '${ApiConstants.adminUserLock}$userId/lock',
+          ),
+          message: 'Response data is null',
+          type: DioExceptionType.badResponse,
+        );
+      }
+
+      if (response.data['code'] != 1000) {
+        throw DioException(
+          requestOptions: RequestOptions(
+            path: '${ApiConstants.adminUserLock}$userId/lock',
+          ),
+          response: response,
+          message: response.data['message'] ?? 'Failed to lock user',
+          type: DioExceptionType.badResponse,
+        );
+      }
+    } catch (e) {
+      print('Error in lockUser: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> unlockUser(int userId) async {
+    try {
+      final response = await dioClient.post(
+        '${ApiConstants.adminUserUnlock}$userId/unlock',
+      );
+
+      if (response.data == null) {
+        throw DioException(
+          requestOptions: RequestOptions(
+            path: '${ApiConstants.adminUserUnlock}$userId/unlock',
+          ),
+          message: 'Response data is null',
+          type: DioExceptionType.badResponse,
+        );
+      }
+
+      if (response.data['code'] != 1000) {
+        throw DioException(
+          requestOptions: RequestOptions(
+            path: '${ApiConstants.adminUserUnlock}$userId/unlock',
+          ),
+          response: response,
+          message: response.data['message'] ?? 'Failed to unlock user',
+          type: DioExceptionType.badResponse,
+        );
+      }
+    } catch (e) {
+      print('Error in unlockUser: $e');
       rethrow;
     }
   }

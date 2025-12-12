@@ -7,6 +7,7 @@ import 'package:smart_travel/presentation/blocs/admin_user/admin_user_bloc.dart'
 import 'package:smart_travel/presentation/blocs/admin_user/admin_user_event.dart';
 import 'package:smart_travel/presentation/blocs/admin_user/admin_user_state.dart';
 import 'package:smart_travel/presentation/screens/admin/user/user_detail_modal.dart';
+import 'package:smart_travel/presentation/theme/app_colors.dart';
 
 class UserManagementScreen extends StatefulWidget {
   const UserManagementScreen({Key? key}) : super(key: key);
@@ -35,9 +36,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   }
 
   void _showUserDetail(dynamic user) {
+    final bloc = context.read<AdminUserBloc>();
     showDialog(
       context: context,
-      builder: (context) => UserDetailModal(user: user),
+      builder:
+          (dialogContext) => BlocProvider.value(
+            value: bloc,
+            child: UserDetailModal(user: user),
+          ),
     );
   }
 
@@ -80,8 +86,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
         ),
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         centerTitle: false,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(gradient: AppColors.mainGradient),
+        ),
       ),
       body: BlocBuilder<AdminUserBloc, AdminUserState>(
         builder: (context, state) {

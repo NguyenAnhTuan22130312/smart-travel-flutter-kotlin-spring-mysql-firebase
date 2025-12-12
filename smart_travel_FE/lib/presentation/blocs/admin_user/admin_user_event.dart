@@ -53,3 +53,38 @@ class ChangeSort extends AdminUserEvent {
   @override
   List<Object?> get props => [sortBy, sortDirection];
 }
+
+class UpdateUser extends AdminUserEvent {
+  final int userId;
+  final String? fullName;
+  final String? phone;
+  final String? role;
+
+  const UpdateUser({
+    required this.userId,
+    this.fullName,
+    this.phone,
+    this.role,
+  });
+
+  @override
+  List<Object?> get props => [userId, fullName, phone, role];
+}
+
+class LockUser extends AdminUserEvent {
+  final int userId;
+
+  const LockUser(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}
+
+class UnlockUser extends AdminUserEvent {
+  final int userId;
+
+  const UnlockUser(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}
