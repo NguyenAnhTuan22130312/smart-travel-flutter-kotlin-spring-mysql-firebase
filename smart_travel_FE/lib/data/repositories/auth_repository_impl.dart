@@ -13,8 +13,8 @@ import 'package:smart_travel/data/models/auth/login_request_modal.dart';
 import 'package:smart_travel/data/models/auth/refresh_token_request.dart';
 import 'package:smart_travel/data/models/auth/register_request_model.dart';
 import 'package:smart_travel/domain/entities/auth.dart';
-import 'package:smart_travel/domain/params/LoginParams.dart';
 import 'package:smart_travel/domain/params/RegisterParams.dart';
+import 'package:smart_travel/domain/params/login_params.dart';
 import 'package:smart_travel/domain/params/refresh_token_params.dart';
 import 'package:smart_travel/domain/repositories/auth_repository.dart';
 

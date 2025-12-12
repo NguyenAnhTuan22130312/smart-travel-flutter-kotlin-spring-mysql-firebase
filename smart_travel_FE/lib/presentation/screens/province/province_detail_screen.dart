@@ -6,14 +6,9 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:lottie/lottie.dart';
 import 'package:smart_travel/domain/entities/destinations.dart';
 import 'package:smart_travel/domain/entities/province.dart';
-import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/provicne_detail_bloc.dart';
-
-import 'package:smart_travel/presentation/blocs/province/province_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/province_detail_event.dart';
 import 'package:smart_travel/presentation/blocs/province/province_detail_state.dart';
-import 'package:smart_travel/presentation/blocs/province/province_event.dart';
-import 'package:smart_travel/presentation/blocs/province/province_state.dart';
 import '../../theme/app_colors.dart';
 
 class ProvinceDetailScreen extends StatefulWidget {
@@ -560,16 +555,16 @@ class _ProvinceDetailScreenState extends State<ProvinceDetailScreen> {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          destination.category == "BEACH"
+                          destination.category == "Biển"
                               ? "Biển"
-                              : destination.category == "MOUNTAIN"
-                              ? "Núi"
-                              : destination.category == "CULTURE"
-                              ? "Văn hóa"
-                              : destination.category == "CITY"
-                              ? "Thành phố"
-                              : destination.category == "NATURE"
+                              : destination.category == "Thiên nhiên"
                               ? "Thiên nhiên"
+                              : destination.category == "Văn hóa"
+                              ? "Văn hóa"
+                              : destination.category == "Thể thao"
+                              ? "Thể thao"
+                              : destination.category == "Giải trí"
+                              ? "Giải trí"
                               : "Không xác định",
                           style: TextStyle(
                             fontSize: 12,

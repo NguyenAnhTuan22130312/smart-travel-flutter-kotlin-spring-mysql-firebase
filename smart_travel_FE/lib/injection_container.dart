@@ -26,10 +26,13 @@ import 'package:smart_travel/domain/usecases/auth/forgot_password_use_case.dart'
 import 'package:smart_travel/domain/usecases/auth/google_login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/register_use_case.dart';
+import 'package:smart_travel/domain/usecases/destination/add_destination_use_case.dart';
+import 'package:smart_travel/domain/usecases/destination/delete_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/filter_destinations_by_category_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_featured_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_detail_destination_use_case.dart';
+import 'package:smart_travel/domain/usecases/destination/update_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/get_hotels_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/hotel_detail_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/add_province_use_case.dart';
@@ -48,6 +51,7 @@ import 'package:smart_travel/domain/usecases/user/logout_usecase.dart';
 
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
@@ -189,6 +193,9 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetAllDestinationsUseCase(sl()));
   sl.registerLazySingleton(() => FilterDestinationsByCategoryUseCase(sl()));
   sl.registerLazySingleton(() => GetDetailDestinationUseCase(sl()));
+  sl.registerLazySingleton(() => AddDestinationUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateDestinationUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteDestinationUseCase(sl()));
 
   sl.registerLazySingleton(() => GetAllProvinceUseCase(sl()));
   sl.registerLazySingleton(() => ProvinceDetailUseCase(sl()));
@@ -236,6 +243,9 @@ Future<void> init() async {
       getAllDestinationUseCase: sl(),
       filterByCategoryUseCase: sl(),
       getDetailDestinationUseCase: sl(),
+      addDestinationUseCase: sl(),
+      updateDestinationUseCase: sl(),
+      deleteDestinationUseCase: sl(),
     ),
   );
 

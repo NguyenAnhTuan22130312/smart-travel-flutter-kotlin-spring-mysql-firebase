@@ -56,7 +56,7 @@ class DestinationFeaturedResponseModel {
     return DestinationEntity(
       id: id,
       name: name,
-      province: province?.name ?? 'Unknown', // Lấy tên tỉnh từ ProvinceResponse
+      province: province?.toEntity(),
       category: category,
       address: address,
       averageRating: averageRating,

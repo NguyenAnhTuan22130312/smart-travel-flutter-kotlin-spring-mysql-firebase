@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
+import 'package:smart_travel/presentation/theme/app_colors.dart';
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
 
@@ -9,7 +10,7 @@ class AdminDashboardScreen extends StatelessWidget {
   final List<Map<String, dynamic>> menuItems = const [
     {'id': 'dashboard', 'icon': Icons.dashboard, 'label': 'Dashboard', 'color': Colors.blue},
     {'id': 'admin/provinces', 'icon': Icons.edit_location_alt, 'label': 'Tỉnh Thành', 'color': Colors.green},
-    {'id': 'admin/destinations', 'icon': Icons.location_pin, 'label': 'Địa Điểm', 'color': Colors.orange},
+    {'id': 'admin/destination', 'icon': Icons.location_pin, 'label': 'Địa Điểm', 'color': Colors.orange},
     {'id': 'admin/hotels', 'icon': Icons.hotel, 'label': 'Khách Sạn', 'color': Colors.purple},
     {'id': 'admin/tours', 'icon': Icons.tour, 'label': 'Tour', 'color': Colors.teal},
     {'id': 'admin/bookings', 'icon': Icons.calendar_month, 'label': 'Lịch Đặt', 'color': Colors.red},
@@ -20,10 +21,16 @@ class AdminDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Admin Dashboard'),
+        title: const Text('Admin Dashboard', style: TextStyle(fontWeight: FontWeight.bold),),
         centerTitle: true,
         elevation: 2,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: AppColors.mainGradient
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -54,6 +61,7 @@ class AdminDashboardScreen extends StatelessWidget {
         },
         tooltip: 'Đăng xuất',
         child: const Icon(Icons.logout),
+        backgroundColor: AppColors.green,
       ),
     );
   }
