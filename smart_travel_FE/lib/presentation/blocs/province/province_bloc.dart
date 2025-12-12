@@ -21,28 +21,13 @@ import 'package:smart_travel/domain/usecases/province/update_province_use_case.d
           required this.deleteProvinceUseCase,
           required this.updateProvinceUseCase})
         : super(ProvinceLoading()) {
-      on<LoadProvinceIsPopular>(_onLoadProvinceIsPopular);
       on<LoadProvince>(_onLoadProvince);
       on<AddProvince>(_onAddProvince);
       on<DeleteProvince>(_onDeleteProvince);
       on<UpdateProvince>(_onUpdateProvince);
     }
 
-    ///load danh sách tỉnh thành phổ biến
-    FutureOr<void> _onLoadProvinceIsPopular(LoadProvinceIsPopular event,
-        Emitter<ProvinceState> emit,) async {
-      emit(ProvinceLoading());
-      final result = await getAllProvinceUseCase(const NoParams());
 
-      result.fold(
-            (failure) => emit(ProvinceError(failure.message)),
-            (province) {
-          final popularProvinces = province.where((e) => e.isPopular == true)
-              .toList();
-          emit(ProvincePopularLoaded(popularProvinces));
-        },
-      );
-    }
 
     ///load danh sách tỉnh thành
     FutureOr<void> _onLoadProvince(LoadProvince event,

@@ -69,28 +69,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void _handleSave() {
     if (_formKey.currentState!.validate()) {
       context.read<ProfileBloc>().add(
-            UpdateProfile(
-              fullName: _fullNameController.text.trim(),
-              phone: _phoneController.text.trim().isEmpty
+        UpdateProfile(
+          fullName: _fullNameController.text.trim(),
+          phone:
+              _phoneController.text.trim().isEmpty
                   ? null
                   : _phoneController.text.trim(),
-              bio: _bioController.text.trim().isEmpty
+          bio:
+              _bioController.text.trim().isEmpty
                   ? null
                   : _bioController.text.trim(),
-              gender: _selectedGender,
-              dateOfBirth: _dateOfBirth,
-              address: _addressController.text.trim().isEmpty
+          gender: _selectedGender,
+          dateOfBirth: _dateOfBirth,
+          address:
+              _addressController.text.trim().isEmpty
                   ? null
                   : _addressController.text.trim(),
-              city: _cityController.text.trim().isEmpty
+          city:
+              _cityController.text.trim().isEmpty
                   ? null
                   : _cityController.text.trim(),
-              country: _countryController.text.trim().isEmpty
+          country:
+              _countryController.text.trim().isEmpty
                   ? null
                   : _countryController.text.trim(),
-              avatarUrl: _avatarUrl,
-            ),
-          );
+          avatarUrl: _avatarUrl,
+        ),
+      );
     }
   }
 
@@ -113,7 +118,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Chỉnh sửa hồ sơ'),
-        backgroundColor: AppColors.primary,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.mainGradient),
+        ),
         foregroundColor: Colors.white,
       ),
       body: BlocConsumer<ProfileBloc, ProfileState>(
@@ -266,7 +273,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ? '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}'
                             : 'Chọn ngày sinh',
                         style: TextStyle(
-                          color: _dateOfBirth != null ? Colors.black : Colors.grey,
+                          color:
+                              _dateOfBirth != null ? Colors.black : Colors.grey,
                         ),
                       ),
                     ),
@@ -299,9 +307,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFF2563EB), width: 2),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF2563EB),
+                          width: 2,
+                        ),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                     ),
                     validator: (value) {
                       if (value != null && value.length > 1000) {

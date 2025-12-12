@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_travel/domain/entities/province.dart';
 import 'package:smart_travel/presentation/blocs/booking/booking_bloc.dart';
 import 'package:smart_travel/presentation/blocs/booking/booking_event.dart';
 import 'package:smart_travel/presentation/blocs/booking/booking_state.dart';
@@ -10,6 +11,7 @@ import 'package:smart_travel/presentation/screens/payment/payment_screen.dart';
 import 'package:smart_travel/injection_container.dart' as di;
 // Import file args vừa tạo ở bước trước
 import 'package:smart_travel/presentation/screens/booking/booking_args.dart';
+
 
 class BookingScreen extends StatefulWidget {
   // Thay DestinationEntity bằng BookingArgs để linh hoạt (nhận cả Tour và Hotel)
@@ -193,6 +195,7 @@ class _BookingScreenState extends State<BookingScreen> {
                     child: const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
                   ),
                 ),
+
               ),
               const SizedBox(height: 24),
 
@@ -206,6 +209,7 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
 
               const SizedBox(height: 24),
+
               Text('Chi tiết đặt chỗ', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textGray)),
               const SizedBox(height: 16),
 

@@ -56,6 +56,9 @@ public enum ErrorCode {
     ADDRESS_ERROR(1026, "Địa chỉ tối đa 255 ký tự", HttpStatus.BAD_REQUEST),
     INVALID_FILE_TYPE(1027, "File không đúng định dạng", HttpStatus.BAD_REQUEST),
     FILE_UPLOAD_FAILED(1028, "Upload file thất bại", HttpStatus.INTERNAL_SERVER_ERROR),
+    USER_NOT_EXISTED(1034, "Người dùng không tồn tại", HttpStatus.NOT_FOUND),
+    USER_ALREADY_LOCKED(1035, "Tài khoản đã bị khóa", HttpStatus.BAD_REQUEST),
+    USER_ALREADY_UNLOCKED(1036, "Tài khoản đã được mở khóa", HttpStatus.BAD_REQUEST),
 
     // Thêm các mã lỗi mới cho MoMo
     MOMO_CREATE_PAYMENT_FAILED(9001, "Tạo yêu cầu thanh toán MoMo thất bại",HttpStatus.BAD_REQUEST),

@@ -13,7 +13,6 @@ class ApiConstants {
   static const String deleteAccount = '/users/account';
   static const String logout = '/auth/logout';
 
-
   //Payment
   static const String createOnlinePayment = '/payment/create-online-payment';
   static const String confirmCashPayment = '/payment/confirm-cash-payment';
@@ -52,6 +51,11 @@ class ApiConstants {
   static const String getLevel = '/users/level';
   static const String updateLevel = '/users/level';
 
+  //Admin User Management
+  static const String adminUsers = '/admin/users';
+  static const String adminUserUpdate = '/admin/users/';
+  static const String adminUserLock = '/admin/users/';
+  static const String adminUserUnlock = '/admin/users/';
 
   // Timeout
   static const Duration connectionTimeout = Duration(seconds: 30);

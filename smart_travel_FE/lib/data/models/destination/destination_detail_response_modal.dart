@@ -119,7 +119,7 @@ class DestinationDetailResponse {
     return DestinationEntity(
       id: id,
       name: name,
-      province: province?.name ?? 'Unknown', // Lấy tên tỉnh từ ProvinceResponse
+      province: province?.toEntity(),
       description: description,
       category: category,
       latitude: latitude,

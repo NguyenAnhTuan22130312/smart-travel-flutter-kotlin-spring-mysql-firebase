@@ -13,13 +13,24 @@ class ProvinceState extends Equatable{
 //State khi loading
 class ProvinceLoading extends ProvinceState{
 }
-//State khi loading danh sách tỉnh thành phổ biến thành công
+
+//Danh sách tỉnh thành phổ biến
+class ProvincePopularLoading extends ProvinceState{
+}
 class ProvincePopularLoaded extends ProvinceState{
   final List<ProvinceEntity> province;
   const ProvincePopularLoaded(this.province);
   @override
   List<Object?> get props => [province];
 }
+class ProvincePopularError extends ProvinceState{
+  final String message;
+  const ProvincePopularError(this.message);
+  @override
+  List<Object?> get props => [message];
+}
+
+
 //State khi loading danh sách tỉnh thành, thành công
 class ProvinceLoaded extends ProvinceState{
   final List<ProvinceEntity> province;
