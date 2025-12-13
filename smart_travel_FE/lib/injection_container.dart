@@ -49,6 +49,7 @@ import 'package:smart_travel/domain/usecases/user/get_level_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/delete_account_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/logout_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/get_user_list.dart';
+import 'package:smart_travel/domain/usecases/user/create_user_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/update_user_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/lock_user_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/unlock_user_usecase.dart';
@@ -57,7 +58,6 @@ import 'package:smart_travel/presentation/blocs/admin_user/admin_user_bloc.dart'
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_bloc.dart';
-import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
@@ -225,6 +225,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => DeleteAccountUseCase(sl()));
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
   sl.registerLazySingleton(() => GetUserList(repository: sl()));
+  sl.registerLazySingleton(() => CreateUser(repository: sl()));
   sl.registerLazySingleton(() => UpdateUser(sl()));
   sl.registerLazySingleton(() => LockUser(sl()));
   sl.registerLazySingleton(() => UnlockUser(sl()));
@@ -258,9 +259,7 @@ Future<void> init() async {
     ),
   );
   sl.registerFactory(
-        () => DestinationDetailBloc(
-      getDetailDestinationUseCase: sl(),
-    ),
+    () => DestinationDetailBloc(getDetailDestinationUseCase: sl()),
   );
 
   sl.registerFactory(
@@ -296,6 +295,7 @@ Future<void> init() async {
   sl.registerFactory(
     () => AdminUserBloc(
       getUserList: sl(),
+      createUser: sl(),
       updateUser: sl(),
       lockUser: sl(),
       unlockUser: sl(),

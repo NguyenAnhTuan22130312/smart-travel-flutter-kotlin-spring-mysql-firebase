@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:smart_travel/presentation/blocs/admin_user/admin_user_bloc.dart';
 import 'package:smart_travel/presentation/blocs/admin_user/admin_user_event.dart';
 import 'package:smart_travel/presentation/blocs/admin_user/admin_user_state.dart';
+import 'package:smart_travel/presentation/screens/admin/user/user_create_modal.dart';
 import 'package:smart_travel/presentation/screens/admin/user/user_detail_modal.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
 
@@ -77,6 +78,16 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
+  void _showCreateUserModal() {
+    final bloc = context.read<AdminUserBloc>();
+    showDialog(
+      context: context,
+      builder:
+          (dialogContext) =>
+              BlocProvider.value(value: bloc, child: const UserCreateModal()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,6 +102,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         flexibleSpace: Container(
           decoration: BoxDecoration(gradient: AppColors.mainGradient),
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showCreateUserModal,
+        icon: const Icon(Icons.person_add),
+        label: const Text('Thêm User'),
+        backgroundColor: Colors.blue,
       ),
       body: BlocBuilder<AdminUserBloc, AdminUserState>(
         builder: (context, state) {
@@ -126,6 +143,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         children: [
           _buildSearchAndFilter(),
           const SizedBox(height: 16),
+          _buildRoleFilterChips(state),
+          const SizedBox(height: 12),
           _buildStatistics(state),
           const SizedBox(height: 16),
           Expanded(
@@ -148,6 +167,76 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               child: _buildPagination(state),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildRoleFilterChips(AdminUserLoaded state) {
+    final currentRole = state.currentRoleFilter;
+
+    return Row(
+      children: [
+        _buildFilterChip(
+          label: 'Tất cả',
+          isSelected: currentRole == null,
+          onTap:
+              () => context.read<AdminUserBloc>().add(const FilterRole(null)),
+        ),
+        const SizedBox(width: 8),
+        _buildFilterChip(
+          label: 'User',
+          isSelected: currentRole == 'USER',
+          onTap:
+              () => context.read<AdminUserBloc>().add(const FilterRole('USER')),
+        ),
+        const SizedBox(width: 8),
+        _buildFilterChip(
+          label: 'Admin',
+          isSelected: currentRole == 'ADMIN',
+          onTap:
+              () =>
+                  context.read<AdminUserBloc>().add(const FilterRole('ADMIN')),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilterChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? Colors.blue : Colors.grey[300]!,
+            width: 1.5,
+          ),
+          boxShadow:
+              isSelected
+                  ? [
+                    BoxShadow(
+                      color: Colors.blue.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                  : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.grey[700],
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 14,
+          ),
+        ),
       ),
     );
   }
