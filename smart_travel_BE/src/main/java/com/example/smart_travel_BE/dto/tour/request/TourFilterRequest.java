@@ -1,23 +1,26 @@
 package com.example.smart_travel_BE.dto.tour.request;
 
 import lombok.Data;
-
 import java.math.BigDecimal;
 
 @Data
 public class TourFilterRequest {
-    private Integer page;
-    private Integer size;
 
-    private BigDecimal minPrice;
-    private BigDecimal maxPrice;
+    private String keyword;
+
+    private Double minPrice;
+    private Double maxPrice;
 
     private Integer minDays;
     private Integer maxDays;
 
-    private Integer numberOfPeople;
-    private Long destinationId;
+    private Integer minPeople;
 
-    private String sortBy; // "price", "rating", "duration"
-    private String sortDir; // "asc" / "desc"
+    private Double minRating;
+
+    // sort = price_asc, price_desc, rating_desc, popular_desc, newest, oldest
+    private String sort;
+
+    private Integer page = 0;
+    private Integer size = 10;
 }
