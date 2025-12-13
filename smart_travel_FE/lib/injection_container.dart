@@ -81,8 +81,10 @@ import 'package:smart_travel/domain/usecases/booking/create_booking_usecase.dart
 import 'package:smart_travel/data/data_sources/remote/tour_remote_data_source.dart';
 import 'package:smart_travel/data/repositories/tour_repository_impl.dart';
 import 'package:smart_travel/domain/repositories/tour_repository.dart';
+import 'package:smart_travel/presentation/blocs/tour/tour_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/tour/tour_bloc.dart';
 import 'package:smart_travel/domain/usecases/tour/get_tour_detail_usecase.dart';
+import 'package:smart_travel/domain/usecases/tour/filter_tour_usecase.dart';
 
 final sl = GetIt.instance;
 
@@ -178,6 +180,19 @@ Future<void> init() async {
     () => BookingRepositoryImpl(bookingDataSource: sl(), networkInfo: sl()),
   );
 
+  //Bloc tour
+  sl.registerFactory(
+        () => TourDetailBloc(sl()),
+  );
+  sl.registerFactory(
+        () => TourBloc(sl()),
+  );
+  // --- USE CASE TOUR ---
+  sl.registerLazySingleton<GetTourDetailUseCase>(
+        () => GetTourDetailUseCase(sl()),
+  );
+  sl.registerLazySingleton(() => FilterToursUseCase(sl()));
+  // auth
   sl.registerLazySingleton<PaymentRepository>(
     () => PaymentRepositoryImpl(dioClient: sl(), networkInfo: sl()),
   );

@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 
-abstract class TourEvent {}
+abstract class TourDetailEvent {}
 
-class LoadTourDetail extends TourEvent {
+class LoadTourDetail extends TourDetailEvent {
   final int id;
   LoadTourDetail(this.id);
 }

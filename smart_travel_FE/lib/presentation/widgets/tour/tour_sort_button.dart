@@ -1,5 +1,44 @@
 import 'package:flutter/material.dart';
 
+void main() => runApp(const MyApp());
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(title: const Text("Demo Sort Button")),
+        body: const Center(child: TourSortDemo()),
+      ),
+    );
+  }
+}
+
+class TourSortDemo extends StatefulWidget {
+  const TourSortDemo({super.key});
+
+  @override
+  State<TourSortDemo> createState() => _TourSortDemoState();
+}
+
+class _TourSortDemoState extends State<TourSortDemo> {
+  String _selectedSort = "popular_desc"; // mặc định
+
+  @override
+  Widget build(BuildContext context) {
+    return TourSortButton(
+      sortValue: _selectedSort,
+      onSelected: (value) {
+        setState(() {
+          _selectedSort = value; // cập nhật state
+        });
+      },
+    );
+  }
+}
+
 class TourSortButton extends StatelessWidget {
   final String? sortValue;
   final Function(String) onSelected;
@@ -24,17 +63,24 @@ class TourSortButton extends StatelessWidget {
         _item("newest", "Mới nhất"),
       ],
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.blue.shade50,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.sort, color: Colors.blue),
+            const Icon(Icons.filter_list, size: 18, color: Colors.blue),
             const SizedBox(width: 6),
-            Text(_label(sortValue)),
-            const Icon(Icons.keyboard_arrow_down),
+            Text(
+              _label(sortValue),
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.blue,
+              ),
+            ),
+            const Icon(Icons.keyboard_arrow_down, color: Colors.blue),
           ],
         ),
       ),
@@ -65,11 +111,16 @@ class TourSortButton extends StatelessWidget {
 
   String _label(String? sort) {
     switch (sort) {
-      case "price_asc": return "Giá tăng dần";
-      case "price_desc": return "Giá giảm dần";
-      case "rating_desc": return "Rating cao nhất";
-      case "newest": return "Mới nhất";
-      default: return "Phổ biến nhất";
+      case "price_asc":
+        return "Giá tăng dần";
+      case "price_desc":
+        return "Giá giảm dần";
+      case "rating_desc":
+        return "Rating cao nhất";
+      case "newest":
+        return "Mới nhất";
+      default:
+        return "Phổ biến nhất";
     }
   }
 }

@@ -15,6 +15,7 @@ import 'package:smart_travel/presentation/screens/splash/splash_screen.dart';
 import 'package:smart_travel/router/app_router.dart';
 import 'package:smart_travel/router/route_names.dart';
 import 'package:smart_travel/presentation/screens/tour/tour_detail_screen.dart';
+import 'package:smart_travel/presentation/blocs/tour/tour_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/tour/tour_bloc.dart';
 import 'dart:convert';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -65,6 +66,9 @@ class _MyAppState extends State<MyApp> {
           ),
           BlocProvider(
             create: (_) => di.sl<ProvinceDetailBloc>(),
+          ),
+          BlocProvider(
+            create: (_) => di.sl<TourDetailBloc>(),
           ),
           BlocProvider(
             create: (_) => di.sl<TourBloc>(),
