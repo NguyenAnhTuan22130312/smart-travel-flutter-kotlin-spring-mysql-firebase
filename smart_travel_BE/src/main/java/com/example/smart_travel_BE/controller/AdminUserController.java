@@ -1,6 +1,7 @@
 package com.example.smart_travel_BE.controller;
 
 import com.example.smart_travel_BE.dto.common.PageResponse;
+import com.example.smart_travel_BE.dto.user.request.CreateUserRequest;
 import com.example.smart_travel_BE.dto.user.request.UpdateUserAdminRequest;
 import com.example.smart_travel_BE.dto.user.request.UserListRequest;
 import com.example.smart_travel_BE.dto.user.response.APIResponse;
@@ -34,6 +35,21 @@ public class AdminUserController {
         return ResponseEntity.ok(
                 APIResponse.<PageResponse<UserSummaryResponse>>builder()
                         .msg("Lấy danh sách users thành công")
+                        .data(response)
+                        .build()
+        );
+    }
+
+    /**
+     * Tạo user mới
+     */
+    @PostMapping
+    public ResponseEntity<APIResponse<UserDetailResponse>> createUser(
+            @Valid @RequestBody CreateUserRequest request) {
+        UserDetailResponse response = userService.createUser(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                APIResponse.<UserDetailResponse>builder()
+                        .msg("Tạo user thành công")
                         .data(response)
                         .build()
         );
