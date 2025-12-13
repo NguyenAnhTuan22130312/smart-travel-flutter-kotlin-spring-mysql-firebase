@@ -11,6 +11,7 @@ import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart'
 import 'package:smart_travel/presentation/widgets/destination/destination_card.dart';
 import 'package:smart_travel/presentation/widgets/province/province_is_popular_card.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
+import 'package:smart_travel/presentation/screens/tour/tour_list_screen.dart';
 import '../../theme/app_colors.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -47,14 +48,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _onNavItemTapped(int index) {
     // Dãy routes tương ứng với các tab
-    final List<String> routes = ['/home', '/explore', '/booking', '/hotel-list', '/ai_chat', '/profile'];
+    final List<String> routes = ['/home', '/explore', '/tours', '/hotel-list', '/ai_chat', '/profile'];
     final String routeName = routes[index];
 
     // 1. Trường hợp đặc biệt: Đặt tour (index 2)
     if (index == 2) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const BookingScreen()),
+        MaterialPageRoute(builder: (context) => const TourListScreen()),
       );
       // KHÔNG CẦN return, vì logic tiếp theo cũng có thể đúng (nếu bạn muốn highlight tab)
     }

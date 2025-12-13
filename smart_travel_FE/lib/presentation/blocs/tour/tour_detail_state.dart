@@ -1,24 +1,17 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'tour_event.dart';
-import 'tour_state.dart';
-import 'package:smart_travel/domain/usecases/tour/get_tour_detail_usecase.dart';
+import 'package:smart_travel/domain/entities/tour_detail.dart';
 
-class TourBloc extends Bloc<TourEvent, TourState> {
-  final GetTourDetailUseCase getDetail;
+class TourDetailState {
+  final bool loading;
+  final TourDetail? detail;
+  final String? error;
 
-  TourBloc(this.getDetail) : super(TourState()) {
-    on<LoadTourDetail>(_loadDetail);
-  }
+  TourDetailState({this.loading = false, this.detail, this.error});
 
-  Future<void> _loadDetail(
-      LoadTourDetail event, Emitter<TourState> emit) async {
-    emit(state.copyWith(loading: true));
-
-    try {
-      final detail = await getDetail(event.id);
-      emit(state.copyWith(loading: false, detail: detail));
-    } catch (e) {
-      emit(state.copyWith(loading: false, error: e.toString()));
-    }
+  TourDetailState copyWith({bool? loading, TourDetail? detail, String? error}) {
+    return TourDetailState(
+      loading: loading ?? this.loading,
+      detail: detail ?? this.detail,
+      error: error,
+    );
   }
 }
