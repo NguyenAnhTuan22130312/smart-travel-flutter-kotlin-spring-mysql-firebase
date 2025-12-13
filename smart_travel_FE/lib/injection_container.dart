@@ -184,13 +184,6 @@ Future<void> init() async {
   sl.registerFactory(
         () => TourDetailBloc(sl()),
   );
-  sl.registerFactory(
-        () => TourBloc(sl()),
-  );
-  // --- USE CASE TOUR ---
-  sl.registerLazySingleton<GetTourDetailUseCase>(
-        () => GetTourDetailUseCase(sl()),
-  );
   sl.registerLazySingleton(() => FilterToursUseCase(sl()));
   // auth
   sl.registerLazySingleton<PaymentRepository>(

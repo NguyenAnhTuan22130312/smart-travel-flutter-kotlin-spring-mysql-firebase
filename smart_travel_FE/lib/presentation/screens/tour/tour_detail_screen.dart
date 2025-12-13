@@ -48,14 +48,34 @@ class _TourDetailScreenState extends State<TourDetailScreen> {
                 child: CustomScrollView(
                   slivers: [
                     SliverAppBar(
-                      expandedHeight: 240,
+                      expandedHeight: 200,
                       pinned: true,
+                      leading: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: CircleAvatar(
+                          backgroundColor: Colors.white,
+                          child: IconButton(
+                            icon: const Icon(Icons.arrow_back, color: Colors.black),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ),
+                      ),
                       flexibleSpace: FlexibleSpaceBar(
-                        title: Text(t.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        title: Text(
+                          t.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.black,
+                          ),
+                        ),
                         background: Image.network(
                           t.imageUrls.isNotEmpty ? t.imageUrls.first : "",
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(color: Colors.grey),
+                          errorBuilder: (_, __, ___) =>
+                              Container(color: Colors.grey),
                         ),
                       ),
                     ),
