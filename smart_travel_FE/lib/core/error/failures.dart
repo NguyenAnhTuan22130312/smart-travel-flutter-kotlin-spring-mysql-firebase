@@ -24,3 +24,7 @@ class ValidationFailure extends Failure {
 class CacheFailure extends Failure {
   const CacheFailure(String message) : super(message);
 }
+
+class AuthFailure extends Failure {
+  const AuthFailure({required String message}) : super(message);
+}

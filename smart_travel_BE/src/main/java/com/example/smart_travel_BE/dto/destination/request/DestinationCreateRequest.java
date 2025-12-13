@@ -38,4 +38,5 @@ public class DestinationCreateRequest {
     private BigDecimal entryFee;
 
     private String openingHours; // JSON string
+    private Boolean isFeatured;
 }

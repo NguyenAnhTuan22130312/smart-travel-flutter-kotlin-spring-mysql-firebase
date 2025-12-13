@@ -14,8 +14,8 @@ public class MoMoConfig {
     public static final String ACCESS_KEY = "F8BBA842ECF85";
     public static final String SECRET_KEY = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
     public static final String MOMO_API_URL = "https://test-payment.momo.vn/v2/gateway/api/create"; // Endpoint Sandbox
-    public static final String REDIRECT_URL = "http://127.0.0.1:8080/api/v1/payment/momo-return"; // MoMo gọi về sau khi user thanh toán xong trên app MoMo
-    public static final String IPN_URL = "http://127.0.0.1:8080/api/v1/payment/momo-ipn"; // MoMo gọi về server-to-server
+    public static final String REDIRECT_URL = "http://127.0.0.1:8080/api/v1/payment/momo-return";
+    public static final String IPN_URL = "https://google.com";
 
     // Hàm tạo chữ ký HMAC SHA256
     public static String signHmacSHA256(String data, String secretKey) {

@@ -1,12 +1,13 @@
-import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:smart_travel/core/constants/api_constants.dart';
 import 'package:smart_travel/core/error/exceptions.dart';
+import 'package:smart_travel/core/network/dio_client.dart';
 import 'package:smart_travel/data/models/api_response_model.dart';
 import 'package:smart_travel/data/models/auth/facebook_login_request.dart';
 import 'package:smart_travel/data/models/auth/google_login_request.dart';
 import 'package:smart_travel/data/models/auth/login_request_modal.dart';
 import 'package:smart_travel/data/models/auth/login_response_modal.dart';
+import 'package:smart_travel/data/models/auth/refresh_token_request.dart';
 import 'package:smart_travel/data/models/auth/register_request_model.dart';
 import 'package:smart_travel/data/models/auth/register_response_model.dart';
 
@@ -16,6 +17,9 @@ abstract class AuthDataSource {
 
   /// Đăng nhập
   Future<LoginResponseModal> login(LoginRequestModal request);
+
+  /// Refresh token
+  Future<LoginResponseModal> refreshToken(RefreshTokenRequest refreshToken);
 
   /// Đăng nhập bằng gg
   Future<LoginResponseModal> googleLogin(GoogleLoginRequest  request);
@@ -28,26 +32,25 @@ abstract class AuthDataSource {
 
 }
 class AuthRemoteDataSourceImpl implements AuthDataSource{
-  final http.Client client;
-  AuthRemoteDataSourceImpl({required this.client});
+  final DioClient dio;
+
+  AuthRemoteDataSourceImpl({required this.dio});
+
+
 
   @override
   Future<RegisterResponseModel> register(RegisterRequestModel request) async {
     // TODO: implement register
     try{
-      final response = await client
+      final response = await dio
       .post(
-        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.register}'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(request.toJson()),
-        
+       '${ApiConstants.baseUrl}${ApiConstants.register}',
+        data: request.toJson(),
       ).timeout(ApiConstants.connectionTimeout);
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final apiResponse = ApiResponseModel<Map<String, dynamic>>.fromJson(
-          jsonDecode(response.body),
+          response.data,
               (data) => data as Map<String, dynamic>,
         );
 
@@ -58,7 +61,7 @@ class AuthRemoteDataSourceImpl implements AuthDataSource{
         return RegisterResponseModel.fromJson(apiResponse.data!);
       } else if (response.statusCode == 400) {
         final apiResponse = ApiResponseModel.fromJson(
-          jsonDecode(response.body),
+          response.data,
           null,
         );
         throw ServerException(apiResponse.msg);
@@ -77,44 +80,35 @@ class AuthRemoteDataSourceImpl implements AuthDataSource{
   }
 
   @override
-  Future<LoginResponseModal> login(LoginRequestModal request)async {
-    // TODO: implement login
-    try{
-      final response = await client
-          .post(Uri.parse('${ApiConstants.baseUrl}${ApiConstants.login}'),
-          headers: {
-            'Content-Type': 'application/json',
-      },
-        body: jsonEncode(request.toJson()),
-      ).timeout(ApiConstants.connectionTimeout);
+  Future<LoginResponseModal> login(LoginRequestModal request) async {
+    try {
+      final response = await dio.post(
+        ApiConstants.login,
+        data: request.toJson(),
+      );
 
-      if(response.statusCode == 200) {
+      if (response.statusCode == 200) {
+        print("LOGIN RESPONSE = ${response.data}");
+
         final apiResponse = ApiResponseModel<Map<String, dynamic>>.fromJson(
-          jsonDecode(response.body),
+          response.data,
               (data) => data as Map<String, dynamic>,
         );
-        if (apiResponse.data == null) {
-          throw const ServerException('Không nhận được dữ liệu từ server');
-        }
-        return LoginResponseModal.fromJson(apiResponse.data!);
+        final data = apiResponse.data!;
+        return LoginResponseModal.fromJson(data);
       }
-      else if (response.statusCode == 400) {
-        final apiResponse = ApiResponseModel.fromJson(
-          jsonDecode(response.body),
-          null,
-        );
+
+      if (response.statusCode == 400) {
+        final apiResponse =
+        ApiResponseModel.fromJson(response.data, null);
         throw ServerException(apiResponse.msg);
-      } else {
-        throw ServerException(
-            'Đăng nhập thất bại với mã lỗi: ${response.statusCode}');
       }
-    } on http.ClientException catch (e) {
-      throw NetworkException('Lỗi kết nối: ${e.message}');
-    } catch (e) {
-      if (e is ServerException || e is NetworkException) {
-        rethrow;
-      }
-      throw ServerException('Đã xảy ra lỗi không mong muốn: ${e.toString()}');
+
+      throw ServerException("Đăng nhập thất bại: ${response.statusCode}");
+    }
+    catch (e) {
+      if (e is ServerException || e is NetworkException) rethrow;
+      throw ServerException("Lỗi không mong muốn: $e");
     }
   }
 
@@ -122,11 +116,11 @@ class AuthRemoteDataSourceImpl implements AuthDataSource{
   Future<String> forgotPassword(String email)async {
     // TODO: implement login
     try{
-      final response = await client
-          .post(Uri.parse('${ApiConstants.baseUrl}${ApiConstants.forgotPassword}?email=$email'),
+      final response = await dio
+          .post('${ApiConstants.baseUrl}${ApiConstants.forgotPassword}?email=$email',
       ).timeout(ApiConstants.connectionTimeout);
 
-      final apiResponse = jsonDecode(response.body);
+      final apiResponse = response.data;
       final msg = apiResponse['msg'] ?? 'Không có thông báo từ server';
 
       if (response.statusCode == 200) {
@@ -147,16 +141,12 @@ class AuthRemoteDataSourceImpl implements AuthDataSource{
   Future<LoginResponseModal> googleLogin(GoogleLoginRequest  request)async {
     // TODO: implement login
     try{
-      final response = await client
-          .post(Uri.parse('${ApiConstants.baseUrl}${ApiConstants.googleLogin}'),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    body: jsonEncode(request.toJson()),
-
+      final response = await dio
+          .post('${ApiConstants.baseUrl}${ApiConstants.googleLogin}',
+          data: request.toJson(),
     ).timeout(ApiConstants.connectionTimeout);
       if (response.statusCode == 201 || response.statusCode == 200) {
-        final responseBody = jsonDecode(response.body);
+        final responseBody = response.data;
         print('API Response Body: $responseBody');
         final apiResponse = ApiResponseModel<Map<String, dynamic>>.fromJson(
           responseBody,
@@ -168,7 +158,7 @@ class AuthRemoteDataSourceImpl implements AuthDataSource{
         return LoginResponseModal.fromJson(apiResponse.data!);
       } else if (response.statusCode == 400) {
         final apiResponse = ApiResponseModel.fromJson(
-          jsonDecode(response.body),
+          response.data,
           null,
         );
         throw ServerException(apiResponse.msg);
@@ -191,16 +181,12 @@ class AuthRemoteDataSourceImpl implements AuthDataSource{
   Future<LoginResponseModal> facebookLogin(FacebookLoginRequest request)async {
 // TODO: implement login
     try{
-      final response = await client
-          .post(Uri.parse('${ApiConstants.baseUrl}${ApiConstants.facebookLogin}'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(request.toJson()),
-
+      final response = await dio
+          .post('${ApiConstants.baseUrl}${ApiConstants.facebookLogin}',
+        data: request.toJson(),
       ).timeout(ApiConstants.connectionTimeout);
       if (response.statusCode == 201 || response.statusCode == 200) {
-        final responseBody = jsonDecode(response.body);
+        final responseBody =  response.data;
         print('API Response Body: $responseBody');
         final apiResponse = ApiResponseModel<Map<String, dynamic>>.fromJson(
             responseBody,
@@ -212,7 +198,7 @@ class AuthRemoteDataSourceImpl implements AuthDataSource{
         return LoginResponseModal.fromJson(apiResponse.data!);
       } else if (response.statusCode == 400) {
         final apiResponse = ApiResponseModel.fromJson(
-          jsonDecode(response.body),
+          response.data,
           null,
         );
         throw ServerException(apiResponse.msg);
@@ -230,4 +216,25 @@ class AuthRemoteDataSourceImpl implements AuthDataSource{
       throw ServerException('Đã xảy ra lỗi không mong muốn: ${e.toString()}');
     }
   }
+
+  @override
+  Future<LoginResponseModal> refreshToken(RefreshTokenRequest refreshToken) async {
+    try {
+      final response = await dio.post(
+        ApiConstants.refreshToken,
+        data: refreshToken.toJson(),
+      );
+
+      if (response.statusCode == 200) {
+        final json = response.data as Map<String, dynamic>;
+        return LoginResponseModal.fromJson(json['data'] as Map<String, dynamic>);
+        }
+      throw ServerException("Refresh token thất bại");
+    } catch (e) {
+      throw ServerException("Lỗi không mong muốn: $e");
+    }
+  }
+
+
+
 }

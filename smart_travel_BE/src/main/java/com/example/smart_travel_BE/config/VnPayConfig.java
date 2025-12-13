@@ -8,8 +8,8 @@ import java.util.Formatter;
 
 public class VnPayConfig {
 
-    public static final String VNP_TMNCODE = "UHGSC6VZ";
-    public static final String VNP_HASHSECRET = "CENB0BWBZXDPKFREF68LTORQ4DBLQMR2";
+    public static final String VNP_TMNCODE = "8R491IOR";
+    public static final String VNP_HASHSECRET = "7CKJLL1YUR6T5ROB5T7RPJ0S6AYNVJXE";
     public static final String VNP_URL = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
 
     public static final String VNP_VERSION = "2.1.0";
@@ -17,7 +17,7 @@ public class VnPayConfig {
     public static final String VNP_CURRCODE = "VND";
     public static final String VNP_LOCALE = "vn";
 
-    public static final String VNP_RETURNURL = "http://127.0.0.1:8080/api/v1/payment/vnpay-return";
+    public static final String VNP_RETURNURL = "http://10.0.2.2:8080/api/v1/payment/vnpay-return";
 
     public static String hmacSHA512(final String key, final String data) {
         try {

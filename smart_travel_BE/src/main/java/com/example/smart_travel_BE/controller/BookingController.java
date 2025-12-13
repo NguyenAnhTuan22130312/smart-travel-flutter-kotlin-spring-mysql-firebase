@@ -25,9 +25,9 @@ public class BookingController {
 
     // Endpoint: POST /api/v1/bookings
     @PostMapping
-    // --- SỬA LỖI: Dùng hasAuthority thay vì hasRole ---
-    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
-    // ------------------------------------------------
+//    // --- SỬA LỖI: Dùng hasAuthority thay vì hasRole ---
+//    @PreAuthorize("hasAuthority('USER')")
+//    // ------------------------------------------------
     public ResponseEntity<BookingResponse> createBooking(
             @Valid @RequestBody BookingRequest bookingRequest,
             @AuthenticationPrincipal User currentUser

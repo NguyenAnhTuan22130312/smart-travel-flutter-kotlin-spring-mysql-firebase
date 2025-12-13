@@ -6,5 +6,4 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class DeleteAccountRequest {
-    // Empty request - no parameters needed
 }

@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:smart_travel/core/constants/api_constants.dart'; // THÊM IMPORT NÀY
 import 'package:smart_travel/presentation/blocs/payment/payment_bloc.dart';
 import 'package:smart_travel/presentation/blocs/payment/payment_event.dart';
 import 'package:smart_travel/presentation/blocs/payment/payment_state.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
-import 'package:smart_travel/presentation/widgets/common/custom_button.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:smart_travel/injection_container.dart' as di; // THÊM IMPORT NÀY
+import 'package:smart_travel/injection_container.dart' as di;
 
 class PaymentScreen extends StatelessWidget {
   final String bookingId;
@@ -26,11 +24,10 @@ class PaymentScreen extends StatelessWidget {
     final String formattedAmount = currencyFormatter.format(amount);
 
     return BlocProvider(
-      // SỬA LỖI 1: Lấy BLoC từ Service Locator (DI)
       create: (context) => di.sl<PaymentBloc>(),
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Thanh toán'),
+          title: const Text('Thanh toán'),
           backgroundColor: AppColors.background,
           foregroundColor: AppColors.textGray,
           elevation: 0,
@@ -38,46 +35,26 @@ class PaymentScreen extends StatelessWidget {
         backgroundColor: AppColors.background,
         body: BlocConsumer<PaymentBloc, PaymentState>(
           listener: (context, state) {
-
-            // --- SỬA LỖI 2: LOGIC ĐIỀU HƯỚNG WEBVIEW ---
             if (state is PaymentSuccess) {
-              String returnUrlPath;
-              if (state.paymentUrl.contains('momo.vn')) {
-                // Phải khớp với MoMoConfig.java
-                returnUrlPath = ApiConstants.momoReturn;
-              } else {
-                // Phải khớp với VnPayConfig.java
-                returnUrlPath = "/payment/vnpay-return";
-              }
-
-              // Đây là URL mà WebView sẽ lắng nghe
-              // VÍ DỤ: "http://10.0.2.2:8080/api/v1/payment/vnpay-return"
-              final String fullReturnUrl = "${ApiConstants.baseUrl}${returnUrlPath}";
-
+              // Khi có link thanh toán, mở WebView ngay
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => PaymentWebView(
-                    url: state.paymentUrl,
-                    returnUrlToListen: fullReturnUrl, // Gửi URL đầy đủ
-                  ),
+                  builder: (context) => PaymentWebView(url: state.paymentUrl),
                 ),
               );
-              // ------------------------------------------
-
             } else if (state is PaymentCashSuccess) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
+                const SnackBar(
                   content: Text('Đặt chỗ thành công! Bạn sẽ thanh toán sau.'),
                   backgroundColor: Colors.green,
                 ),
               );
               Navigator.popUntil(context, (route) => route.isFirst);
-
             } else if (state is PaymentFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(state.message), // Hiển thị lỗi thật từ API
+                  content: Text(state.message),
                   backgroundColor: Colors.red,
                 ),
               );
@@ -98,7 +75,7 @@ class PaymentScreen extends StatelessWidget {
                           color: AppColors.textGray,
                         ),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
                         formattedAmount,
                         style: TextStyle(
@@ -107,7 +84,7 @@ class PaymentScreen extends StatelessWidget {
                           color: AppColors.primary,
                         ),
                       ),
-                      SizedBox(height: 32),
+                      const SizedBox(height: 32),
                       Text(
                         'Chọn phương thức thanh toán:',
                         style: TextStyle(
@@ -116,7 +93,7 @@ class PaymentScreen extends StatelessWidget {
                           color: AppColors.textGray,
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       // Hiển thị VNPay
                       _buildPaymentMethodTile(
                         context: context,
@@ -132,7 +109,7 @@ class PaymentScreen extends StatelessWidget {
                           );
                         },
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       // Hiển thị MoMo
                       _buildPaymentMethodTile(
                         context: context,
@@ -148,7 +125,7 @@ class PaymentScreen extends StatelessWidget {
                           );
                         },
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       // Hiển thị Cash
                       _buildPaymentMethodTile(
                         context: context,
@@ -181,7 +158,6 @@ class PaymentScreen extends StatelessWidget {
     );
   }
 
-  // --- ĐÃ SỬA LỖI: TRIỂN KHAI NỘI DUNG CHO WIDGET ---
   Widget _buildPaymentMethodTile({
     required BuildContext context,
     required String logoAsset,
@@ -202,7 +178,7 @@ class PaymentScreen extends StatelessWidget {
               color: Colors.grey.withOpacity(0.1),
               spreadRadius: 1,
               blurRadius: 3,
-              offset: Offset(0, 2),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -213,11 +189,10 @@ class PaymentScreen extends StatelessWidget {
               width: 40,
               height: 40,
               errorBuilder: (context, error, stackTrace) {
-                // Fallback nếu không tìm thấy asset
                 return Icon(Icons.payment, size: 40, color: AppColors.primary);
               },
             ),
-            SizedBox(width: 16),
+            const SizedBox(width: 16),
             Expanded(
               child: Text(
                 title,
@@ -236,16 +211,13 @@ class PaymentScreen extends StatelessWidget {
   }
 }
 
-// --- SỬA LỖI 3: NÂNG CẤP WEBVIEW ---
+// =========================================================
+// CLASS WEBVIEW ĐÃ ĐƯỢC CHỈNH SỬA (Sửa UserAgent + Logic bắt URL)
+// =========================================================
 class PaymentWebView extends StatefulWidget {
   final String url;
-  final String returnUrlToListen; // Ví dụ: "http://10.0.2.2:8080/api/v1/payment/vnpay-return"
 
-  const PaymentWebView({
-    Key? key,
-    required this.url,
-    required this.returnUrlToListen,
-  }) : super(key: key);
+  const PaymentWebView({Key? key, required this.url}) : super(key: key);
 
   @override
   State<PaymentWebView> createState() => _PaymentWebViewState();
@@ -260,21 +232,32 @@ class _PaymentWebViewState extends State<PaymentWebView> {
     super.initState();
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+
+    // --- QUAN TRỌNG: Giả lập Desktop (Windows) để MoMo hiện QR Code ---
+      ..setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36")
+    // ----------------------------------------------------------------
+
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageStarted: (String url) { setState(() { _isLoading = true; }); },
-          onPageFinished: (String url) { setState(() { _isLoading = false; }); },
+          onPageStarted: (_) => setState(() => _isLoading = true),
+          onPageFinished: (_) => setState(() => _isLoading = false),
           onNavigationRequest: (NavigationRequest request) {
+            print(">>> WebView URL: ${request.url}");
 
-            // SỬA: Lắng nghe URL trả về động
-            if (request.url.startsWith(widget.returnUrlToListen)) {
-              print('Thanh toán hoàn tất, quay về app');
+            // --- LOGIC BẮT KẾT QUẢ THANH TOÁN ---
+            // Kiểm tra xem URL có chứa dấu hiệu của việc "Thanh toán xong" không
+            // Bất kể Backend trả về 127.0.0.1 hay 10.0.2.2
+            if (request.url.contains("127.0.0.1") ||
+                request.url.contains("localhost") ||
+                request.url.contains("10.0.2.2") ||
+                request.url.contains("/payment/momo-return") ||
+                request.url.contains("/payment/vnpay-return")) {
 
-              // TODO: Phân tích URL (request.url) để kiểm tra mã lỗi
-              // và hiển thị SnackBar thông báo thành công/thất bại
+              print(">>> PHÁT HIỆN URL TRẢ VỀ: ${request.url}");
+              _handlePaymentResult(request.url);
 
-              Navigator.popUntil(context, (route) => route.isFirst);
-              return NavigationDecision.prevent; // Ngăn không cho WebView đi tiếp
+              // QUAN TRỌNG: Chặn không cho WebView tải tiếp (tránh lỗi connection refused trắng trang)
+              return NavigationDecision.prevent;
             }
 
             return NavigationDecision.navigate;
@@ -284,10 +267,49 @@ class _PaymentWebViewState extends State<PaymentWebView> {
       ..loadRequest(Uri.parse(widget.url));
   }
 
+  void _handlePaymentResult(String url) {
+    final uri = Uri.parse(url);
+
+    // 1. Lấy kết quả từ MoMo (resultCode = 0 là thành công)
+    final momoResultCode = uri.queryParameters['resultCode'];
+
+    // 2. Lấy kết quả từ VNPay (vnp_ResponseCode = 00 là thành công)
+    final vnpResponseCode = uri.queryParameters['vnp_ResponseCode'];
+
+    bool isSuccess = false;
+
+    if (momoResultCode == '0') {
+      isSuccess = true;
+    } else if (vnpResponseCode == '00') {
+      isSuccess = true;
+    }
+
+    if (isSuccess) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Thanh toán thành công!"),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          )
+      );
+      // Quay về màn hình chính, xóa hết lịch sử đặt tour để tránh back lại
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Giao dịch thất bại hoặc bị hủy"),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          )
+      );
+      Navigator.of(context).pop(); // Đóng WebView, quay lại màn chọn thanh toán
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Cổng thanh toán')),
+      appBar: AppBar(title: const Text('Cổng thanh toán'), elevation: 0),
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),

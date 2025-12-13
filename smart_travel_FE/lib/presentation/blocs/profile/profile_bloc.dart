@@ -1,5 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/domain/usecases/user/get_profile_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/update_profile_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/change_password_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/get_settings_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/update_settings_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/get_level_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/delete_account_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/logout_usecase.dart';
 import 'profile_event.dart';
 import 'profile_state.dart';
 
@@ -117,14 +124,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
     result.fold(
       (failure) => emit(ProfileError(failure.message)),
-      (settings) => emit(SettingsUpdateSuccess(settings, 'Cập nhật cài đặt thành công')),
+      (settings) =>
+          emit(SettingsUpdateSuccess(settings, 'Cập nhật cài đặt thành công')),
     );
   }
 
-  Future<void> _onLoadLevel(
-    LoadLevel event,
-    Emitter<ProfileState> emit,
-  ) async {
+  Future<void> _onLoadLevel(LoadLevel event, Emitter<ProfileState> emit) async {
     emit(ProfileLoading());
 
     final result = await getLevelUseCase();
@@ -145,14 +150,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
     result.fold(
       (failure) => emit(ProfileError(failure.message)),
-      (_) => emit(const AccountDeletedSuccess('Tài khoản đã được xóa thành công')),
+      (_) =>
+          emit(const AccountDeletedSuccess('Tài khoản đã được xóa thành công')),
     );
   }
 
-  Future<void> _onLogout(
-    Logout event,
-    Emitter<ProfileState> emit,
-  ) async {
+  Future<void> _onLogout(Logout event, Emitter<ProfileState> emit) async {
     emit(ProfileLoading());
 
     final result = await logoutUseCase();
