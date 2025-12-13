@@ -11,7 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
-public class VnPayService { // Đây là class, không phải interface
+public class VnPayService {
 
     public String createPaymentUrl(Payment payment, HttpServletRequest httpServletRequest) {
         long amount = payment.getAmount().longValue() * 100;
@@ -36,33 +36,43 @@ public class VnPayService { // Đây là class, không phải interface
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
         vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
 
+        // --- SỬA LOGIC TẠO HASH & QUERY STRING ---
         List<String> fieldNames = new ArrayList<>(vnp_Params.keySet());
         Collections.sort(fieldNames);
+
         StringBuilder hashData = new StringBuilder();
         StringBuilder query = new StringBuilder();
 
-        try {
-            for (String fieldName : fieldNames) {
-                String fieldValue = vnp_Params.get(fieldName);
-                if ((fieldValue != null) && (fieldValue.length() > 0)) {
-                    hashData.append(fieldName);
-                    hashData.append('=');
-                    hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
-                    query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII.toString()));
-                    query.append('=');
-                    query.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+        Iterator<String> itr = fieldNames.iterator();
+        while (itr.hasNext()) {
+            String fieldName = itr.next();
+            String fieldValue = vnp_Params.get(fieldName);
 
-                    if (fieldNames.indexOf(fieldName) < fieldNames.size() - 1) {
-                        query.append('&');
-                        hashData.append('&');
-                    }
+            if ((fieldValue != null) && (fieldValue.length() > 0)) {
+                // Build Hash Data
+                hashData.append(fieldName);
+                hashData.append('=');
+                // Lưu ý: VNPay yêu cầu URLEncode cả trong phần Hash
+                hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
+
+                // Build Query URL
+                query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII));
+                query.append('=');
+                query.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
+
+                if (itr.hasNext()) {
+                    query.append('&');
+                    hashData.append('&');
                 }
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to encode URL parameters", e);
         }
 
+        // Debug Log: In ra console để kiểm tra
+        System.out.println(">>> Raw Hash Data: " + hashData.toString());
+
+        String queryUrl = query.toString();
         String vnp_SecureHash = VnPayConfig.hmacSHA512(VnPayConfig.VNP_HASHSECRET, hashData.toString());
-        return VnPayConfig.VNP_URL + "?" + query.toString() + "&vnp_SecureHash=" + vnp_SecureHash;
+
+        return VnPayConfig.VNP_URL + "?" + queryUrl + "&vnp_SecureHash=" + vnp_SecureHash;
     }
 }

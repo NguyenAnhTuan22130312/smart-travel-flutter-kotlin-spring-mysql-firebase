@@ -10,10 +10,12 @@ import 'package:smart_travel/data/data_sources/remote/auth_remote_datasource.dar
 import 'package:smart_travel/data/models/auth/facebook_login_request.dart';
 import 'package:smart_travel/data/models/auth/google_login_request.dart';
 import 'package:smart_travel/data/models/auth/login_request_modal.dart';
+import 'package:smart_travel/data/models/auth/refresh_token_request.dart';
 import 'package:smart_travel/data/models/auth/register_request_model.dart';
 import 'package:smart_travel/domain/entities/auth.dart';
-import 'package:smart_travel/domain/params/LoginParams.dart';
 import 'package:smart_travel/domain/params/RegisterParams.dart';
+import 'package:smart_travel/domain/params/login_params.dart';
+import 'package:smart_travel/domain/params/refresh_token_params.dart';
 import 'package:smart_travel/domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -85,9 +87,9 @@ class AuthRepositoryImpl implements AuthRepository {
 
       // Lưu token sau khi login thành công
       await localDataSource.saveToken(responseModel.token);
-      await localDataSource.saveRefreshToken(responseModel.refreshToken);
-      await localDataSource.saveRole(responseModel.role);
-      await localDataSource.saveFullName(responseModel.fullName);
+      await localDataSource.saveRole(responseModel.role!);
+      await localDataSource.saveFullName(responseModel.fullName!);
+      await localDataSource.saveRefreshToken(responseModel.refreshToken!);
       final entity = responseModel.toEntity();
 
       return  Right(entity);
@@ -158,9 +160,8 @@ class AuthRepositoryImpl implements AuthRepository {
 
       // Lưu token, refresh token và thông tin user vào local storage
       await localDataSource.saveToken(responseModel.token);
-      await localDataSource.saveRefreshToken(responseModel.refreshToken);
-      await localDataSource.saveRole(responseModel.role);
-      await localDataSource.saveFullName(responseModel.fullName);
+      await localDataSource.saveRole(responseModel.role!);
+      await localDataSource.saveFullName(responseModel.fullName!);
 
       //Chuyển đổi Model  sang Entity
       final entity = responseModel.toEntity();
@@ -233,9 +234,8 @@ class AuthRepositoryImpl implements AuthRepository {
 
       // Lưu token, refresh token và thông tin user vào local storage
       await localDataSource.saveToken(responseModel.token);
-      await localDataSource.saveRefreshToken(responseModel.refreshToken);
-      await localDataSource.saveRole(responseModel.role);
-      await localDataSource.saveFullName(responseModel.fullName);
+      await localDataSource.saveRole(responseModel.role!);
+      await localDataSource.saveFullName(responseModel.fullName!);
 
       // Chuyển đổi Model sang Entity
       final entity = responseModel.toEntity();
@@ -258,4 +258,20 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, AuthEntity>> refreshToken(RefreshTokenParams refreshToken) async{
+    if(!await networkInfo.isConnected){
+      return const Left(NetworkFailure('Không có kết nối internet. Vui lòng kiểm tra lại.'));
+    }
+
+    // Chuyển Domain → Data
+    final requestModel = RefreshTokenRequest(refreshToken: refreshToken.refreshToken
+    );
+    final loginResponse = await dataSource.refreshToken(requestModel);
+    // Lưu vào local storage
+    await localDataSource.saveToken(loginResponse.token);
+
+    final entity = loginResponse.toEntity();
+    return right(entity);
+  }
 }

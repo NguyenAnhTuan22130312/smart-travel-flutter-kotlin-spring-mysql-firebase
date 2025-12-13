@@ -1,7 +1,7 @@
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:smart_travel/domain/params/LoginParams.dart';
+import 'package:smart_travel/domain/params/login_params.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_event.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_state.dart';
@@ -103,8 +103,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   BlocConsumer<AuthBloc, AuthState>(
                     listener: (context, state) {
                       if (state is LoginSuccess) {
-                        if (state.response.role == 'ADMIN') {
-                          Navigator.pushReplacementNamed(context, '/admin');
+                        if (state.response.role == "ADMIN") {
+                          Navigator.pushReplacementNamed(context, '/dashboard');
                         } else {
                           Navigator.pushReplacementNamed(context, '/home');
                         }
@@ -128,7 +128,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     builder: (context, state) {
                       final isLoading = state is AuthLoading;
-
                       return Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(

@@ -14,7 +14,9 @@ class AccountManagementScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.accountManagement),
-        backgroundColor: AppColors.primary,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.mainGradient),
+        ),
         foregroundColor: Colors.white,
       ),
       body: BlocListener<ProfileBloc, ProfileState>(
@@ -44,7 +46,7 @@ class AccountManagementScreen extends StatelessWidget {
                   border: Border.all(color: Colors.red[200]!),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -81,7 +83,9 @@ class AccountManagementScreen extends StatelessWidget {
                       child: OutlinedButton.icon(
                         onPressed: () => _showDeleteAccountDialog(context),
                         icon: const Icon(Icons.delete_forever),
-                        label: Text(AppLocalizations.of(context)!.deleteAccountButton),
+                        label: Text(
+                          AppLocalizations.of(context)!.deleteAccountButton,
+                        ),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.red,
                           side: const BorderSide(color: Colors.red, width: 2),
@@ -114,9 +118,7 @@ class AccountManagementScreen extends StatelessWidget {
                 Text(AppLocalizations.of(context)!.deleteAccountTitle),
               ],
             ),
-            content: Text(
-              AppLocalizations.of(context)!.deleteAccountWarning,
-            ),
+            content: Text(AppLocalizations.of(context)!.deleteAccountWarning),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
@@ -129,10 +131,7 @@ class AccountManagementScreen extends StatelessWidget {
                 ),
                 onPressed: () {
                   Navigator.pop(dialogContext);
-                  context.read<ProfileBloc>().add(
-                    DeleteAccount(
-                    ),
-                  );
+                  context.read<ProfileBloc>().add(DeleteAccount());
                 },
                 child: Text(
                   AppLocalizations.of(context)!.deletePermanently,

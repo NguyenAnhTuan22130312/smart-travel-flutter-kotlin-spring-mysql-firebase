@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:smart_travel/data/models/auth/register_request_model.dart';
-import 'package:smart_travel/domain/params/LoginParams.dart';
 import 'package:smart_travel/domain/params/RegisterParams.dart';
+import 'package:smart_travel/domain/params/login_params.dart';
 
 abstract class AuthEvent extends Equatable {
   const AuthEvent();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
@@ -28,7 +29,9 @@ class _UserLevelScreenState extends State<UserLevelScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.userLevelTitle),
-        backgroundColor: AppColors.primary,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.mainGradient),
+        ),
         foregroundColor: Colors.white,
       ),
       body: BlocBuilder<ProfileBloc, ProfileState>(
@@ -38,7 +41,14 @@ class _UserLevelScreenState extends State<UserLevelScreen> {
         },
         builder: (context, state) {
           if (state is ProfileLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: Lottie.asset(
+                'assets/lottie/travel_is_fun.json',
+                width: 200,
+                height: 500,
+                repeat: true,
+              ),
+            );
           }
 
           if (state is LevelLoaded) {
@@ -73,10 +83,7 @@ class _UserLevelScreenState extends State<UserLevelScreen> {
           // Level Benefits Section
           Text(
             AppLocalizations.of(context)!.levelBenefitsTitle,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
 
@@ -147,14 +154,16 @@ class _UserLevelScreenState extends State<UserLevelScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.blue.withOpacity(0.1)
-                  : Colors.blue[50],
+              color:
+                  Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.primary.withValues(alpha: 0.1)
+                      : AppColors.primary.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.blue.withOpacity(0.3)
-                    : Colors.blue[200]!,
+                color:
+                    Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.primary.withValues(alpha: 0.3)
+                        : AppColors.primary.withValues(alpha: 0.2),
               ),
             ),
             child: Column(
@@ -162,30 +171,31 @@ class _UserLevelScreenState extends State<UserLevelScreen> {
               children: [
                 Row(
                   children: [
-                    Icon(
-                      Icons.lightbulb_outline,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.blue[300]
-                          : Colors.blue[700],
-                    ),
+                    Icon(Icons.lightbulb_outline, color: AppColors.primary),
                     const SizedBox(width: 8),
                     Text(
                       AppLocalizations.of(context)!.earnXpTitle,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.blue[300]
-                            : Colors.blue[700],
+                        color: AppColors.primary,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                _buildEarnXPItem(AppLocalizations.of(context)!.earnXpBookingHotel),
-                _buildEarnXPItem(AppLocalizations.of(context)!.earnXpWriteReview),
-                _buildEarnXPItem(AppLocalizations.of(context)!.earnXpCompleteProfile),
-                _buildEarnXPItem(AppLocalizations.of(context)!.earnXpReferFriends),
+                _buildEarnXPItem(
+                  AppLocalizations.of(context)!.earnXpBookingHotel,
+                ),
+                _buildEarnXPItem(
+                  AppLocalizations.of(context)!.earnXpWriteReview,
+                ),
+                _buildEarnXPItem(
+                  AppLocalizations.of(context)!.earnXpCompleteProfile,
+                ),
+                _buildEarnXPItem(
+                  AppLocalizations.of(context)!.earnXpReferFriends,
+                ),
               ],
             ),
           ),
@@ -199,11 +209,7 @@ class _UserLevelScreenState extends State<UserLevelScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.error_outline,
-            size: 64,
-            color: Colors.grey,
-          ),
+          const Icon(Icons.error_outline, size: 64, color: Colors.grey),
           const SizedBox(height: 16),
           Text(
             AppLocalizations.of(context)!.errorLoadLevel,
@@ -221,7 +227,6 @@ class _UserLevelScreenState extends State<UserLevelScreen> {
     );
   }
 
-
   Widget _buildBenefitCard({
     required BuildContext context,
     required IconData icon,
@@ -235,10 +240,10 @@ class _UserLevelScreenState extends State<UserLevelScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -252,7 +257,7 @@ class _UserLevelScreenState extends State<UserLevelScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
+                  color: color.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: color, size: 24),
@@ -283,22 +288,21 @@ class _UserLevelScreenState extends State<UserLevelScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          ...benefits.map((benefit) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Icons.check_circle, size: 16, color: color),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        benefit,
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ),
-                  ],
-                ),
-              )),
+          ...benefits.map(
+            (benefit) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.check_circle, size: 16, color: color),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(benefit, style: const TextStyle(fontSize: 14)),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -309,18 +313,9 @@ class _UserLevelScreenState extends State<UserLevelScreen> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(
-            Icons.arrow_right,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.blue[300]
-                : Colors.blue[700],
-            size: 20,
-          ),
+          Icon(Icons.arrow_right, color: AppColors.primary, size: 20),
           const SizedBox(width: 8),
-          Text(
-            text,
-            style: const TextStyle(fontSize: 14),
-          ),
+          Text(text, style: const TextStyle(fontSize: 14)),
         ],
       ),
     );
