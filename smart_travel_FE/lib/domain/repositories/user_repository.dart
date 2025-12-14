@@ -51,6 +51,7 @@ abstract class UserRepository {
     int? page,
     int? size,
     String? searchKeyword,
+    String? role,
     String? sortBy,
     String? sortDirection,
   });
@@ -68,4 +69,19 @@ abstract class UserRepository {
 
   // Admin: Unlock user account
   Future<Either<Failure, void>> unlockUser(int userId);
+
+  // Admin: Create user
+  Future<Either<Failure, User>> createUser({
+    required String fullName,
+    required String email,
+    required String password,
+    String? phone,
+    required String role,
+    String? gender,
+    String? dateOfBirth,
+    String? address,
+    String? city,
+    String? country,
+    String? bio,
+  });
 }

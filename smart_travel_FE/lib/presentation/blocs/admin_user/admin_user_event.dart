@@ -11,6 +11,7 @@ class LoadUsers extends AdminUserEvent {
   final int? page;
   final int? size;
   final String? searchKeyword;
+  final String? role;
   final String? sortBy;
   final String? sortDirection;
 
@@ -18,12 +19,20 @@ class LoadUsers extends AdminUserEvent {
     this.page,
     this.size,
     this.searchKeyword,
+    this.role,
     this.sortBy,
     this.sortDirection,
   });
 
   @override
-  List<Object?> get props => [page, size, searchKeyword, sortBy, sortDirection];
+  List<Object?> get props => [
+    page,
+    size,
+    searchKeyword,
+    role,
+    sortBy,
+    sortDirection,
+  ];
 }
 
 class SearchUsers extends AdminUserEvent {
@@ -87,4 +96,57 @@ class UnlockUser extends AdminUserEvent {
 
   @override
   List<Object?> get props => [userId];
+}
+
+class FilterRole extends AdminUserEvent {
+  final String? role; // null = all, 'USER', 'ADMIN'
+
+  const FilterRole(this.role);
+
+  @override
+  List<Object?> get props => [role];
+}
+
+class CreateUser extends AdminUserEvent {
+  final String fullName;
+  final String email;
+  final String password;
+  final String? phone;
+  final String role;
+  // Optional profile fields
+  final String? gender;
+  final String? dateOfBirth;
+  final String? address;
+  final String? city;
+  final String? country;
+  final String? bio;
+
+  const CreateUser({
+    required this.fullName,
+    required this.email,
+    required this.password,
+    this.phone,
+    this.role = 'USER',
+    this.gender,
+    this.dateOfBirth,
+    this.address,
+    this.city,
+    this.country,
+    this.bio,
+  });
+
+  @override
+  List<Object?> get props => [
+    fullName,
+    email,
+    password,
+    phone,
+    role,
+    gender,
+    dateOfBirth,
+    address,
+    city,
+    country,
+    bio,
+  ];
 }

@@ -25,6 +25,9 @@ public class UserListRequest {
     // Tìm kiếm theo tên, email hoặc số điện thoại
     private String searchKeyword;
     
+    // Lọc theo vai trò: USER, ADMIN (null = tất cả)
+    private String role;
+    
     // Sắp xếp theo field nào (mặc định: createdAt)
     @Builder.Default
     private String sortBy = "createdAt";

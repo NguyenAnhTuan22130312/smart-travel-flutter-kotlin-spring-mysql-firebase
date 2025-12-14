@@ -22,6 +22,7 @@ abstract class UserRemoteDataSource {
     int? page,
     int? size,
     String? searchKeyword,
+    String? role,
     String? sortBy,
     String? sortDirection,
   });
@@ -34,6 +35,9 @@ abstract class UserRemoteDataSource {
 
   // Admin: Unlock user account
   Future<void> unlockUser(int userId);
+
+  // Admin: Create user
+  Future<UserModel> createUser(Map<String, dynamic> data);
 }
 
 class UserRemoteDataSourceImpl implements UserRemoteDataSource {
@@ -234,6 +238,7 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
     int? page,
     int? size,
     String? searchKeyword,
+    String? role,
     String? sortBy,
     String? sortDirection,
   }) async {
@@ -245,6 +250,9 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       if (size != null) queryString.write('size=$size&');
       if (searchKeyword != null && searchKeyword.isNotEmpty) {
         queryString.write('searchKeyword=$searchKeyword&');
+      }
+      if (role != null && role.isNotEmpty) {
+        queryString.write('role=$role&');
       }
       if (sortBy != null) queryString.write('sortBy=$sortBy&');
       if (sortDirection != null)
@@ -408,6 +416,51 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       }
     } catch (e) {
       print('Error in unlockUser: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<UserModel> createUser(Map<String, dynamic> data) async {
+    try {
+      // Remove null values
+      data.removeWhere((key, value) => value == null);
+
+      final response = await dioClient.post(
+        ApiConstants.adminUsers,
+        data: data,
+      );
+
+      if (response.data == null) {
+        throw DioException(
+          requestOptions: RequestOptions(path: ApiConstants.adminUsers),
+          message: 'Response data is null',
+          type: DioExceptionType.badResponse,
+        );
+      }
+
+      if (response.data['code'] == 1000) {
+        final userData = response.data['data'];
+
+        if (userData == null) {
+          throw DioException(
+            requestOptions: RequestOptions(path: ApiConstants.adminUsers),
+            message: 'User data is null in response',
+            type: DioExceptionType.badResponse,
+          );
+        }
+
+        return UserModel.fromJson(userData as Map<String, dynamic>);
+      } else {
+        throw DioException(
+          requestOptions: RequestOptions(path: ApiConstants.adminUsers),
+          response: response,
+          message: response.data['message'] ?? 'Failed to create user',
+          type: DioExceptionType.badResponse,
+        );
+      }
+    } catch (e) {
+      print('Error in createUser: $e');
       rethrow;
     }
   }

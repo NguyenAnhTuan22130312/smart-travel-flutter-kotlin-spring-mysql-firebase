@@ -2,6 +2,7 @@ package com.example.smart_travel_BE.service;
 
 import com.example.smart_travel_BE.dto.common.PageResponse;
 import com.example.smart_travel_BE.dto.user.request.ChangePasswordRequest;
+import com.example.smart_travel_BE.dto.user.request.CreateUserRequest;
 import com.example.smart_travel_BE.dto.user.request.DeleteAccountRequest;
 import com.example.smart_travel_BE.dto.user.request.SettingsRequest;
 import com.example.smart_travel_BE.dto.user.request.UpdateLevelRequest;
@@ -300,7 +301,10 @@ public class UserService {
         );
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
-        Specification<User> spec = UserSpecification.searchByKeyword(request.getSearchKeyword());
+        Specification<User> spec = Specification
+                .where(UserSpecification.searchByKeyword(request.getSearchKeyword()))
+                .and(UserSpecification.filterByRole(request.getRole()));
+        
         Page<User> userPage = userRepository.findAll(spec, pageable);
 
         List<UserSummaryResponse> userSummaries = userPage.getContent().stream()
@@ -395,6 +399,74 @@ public class UserService {
         user.setIsActive(true);
         userRepository.save(user);
         log.info("Admin unlocked user: {}", user.getEmail());
+    }
+
+    /**
+     * [ADMIN] Tạo user mới
+     */
+    @Transactional
+    public UserDetailResponse createUser(CreateUserRequest request) {
+        // Kiểm tra email đã tồn tại chưa
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new AppException(ErrorCode.EMAIL_EXISTED);
+        }
+
+        // Kiểm tra phone đã tồn tại chưa (nếu có)
+        if (request.getPhone() != null && !request.getPhone().isEmpty()) {
+            if (userRepository.existsByPhone(request.getPhone())) {
+                throw new AppException(ErrorCode.PHONE_EXISTED);
+            }
+        }
+
+        // Tạo User mới với password từ request
+        User newUser = User.builder()
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword())) // Sử dụng password từ request
+                .fullName(request.getFullName())
+                .phone(request.getPhone())
+                .role(request.getRole())
+                .authProvider("local")
+                .emailVerified(false) // Chưa verify email
+                .isActive(true) // Active ngay
+                .build();
+
+        userRepository.save(newUser);
+        log.info("Admin created new user: {} with role: {}", newUser.getEmail(), newUser.getRole());
+
+        // Tạo UserProfile với các thông tin bổ sung
+        UserProfile userProfile = UserProfile.builder()
+                .user(newUser)
+                .gender(request.getGender())
+                .address(request.getAddress())
+                .city(request.getCity())
+                .country(request.getCountry())
+                .bio(request.getBio())
+                .darkModeEnabled(false)
+                .experiencePoints(0L)
+                .currentLevel("Đồng")
+                .build();
+
+        // Parse dateOfBirth nếu có
+        if (request.getDateOfBirth() != null && !request.getDateOfBirth().isEmpty()) {
+            try {
+                java.time.LocalDate birthDate = java.time.LocalDate.parse(request.getDateOfBirth());
+                userProfile.setDateOfBirth(birthDate);
+            } catch (Exception e) {
+                log.warn("Invalid date of birth format: {}", request.getDateOfBirth());
+            }
+        } else if (request.getBirthYear() != null) {
+            // Fallback: Nếu chỉ có birthYear thì dùng 1/1/birthYear
+            try {
+                java.time.LocalDate birthDate = java.time.LocalDate.of(request.getBirthYear(), 1, 1);
+                userProfile.setDateOfBirth(birthDate);
+            } catch (Exception e) {
+                log.warn("Invalid birth year: {}", request.getBirthYear());
+            }
+        }
+
+        userProfileRepository.save(userProfile);
+
+        return userMapper.toUserDetailResponse(newUser, userProfile);
     }
 
     // ============= HELPER METHODS =============
