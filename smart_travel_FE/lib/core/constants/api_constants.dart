@@ -52,6 +52,12 @@ class ApiConstants {
   static const String getLevel = '/users/level';
   static const String updateLevel = '/users/level';
 
+  //Admin User Management
+  static const String adminUsers = '/admin/users';
+  static const String adminUserUpdate = '/admin/users/';
+  static const String adminUserLock = '/admin/users/';
+  static const String adminUserUnlock = '/admin/users/';
+
   // Invoice
   static const String invoiceActive = '/invoices/active/';
   static const String invoiceRefunded = '/invoices/refunded/';

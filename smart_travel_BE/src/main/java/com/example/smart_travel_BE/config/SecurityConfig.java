@@ -26,6 +26,7 @@ import java.util.List;
 @EnableWebSecurity
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SecurityConfig {
+
     String[] PUBLIC_ENDPOINTS = new String[]{
 
             // --- AUTH ---
@@ -72,7 +73,8 @@ public class SecurityConfig {
             "/api/v1/tours/{id}/day/{day}",
 
             // --- CHAT ---
-            "/api/v1/chat"
+            "/api/v1/chat",
+            "/api/v1/vouchers/**",
     };
 
     CustomAuthEntryPoint customAuthEntryPoint;

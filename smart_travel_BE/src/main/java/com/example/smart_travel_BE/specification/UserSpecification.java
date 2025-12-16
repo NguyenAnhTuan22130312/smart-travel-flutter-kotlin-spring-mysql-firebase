@@ -45,4 +45,22 @@ public class UserSpecification {
             return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
         };
     }
+
+    /**
+     * Lọc user theo vai trò (role)
+     * @param role vai trò cần lọc (USER hoặc ADMIN)
+     * @return Specification để build query
+     */
+    public static Specification<User> filterByRole(String role) {
+        return (root, query, criteriaBuilder) -> {
+            if (role == null || role.trim().isEmpty()) {
+                return criteriaBuilder.conjunction(); // Trả về true (không filter)
+            }
+            
+            return criteriaBuilder.equal(
+                    criteriaBuilder.upper(root.get("role")), 
+                    role.toUpperCase()
+            );
+        };
+    }
 }

@@ -10,18 +10,30 @@ import java.time.LocalDate;
 
 @Data
 public class BookingRequest {
-    @NotNull(message = "Tour ID is required")
-    private Long tourId;
+
+    // Loại đặt: "TOUR" hoặc "HOTEL"
+    @NotNull(message = "Booking type is required")
+    private String bookingType;
+
+    // --- Dành cho Tour ---
+    private Long tourId; // Có thể null nếu đặt Hotel
+
+    // --- Dành cho Hotel ---
+    private Long hotelId; // Có thể null nếu đặt Tour
+    private Integer numberOfRooms;
+
+    // --- Chung ---
     @NotNull(message = "Start date is required")
-    @FutureOrPresent(message = "Start date must be in the present or future")
+    @FutureOrPresent
     private LocalDate startDate;
 
-    @NotNull(message = "Number of people is required")
-    @Min(value = 1, message = "Must book for at least 1 person")
+    private LocalDate endDate; // Bắt buộc với Hotel, Tour thì tự tính
+
+    @NotNull
     private int numberOfPeople;
 
-    @NotNull(message = "Total price is required")
-    private BigDecimal totalPrice;
-
     private String couponCode;
+
+    // Lưu ý: Không truyền totalPrice từ FE lên để tránh hack giá.
+    // Backend tự tính based on ID.
 }

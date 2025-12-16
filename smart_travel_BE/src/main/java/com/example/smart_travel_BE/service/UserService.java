@@ -1,29 +1,45 @@
 package com.example.smart_travel_BE.service;
 
+import com.example.smart_travel_BE.dto.common.PageResponse;
 import com.example.smart_travel_BE.dto.user.request.ChangePasswordRequest;
+import com.example.smart_travel_BE.dto.user.request.CreateUserRequest;
 import com.example.smart_travel_BE.dto.user.request.DeleteAccountRequest;
 import com.example.smart_travel_BE.dto.user.request.SettingsRequest;
 import com.example.smart_travel_BE.dto.user.request.UpdateLevelRequest;
 import com.example.smart_travel_BE.dto.user.request.UpdateProfileRequest;
+import com.example.smart_travel_BE.dto.user.request.UpdateUserAdminRequest;
+import com.example.smart_travel_BE.dto.user.request.UserListRequest;
+import com.example.smart_travel_BE.dto.user.response.LevelResponse;
 import com.example.smart_travel_BE.dto.user.response.ProfileResponse;
 import com.example.smart_travel_BE.dto.user.response.SettingsResponse;
-import com.example.smart_travel_BE.dto.user.response.LevelResponse;
+import com.example.smart_travel_BE.dto.user.response.UserDetailResponse;
+import com.example.smart_travel_BE.dto.user.response.UserSummaryResponse;
 import com.example.smart_travel_BE.entity.User;
 import com.example.smart_travel_BE.entity.UserProfile;
 import com.example.smart_travel_BE.exception.AppException;
 import com.example.smart_travel_BE.exception.ErrorCode;
+import com.example.smart_travel_BE.mapper.UserMapper;
 import com.example.smart_travel_BE.repository.BookingRepository;
 import com.example.smart_travel_BE.repository.EmailVerificationTokenRepository;
 import com.example.smart_travel_BE.repository.RefreshTokenRepository;
 import com.example.smart_travel_BE.repository.UserProfileRepository;
 import com.example.smart_travel_BE.repository.UserRepository;
+import com.example.smart_travel_BE.specification.UserSpecification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +51,7 @@ public class UserService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
     private static final LevelTier[] LEVEL_TIERS = new LevelTier[]{
             new LevelTier("Đồng", 0L, 1000L),
@@ -269,6 +286,190 @@ public class UserService {
         userRepository.delete(currentUser);
         log.info("Account permanently deleted for user: {}", currentUser.getEmail());
     }
+
+    // ============= ADMIN METHODS =============
+
+    /**
+     * [ADMIN] Lấy danh sách users với pagination và tìm kiếm
+     */
+    public PageResponse<UserSummaryResponse> getAllUsers(UserListRequest request) {
+        Sort sort = Sort.by(
+                "DESC".equalsIgnoreCase(request.getSortDirection())
+                        ? Sort.Direction.DESC
+                        : Sort.Direction.ASC,
+                request.getSortBy()
+        );
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
+
+        Specification<User> spec = Specification
+                .where(UserSpecification.searchByKeyword(request.getSearchKeyword()))
+                .and(UserSpecification.filterByRole(request.getRole()));
+        
+        Page<User> userPage = userRepository.findAll(spec, pageable);
+
+        List<UserSummaryResponse> userSummaries = userPage.getContent().stream()
+                .map(user -> {
+                    UserProfile userProfile = userProfileRepository.findByUser(user).orElse(null);
+                    return userMapper.toUserSummaryResponse(user, userProfile);
+                })
+                .collect(Collectors.toList());
+
+        return PageResponse.<UserSummaryResponse>builder()
+                .content(userSummaries)
+                .currentPage(userPage.getNumber())
+                .totalPages(userPage.getTotalPages())
+                .totalElements(userPage.getTotalElements())
+                .pageSize(userPage.getSize())
+                .hasNext(userPage.hasNext())
+                .hasPrevious(userPage.hasPrevious())
+                .build();
+    }
+
+    /**
+     * [ADMIN] Lấy thông tin chi tiết một user
+     */
+    public UserDetailResponse getUserDetail(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        UserProfile userProfile = userProfileRepository.findByUser(user).orElse(null);
+        return userMapper.toUserDetailResponse(user, userProfile);
+    }
+
+    /**
+     * [ADMIN] Cập nhật thông tin user
+     */
+    @Transactional
+    public UserDetailResponse updateUser(Long userId, UpdateUserAdminRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (request.getFullName() != null && !request.getFullName().trim().isEmpty()) {
+            user.setFullName(request.getFullName());
+        }
+
+        if (request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
+            if (userRepository.existsByPhone(request.getPhone())
+                    && !request.getPhone().equals(user.getPhone())) {
+                throw new AppException(ErrorCode.PHONE_EXISTED);
+            }
+            user.setPhone(request.getPhone());
+        }
+
+        if (request.getRole() != null && !request.getRole().trim().isEmpty()) {
+            user.setRole(request.getRole());
+        }
+
+        userRepository.save(user);
+        log.info("Admin updated user: {}", user.getEmail());
+
+        UserProfile userProfile = userProfileRepository.findByUser(user).orElse(null);
+        return userMapper.toUserDetailResponse(user, userProfile);
+    }
+
+    /**
+     * [ADMIN] Khóa tài khoản user
+     */
+    @Transactional
+    public void lockUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (!user.getIsActive()) {
+            throw new AppException(ErrorCode.USER_ALREADY_LOCKED);
+        }
+
+        user.setIsActive(false);
+        userRepository.save(user);
+        log.info("Admin locked user: {}", user.getEmail());
+    }
+
+    /**
+     * [ADMIN] Mở khóa tài khoản user
+     */
+    @Transactional
+    public void unlockUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (user.getIsActive()) {
+            throw new AppException(ErrorCode.USER_ALREADY_UNLOCKED);
+        }
+
+        user.setIsActive(true);
+        userRepository.save(user);
+        log.info("Admin unlocked user: {}", user.getEmail());
+    }
+
+    /**
+     * [ADMIN] Tạo user mới
+     */
+    @Transactional
+    public UserDetailResponse createUser(CreateUserRequest request) {
+        // Kiểm tra email đã tồn tại chưa
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new AppException(ErrorCode.EMAIL_EXISTED);
+        }
+
+        // Kiểm tra phone đã tồn tại chưa (nếu có)
+        if (request.getPhone() != null && !request.getPhone().isEmpty()) {
+            if (userRepository.existsByPhone(request.getPhone())) {
+                throw new AppException(ErrorCode.PHONE_EXISTED);
+            }
+        }
+
+        // Tạo User mới với password từ request
+        User newUser = User.builder()
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword())) // Sử dụng password từ request
+                .fullName(request.getFullName())
+                .phone(request.getPhone())
+                .role(request.getRole())
+                .authProvider("local")
+                .emailVerified(false) // Chưa verify email
+                .isActive(true) // Active ngay
+                .build();
+
+        userRepository.save(newUser);
+        log.info("Admin created new user: {} with role: {}", newUser.getEmail(), newUser.getRole());
+
+        // Tạo UserProfile với các thông tin bổ sung
+        UserProfile userProfile = UserProfile.builder()
+                .user(newUser)
+                .gender(request.getGender())
+                .address(request.getAddress())
+                .city(request.getCity())
+                .country(request.getCountry())
+                .bio(request.getBio())
+                .darkModeEnabled(false)
+                .experiencePoints(0L)
+                .currentLevel("Đồng")
+                .build();
+
+        // Parse dateOfBirth nếu có
+        if (request.getDateOfBirth() != null && !request.getDateOfBirth().isEmpty()) {
+            try {
+                java.time.LocalDate birthDate = java.time.LocalDate.parse(request.getDateOfBirth());
+                userProfile.setDateOfBirth(birthDate);
+            } catch (Exception e) {
+                log.warn("Invalid date of birth format: {}", request.getDateOfBirth());
+            }
+        } else if (request.getBirthYear() != null) {
+            // Fallback: Nếu chỉ có birthYear thì dùng 1/1/birthYear
+            try {
+                java.time.LocalDate birthDate = java.time.LocalDate.of(request.getBirthYear(), 1, 1);
+                userProfile.setDateOfBirth(birthDate);
+            } catch (Exception e) {
+                log.warn("Invalid birth year: {}", request.getBirthYear());
+            }
+        }
+
+        userProfileRepository.save(userProfile);
+
+        return userMapper.toUserDetailResponse(newUser, userProfile);
+    }
+
+    // ============= HELPER METHODS =============
 
     /**
      * Lấy user hiện tại từ SecurityContext

@@ -1,12 +1,13 @@
 import 'package:smart_travel/domain/entities/destination_image.dart';
 import 'package:smart_travel/domain/entities/hotel.dart';
+import 'package:smart_travel/domain/entities/province.dart';
 import 'package:smart_travel/domain/entities/review.dart';
 import 'package:smart_travel/domain/entities/tour.dart';
 
 class DestinationEntity {
-  final int? id;
+  final int id;
   final String name;
-  final String province;
+  final ProvinceEntity? province;
   final String? description;
   final String? category;
   final double? latitude;
@@ -30,7 +31,7 @@ class DestinationEntity {
 
 
   DestinationEntity({
-    this.id,
+    required this.id,
     required this.name,
     required this.province,
     this.description,

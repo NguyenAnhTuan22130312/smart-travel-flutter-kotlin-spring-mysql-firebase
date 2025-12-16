@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,25 +50,70 @@ public class TourService {
     }
 
     /**
-     * Lọc tours theo filter request
+     * Lọc tours theo filter request, sort
      */
-    public Page<TourResponse> filterTours(TourFilterRequest req) {
-        int page = req.getPage() != null ? req.getPage() : 0;
-        int size = req.getSize() != null ? req.getSize() : 10;
-        Sort sort = Sort.by(Sort.Direction.fromString(Optional.ofNullable(req.getSortDir()).orElse("asc")), Optional.ofNullable(req.getSortBy()).orElse("pricePerPerson"));
-        Pageable pageable = PageRequest.of(page, size, sort);
+    public Page<TourResponse> filterTours(
+            String keyword,
+            Double minPrice,
+            Double maxPrice,
+            Integer minDays,
+            Integer maxDays,
+            Integer minPeople,
+            Double minRating,
+            String sort,
+            int page,
+            int size
+    ) {
 
-        Map<String, Object> filterMap = new HashMap<>();
-        if (req.getDestinationId() != null) filterMap.put("destinationId", req.getDestinationId());
-        if (req.getMinPrice() != null) filterMap.put("minPrice", req.getMinPrice());
-        if (req.getMaxPrice() != null) filterMap.put("maxPrice", req.getMaxPrice());
-        if (req.getMinDays() != null) filterMap.put("minDays", req.getMinDays());
-        if (req.getMaxDays() != null) filterMap.put("maxDays", req.getMaxDays());
-        filterMap.put("isActive", true);
+        // BUILD SPEC
+        Specification<Tour> spec = Specification.where(TourSpecification.nameContains(keyword))
+                .and(TourSpecification.priceBetween(minPrice, maxPrice))
+                .and(TourSpecification.daysBetween(minDays, maxDays))
+                .and(TourSpecification.peopleMin(minPeople))
+                .and(TourSpecification.ratingMin(minRating));
 
-        var spec = TourSpecification.filter(filterMap);
-        Page<Tour> pageRes = tourRepository.findAll(spec, pageable);
-        return pageRes.map(tourMapper::toSummary);
+        Sort sortOption = Sort.by(Sort.Direction.DESC, "updatedAt")
+                .and(Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        if (sort != null) {
+            switch (sort) {
+
+                case "price_asc":
+                    sortOption = Sort.by(Sort.Direction.ASC, "pricePerPerson");
+                    break;
+
+                case "price_desc":
+                    sortOption = Sort.by(Sort.Direction.DESC, "pricePerPerson");
+                    break;
+
+                case "rating_desc":
+                    sortOption = Sort.by(Sort.Direction.DESC, "averageRating");
+                    break;
+
+                case "popular_desc":
+                    sortOption = Sort.by(Sort.Direction.DESC, "bookingCount");
+                    break;
+
+                case "newest":
+                    sortOption = Sort.by(Sort.Direction.DESC, "updatedAt")
+                            .and(Sort.by(Sort.Direction.DESC, "createdAt"));
+                    break;
+
+                case "oldest":
+                    sortOption = Sort.by(Sort.Direction.ASC, "createdAt");
+                    break;
+            }
+        }
+        Pageable pageable = PageRequest.of(page, size, sortOption);
+
+        try {
+            Page<Tour> tours = tourRepository.findAll(spec, pageable);
+            return tours.map(tourMapper::toSummary);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+
     }
 
     /**

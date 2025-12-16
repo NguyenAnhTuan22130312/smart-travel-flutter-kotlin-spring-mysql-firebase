@@ -1,17 +1,29 @@
-import 'package:smart_travel/domain/entities/tour_detail.dart';
+import 'package:equatable/equatable.dart';
+import 'package:smart_travel/domain/entities/tour.dart';
 
-class TourState {
+class TourState extends Equatable {
   final bool loading;
-  final TourDetail? detail;
+  final List<Tour> tours;
   final String? error;
 
-  TourState({this.loading = false, this.detail, this.error});
+  const TourState({
+    this.loading = false,
+    this.tours = const [],
+    this.error,
+  });
 
-  TourState copyWith({bool? loading, TourDetail? detail, String? error}) {
+  TourState copyWith({
+    bool? loading,
+    List<Tour>? tours,
+    String? error,
+  }) {
     return TourState(
       loading: loading ?? this.loading,
-      detail: detail ?? this.detail,
+      tours: tours ?? this.tours,
       error: error,
     );
   }
+
+  @override
+  List<Object?> get props => [loading, tours, error];
 }
