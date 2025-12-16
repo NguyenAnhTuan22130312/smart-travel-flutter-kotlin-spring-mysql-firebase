@@ -16,44 +16,45 @@ class _CustomCategoryState extends State<CustomCategory> {
   // Danh mục du lịch
   final List<Map<String, dynamic>> _categories = [
     {
-      'id': 'ALL',
+      'id': 'Tất cả',
       'icon': Icons.all_inclusive,
       'label': 'Tất cả',
       'gradient': [AppColors.primary, AppColors.green],
     },
     {
-      'id': 'BEACH',
+      'id': 'Biển',
       'icon': Icons.beach_access,
       'label': 'Biển',
       'gradient': [AppColors.primary, AppColors.green],
     },
+
     {
-      'id': 'MOUNTAIN',
-      'icon': Icons.terrain,
-      'label': 'Núi',
-      'gradient': [AppColors.primary, AppColors.green],
-    },
-    {
-      'id': 'CULTURE',
+      'id': 'Văn hóa',
       'icon': Icons.temple_buddhist,
       'label': 'Văn hóa',
       'gradient': [AppColors.primary, AppColors.green],
     },
     {
-      'id': 'CITY',
-      'icon': Icons.location_city,
-      'label': 'Thành phố',
-      'gradient': [AppColors.primary, AppColors.green],
-    },
-    {
-      'id': 'NATURE',
+      'id': 'Thiên nhiên',
       'icon': Icons.landscape,
       'label': 'Thiên nhiên',
       'gradient': [AppColors.primary, AppColors.green],
     },
+    {
+      'id': 'Gải trí',
+      'icon': Icons.fitness_center,
+      'label': 'Gải trí',
+      'gradient': [AppColors.primary, AppColors.green],
+    },
+    {
+      'id': 'Thể thao',
+      'icon': Icons.sports_gymnastics,
+      'label': 'Thể thao',
+      'gradient': [AppColors.primary, AppColors.green],
+    },
   ];
 
-  String _selectedCategory = 'ALL';
+  String _selectedCategory = 'Tất cả';
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +77,7 @@ class _CustomCategoryState extends State<CustomCategory> {
                 });
 
                 //Nếu có DestinationBloc, kích hoạt filter
-                if (category['id'] == 'ALL') {
+                if (category['id'] == 'Tất cả') {
                   context.read<DestinationBloc>().add(LoadAllDestinations());
                 } else {
                   context

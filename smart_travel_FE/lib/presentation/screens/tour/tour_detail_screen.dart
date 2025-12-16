@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:smart_travel/presentation/blocs/tour/tour_bloc.dart';
-import 'package:smart_travel/presentation/blocs/tour/tour_event.dart';
-import 'package:smart_travel/presentation/blocs/tour/tour_state.dart';
+import '../../theme/app_colors.dart';
+import 'package:smart_travel/presentation/blocs/tour/tour_detail_bloc.dart';
+import 'package:smart_travel/presentation/blocs/tour/tour_detail_event.dart';
+import 'package:smart_travel/presentation/blocs/tour/tour_detail_state.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_args.dart';
 
@@ -22,13 +23,13 @@ class _TourDetailScreenState extends State<TourDetailScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<TourBloc>().add(LoadTourDetail(widget.tourId));
+    context.read<TourDetailBloc>().add(LoadTourDetail(widget.tourId));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<TourBloc, TourState>(
+      body: BlocBuilder<TourDetailBloc, TourDetailState>(
         builder: (context, state) {
           if (state.loading) {
             return const Center(child: CircularProgressIndicator());
@@ -47,14 +48,34 @@ class _TourDetailScreenState extends State<TourDetailScreen> {
                 child: CustomScrollView(
                   slivers: [
                     SliverAppBar(
-                      expandedHeight: 240,
+                      expandedHeight: 200,
                       pinned: true,
+                      leading: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: CircleAvatar(
+                          backgroundColor: Colors.white,
+                          child: IconButton(
+                            icon: const Icon(Icons.arrow_back, color: Colors.black),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ),
+                      ),
                       flexibleSpace: FlexibleSpaceBar(
-                        title: Text(t.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        title: Text(
+                          t.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.black,
+                          ),
+                        ),
                         background: Image.network(
                           t.imageUrls.isNotEmpty ? t.imageUrls.first : "",
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(color: Colors.grey),
+                          errorBuilder: (_, __, ___) =>
+                              Container(color: Colors.grey),
                         ),
                       ),
                     ),
@@ -120,11 +141,11 @@ class _TourDetailScreenState extends State<TourDetailScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Color(0xFF2196F3),
                   ),
                   child: const Text(
                     "Đặt tour ngay",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFFFFFFF)),
                   ),
                 ),
               ),
@@ -156,7 +177,7 @@ class _TourDetailScreenState extends State<TourDetailScreen> {
         ExpansionPanel(
           isExpanded: expand,
           headerBuilder: (_, __) => const Padding(
-            padding: EdgeInsets.all(12),
+            padding: EdgeInsets.all(9),
             child: Text("Lịch trình chi tiết",
                 style: TextStyle(fontWeight: FontWeight.bold)),
           ),

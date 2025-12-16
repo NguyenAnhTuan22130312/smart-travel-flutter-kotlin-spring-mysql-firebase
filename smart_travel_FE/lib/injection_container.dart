@@ -26,10 +26,13 @@ import 'package:smart_travel/domain/usecases/auth/forgot_password_use_case.dart'
 import 'package:smart_travel/domain/usecases/auth/google_login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/register_use_case.dart';
+import 'package:smart_travel/domain/usecases/destination/add_destination_use_case.dart';
+import 'package:smart_travel/domain/usecases/destination/delete_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/filter_destinations_by_category_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_featured_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_detail_destination_use_case.dart';
+import 'package:smart_travel/domain/usecases/destination/update_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/get_hotels_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/hotel_detail_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/add_province_use_case.dart';
@@ -38,9 +41,24 @@ import 'package:smart_travel/domain/usecases/province/get_all_province_use_case.
 import 'package:smart_travel/domain/usecases/province/province_detail_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/update_province_use_case.dart';
 import 'package:smart_travel/domain/usecases/user/get_profile_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/update_profile_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/change_password_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/get_settings_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/update_settings_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/get_level_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/delete_account_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/logout_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/get_user_list.dart';
+import 'package:smart_travel/domain/usecases/user/create_user_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/update_user_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/lock_user_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/unlock_user_usecase.dart';
+
+import 'package:smart_travel/presentation/blocs/admin_user/admin_user_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/chat/chat_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
@@ -64,8 +82,10 @@ import 'package:smart_travel/domain/usecases/booking/create_booking_usecase.dart
 import 'package:smart_travel/data/data_sources/remote/tour_remote_data_source.dart';
 import 'package:smart_travel/data/repositories/tour_repository_impl.dart';
 import 'package:smart_travel/domain/repositories/tour_repository.dart';
+import 'package:smart_travel/presentation/blocs/tour/tour_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/tour/tour_bloc.dart';
 import 'package:smart_travel/domain/usecases/tour/get_tour_detail_usecase.dart';
+import 'package:smart_travel/domain/usecases/tour/filter_tour_usecase.dart';
 
 import 'data/repositories/chat_repository_impl.dart';
 
@@ -90,47 +110,45 @@ Future<void> init() async {
 
   //PHẦN QUAN TRỌNG: DioClient TRƯỚC AuthRepository
   // Lý do: AuthRepository sẽ dùng DioClient
-  sl.registerLazySingleton<DioClient>(
-        () => DioClient(storage: sl()),
-  );
+  sl.registerLazySingleton<DioClient>(() => DioClient(storage: sl()));
 
   //Local data sources
   sl.registerLazySingleton<AuthLocalDataSource>(
-        () => AuthLocalDataSourceImpl(storage: sl()),
+    () => AuthLocalDataSourceImpl(storage: sl()),
   );
 
   //Remote data sources (dùng DioClient đã register)
   sl.registerLazySingleton<AuthDataSource>(
-        () => AuthRemoteDataSourceImpl(dio: sl<DioClient>()),
+    () => AuthRemoteDataSourceImpl(dio: sl<DioClient>()),
   );
 
   sl.registerLazySingleton<DestinationDataSource>(
-        () => DestinationDataSourceImpl(client: sl()),
+    () => DestinationDataSourceImpl(client: sl()),
   );
 
   sl.registerLazySingleton<ProvinceDataSource>(
-        () => ProvinceDataSourceImpl(sl<AuthLocalDataSource>(), dioClient: sl()),
+    () => ProvinceDataSourceImpl(sl<AuthLocalDataSource>(), dioClient: sl()),
   );
 
   sl.registerLazySingleton<HotelDataSource>(
-        () => HotelDataSourceImpl(client: sl()),
+    () => HotelDataSourceImpl(client: sl()),
   );
 
   sl.registerLazySingleton<TourRemoteDataSource>(
-        () => TourRemoteDataSourceImpl(client: sl()),
+    () => TourRemoteDataSourceImpl(client: sl()),
   );
 
   sl.registerLazySingleton<UserRemoteDataSource>(
-        () => UserRemoteDataSourceImpl(dioClient: sl()),
+    () => UserRemoteDataSourceImpl(dioClient: sl()),
   );
 
   sl.registerLazySingleton<BookingDataSource>(
-        () => BookingDataSourceImpl(client: sl()),
+    () => BookingDataSourceImpl(client: sl()),
   );
 
   // Repositories (sau khi data sources sẵn sàng)
   sl.registerLazySingleton<AuthRepository>(
-        () => AuthRepositoryImpl(
+    () => AuthRepositoryImpl(
       dataSource: sl(),
       networkInfo: sl(),
       localDataSource: sl(),
@@ -141,49 +159,38 @@ Future<void> init() async {
   );
 
   sl.registerLazySingleton<DestinationRepository>(
-        () => DestinationRepositoryImpl(
+    () => DestinationRepositoryImpl(
       destinationDataSource: sl(),
       networkInfo: sl(),
     ),
   );
 
   sl.registerLazySingleton<ProvinceRepository>(
-        () => ProvinceRepositoryImpl(
-      provinceDataSource: sl(),
-      networkInfo: sl(),
-    ),
+    () => ProvinceRepositoryImpl(provinceDataSource: sl(), networkInfo: sl()),
   );
 
   sl.registerLazySingleton<HotelRepository>(
-        () => HotelRepositoryImpl(
-      hotelDataSource: sl(),
-      networkInfo: sl(),
-    ),
+    () => HotelRepositoryImpl(hotelDataSource: sl(), networkInfo: sl()),
   );
 
   sl.registerLazySingleton<UserRepository>(
-        () => UserRepositoryImpl(
-      remoteDataSource: sl(),
-      localStorage: sl(),
-    ),
+    () => UserRepositoryImpl(remoteDataSource: sl(), localStorage: sl()),
   );
 
-  sl.registerLazySingleton<TourRepository>(
-        () => TourRepositoryImpl(sl()),
-  );
+  sl.registerLazySingleton<TourRepository>(() => TourRepositoryImpl(sl()));
 
   sl.registerLazySingleton<BookingRepository>(
-        () => BookingRepositoryImpl(
-      bookingDataSource: sl(),
-      networkInfo: sl(),
-    ),
+    () => BookingRepositoryImpl(bookingDataSource: sl(), networkInfo: sl()),
   );
 
+  //Bloc tour
+  sl.registerFactory(
+        () => TourDetailBloc(sl()),
+  );
+  sl.registerLazySingleton(() => FilterToursUseCase(sl()));
+  // auth
   sl.registerLazySingleton<PaymentRepository>(
-        () => PaymentRepositoryImpl(
-      dioClient: sl(),
-      networkInfo: sl(),
-    ),
+    () => PaymentRepositoryImpl(dioClient: sl(), networkInfo: sl()),
   );
 
   // Thêm TokenRefreshInterceptor SAU khi AuthRepository ready
@@ -203,6 +210,9 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetAllDestinationsUseCase(sl()));
   sl.registerLazySingleton(() => FilterDestinationsByCategoryUseCase(sl()));
   sl.registerLazySingleton(() => GetDetailDestinationUseCase(sl()));
+  sl.registerLazySingleton(() => AddDestinationUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateDestinationUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteDestinationUseCase(sl()));
 
   sl.registerLazySingleton(() => GetAllProvinceUseCase(sl()));
   sl.registerLazySingleton(() => ProvinceDetailUseCase(sl()));
@@ -214,7 +224,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetHotelsUseCase(sl()));
 
   sl.registerLazySingleton<GetTourDetailUseCase>(
-        () => GetTourDetailUseCase(sl()),
+    () => GetTourDetailUseCase(sl()),
   );
 
   sl.registerLazySingleton(() => GetProfileUseCase(sl()));
@@ -225,18 +235,21 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetLevelUseCase(sl()));
   sl.registerLazySingleton(() => DeleteAccountUseCase(sl()));
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
+  sl.registerLazySingleton(() => GetUserList(repository: sl()));
+  sl.registerLazySingleton(() => CreateUser(repository: sl()));
+  sl.registerLazySingleton(() => UpdateUser(sl()));
+  sl.registerLazySingleton(() => LockUser(sl()));
+  sl.registerLazySingleton(() => UnlockUser(sl()));
 
   sl.registerLazySingleton(() => CreateBookingUseCase(sl()));
   sl.registerLazySingleton(() => ProcessPaymentUseCase(sl()));
   sl.registerLazySingleton(() => ConfirmCashBookingUseCase(sl()));
 
-  sl.registerLazySingleton<ImageUploadService>(
-        () => ImageUploadService(sl()),
-  );
+  sl.registerLazySingleton<ImageUploadService>(() => ImageUploadService(sl()));
 
-  //BLOCs (cuối cùng)
+  //BLOCs
   sl.registerFactory(
-        () => AuthBloc(
+    () => AuthBloc(
       registerUser: sl(),
       loginUseCase: sl(),
       authLocalDataSource: sl(),
@@ -251,16 +264,21 @@ Future<void> init() async {
   sl.registerFactory(() => ChatBloc(sl()));
 
   sl.registerFactory(
-        () => DestinationBloc(
+    () => DestinationBloc(
       destinationFeaturedUseCase: sl(),
       getAllDestinationUseCase: sl(),
       filterByCategoryUseCase: sl(),
-      getDetailDestinationUseCase: sl(),
+      addDestinationUseCase: sl(),
+      updateDestinationUseCase: sl(),
+      deleteDestinationUseCase: sl(),
     ),
+  );
+  sl.registerFactory(
+    () => DestinationDetailBloc(getDetailDestinationUseCase: sl()),
   );
 
   sl.registerFactory(
-        () => ProvinceBloc(
+    () => ProvinceBloc(
       getAllProvinceUseCase: sl(),
       addProvinceUseCase: sl(),
       updateProvinceUseCase: sl(),
@@ -268,20 +286,14 @@ Future<void> init() async {
     ),
   );
 
-  sl.registerFactory(
-        () => ProvinceDetailBloc(provinceDetailUseCase: sl()),
-  );
+  sl.registerFactory(() => ProvinceDetailBloc(provinceDetailUseCase: sl()));
+
+  sl.registerFactory(() => HotelDetailBloc(hotelDetailUseCase: sl()));
+
+  sl.registerFactory(() => HotelBloc(getHotelsUseCase: sl()));
 
   sl.registerFactory(
-        () => HotelDetailBloc(hotelDetailUseCase: sl()),
-  );
-
-  sl.registerFactory(
-        () => HotelBloc(getHotelsUseCase: sl()),
-  );
-
-  sl.registerFactory(
-        () => ProfileBloc(
+    () => ProfileBloc(
       getProfileUseCase: sl(),
       updateProfileUseCase: sl(),
       changePasswordUseCase: sl(),
@@ -293,16 +305,22 @@ Future<void> init() async {
     ),
   );
 
-  sl.registerFactory(
-        () => TourBloc(sl()),
-  );
+  sl.registerFactory(() => TourBloc(sl()));
 
   sl.registerFactory(
-        () => BookingBloc(createBookingUseCase: sl()),
+    () => AdminUserBloc(
+      getUserList: sl(),
+      createUser: sl(),
+      updateUser: sl(),
+      lockUser: sl(),
+      unlockUser: sl(),
+    ),
   );
 
+  sl.registerFactory(() => BookingBloc(createBookingUseCase: sl()));
+
   sl.registerFactory(
-        () => PaymentBloc(
+    () => PaymentBloc(
       processPaymentUseCase: sl(),
       confirmCashBookingUseCase: sl(),
     ),

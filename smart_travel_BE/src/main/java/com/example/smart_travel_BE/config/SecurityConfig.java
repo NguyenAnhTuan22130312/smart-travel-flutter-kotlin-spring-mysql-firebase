@@ -26,6 +26,7 @@ import java.util.List;
 @EnableWebSecurity
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SecurityConfig {
+
     String[] PUBLIC_ENDPOINTS = new String[]{
 
             // --- AUTH ---

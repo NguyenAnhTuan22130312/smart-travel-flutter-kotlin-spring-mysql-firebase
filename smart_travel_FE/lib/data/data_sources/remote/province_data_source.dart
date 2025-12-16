@@ -20,7 +20,7 @@ abstract class ProvinceDataSource {
   /// Thêm tỉnh thành
   Future<ProvinceModal> addProvince(ProvinceAddRequest req, XFile? imageXFile);
 
-  /// Thêm tỉnh thành
+  /// Cập nhật tỉnh thành
   Future<ProvinceModal> updateProvince(int provinceId, ProvinceUpdateRequest req, XFile? imageXFile);
 
   ///Xem tỉnh thành chi tiết
@@ -28,6 +28,7 @@ abstract class ProvinceDataSource {
 
   ///Xóa tỉnh thành
   Future<String> deleteProvince(int provinceId);
+
 }
 
 class ProvinceDataSourceImpl implements ProvinceDataSource {
