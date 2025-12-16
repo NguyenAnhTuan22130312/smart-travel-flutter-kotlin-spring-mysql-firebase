@@ -14,6 +14,8 @@ import '../../theme/app_colors.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_args.dart';
 
+import '../invoice/my_invoices_screen.dart';
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
 
@@ -219,6 +221,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     LoadProfile(),
                                   );
                                 }
+                              },
+                            ),
+                            // 2. ĐẶT CHỖ CỦA TÔI – MỚI THÊM (ngay dưới Hồ sơ)
+                            ProfileMenuItemWidget(
+                              icon: Icons.receipt_long_outlined, // Icon đẹp, giống Traveloka
+                              title: AppLocalizations.of(context)!.myInvoices, // Bạn có thể đổi thành AppLocalizations sau
+                              // title: AppLocalizations.of(context)!.myTrips, // ← khuyến khích thêm vào file .arb
+                              iconColor: AppColors.primary,
+                              onTap: () {
+                                // Điều hướng tới màn hình My Trips (sẽ tạo ngay sau)
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const MyInvoicesScreen(), // ← File mình sẽ tạo tiếp
+                                  ),
+                                );
                               },
                             ),
                           ],
