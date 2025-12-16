@@ -123,7 +123,13 @@
   "pleaseConfirmNewPassword": "Vui lòng xác nhận mật khẩu mới",
   "confirmNotMatch": "Mật khẩu xác nhận không khớp",
   "changePasswordButton": "Đổi mật khẩu",
-  "changingPassword": "Đang đổi mật khẩu..."
-  ,
+  "changingPassword": "Đang đổi mật khẩu...",
+
+  "myInvoices": "Đặt chỗ của tôi",
+  "upcoming": "Sắp tới",
+  "completed": "Đã hoàn thành",
+  "cancelled": "Đã hủy",
+  "noInvoices": "Bạn chưa có đặt chỗ nào",
+
   "errorLoadLevel": "Không thể tải thông tin cấp bậc"
 }

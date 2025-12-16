@@ -52,6 +52,17 @@ class ApiConstants {
   static const String getLevel = '/users/level';
   static const String updateLevel = '/users/level';
 
+  // Invoice
+  static const String invoiceActive = '/invoices/active/';
+  static const String invoiceRefunded = '/invoices/refunded/';
+  static const String invoiceReviewable = '/invoices/reviewable/';
+  static const String invoiceDetail = '/invoices/detail/';
+  static const String invoiceActiveSearch = '/invoices/active/search/';
+  static const String invoiceRefundedSearch = '/invoices/refunded/search/';
+  static const String invoiceHistory = '/invoices/history/';
+  static const String invoiceRefund = '/invoices/refund/';
+
+
 
   // Timeout
   static const Duration connectionTimeout = Duration(seconds: 30);
