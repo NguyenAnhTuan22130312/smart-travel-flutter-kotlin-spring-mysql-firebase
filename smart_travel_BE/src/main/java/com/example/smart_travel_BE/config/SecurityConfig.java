@@ -73,7 +73,8 @@ public class SecurityConfig {
             "/api/v1/tours/{id}/day/{day}",
 
             // --- CHAT ---
-            "/api/v1/chat"
+            "/api/v1/chat",
+            "/api/v1/vouchers/**",
     };
 
     CustomAuthEntryPoint customAuthEntryPoint;

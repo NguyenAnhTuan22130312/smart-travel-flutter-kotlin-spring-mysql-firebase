@@ -56,6 +56,7 @@ import 'package:smart_travel/domain/usecases/user/unlock_user_usecase.dart';
 
 import 'package:smart_travel/presentation/blocs/admin_user/admin_user_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
+import 'package:smart_travel/presentation/blocs/chat/chat_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
@@ -85,6 +86,8 @@ import 'package:smart_travel/presentation/blocs/tour/tour_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/tour/tour_bloc.dart';
 import 'package:smart_travel/domain/usecases/tour/get_tour_detail_usecase.dart';
 import 'package:smart_travel/domain/usecases/tour/filter_tour_usecase.dart';
+
+import 'data/repositories/chat_repository_impl.dart';
 
 final sl = GetIt.instance;
 
@@ -255,6 +258,10 @@ Future<void> init() async {
       facebookLoginUseCase: sl(),
     ),
   );
+
+  // Chat
+  sl.registerLazySingleton(() => ChatRepository(sl()));
+  sl.registerFactory(() => ChatBloc(sl()));
 
   sl.registerFactory(
     () => DestinationBloc(

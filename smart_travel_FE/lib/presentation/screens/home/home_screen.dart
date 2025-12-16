@@ -16,7 +16,7 @@ import 'package:smart_travel/presentation/screens/tour/tour_list_screen.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_args.dart';
 import '../../theme/app_colors.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
+import 'package:smart_travel/presentation/screens/chat/ai_chat_screen.dart';
 
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
@@ -63,9 +63,20 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     // 3. Trường hợp chuyển đổi giữa các tab chính (0, 1, 4, 5)
     } else if (index == 4) {
-      // Navigate to Profile screen
-      Navigator.pushNamed(context, '/profile');
-    } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AIChatScreen()),
+        );
+        // Không cần return nếu bạn muốn tab bar ở dưới sáng lên icon chat
+        // Nhưng thường Chat sẽ mở ra màn hình riêng, nên return để giữ tab cũ cũng được.
+        return;
+      }
+
+      // 4. Profile (Index 5) - SỬA LẠI INDEX CHO ĐÚNG
+      else if (index == 5) {
+        Navigator.pushNamed(context, '/profile');
+        return;
+      } else {
       if (index == _selectedIndex) {
         return; // Tránh điều hướng lại nếu chọn lại tab đang active
       }
@@ -254,7 +265,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return SliverToBoxAdapter(
       child: GestureDetector(
         onTap: () {
-          // TODO: Navigate to AI chat screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AIChatScreen()),
+          );
         },
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
