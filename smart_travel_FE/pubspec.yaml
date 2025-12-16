@@ -62,6 +62,10 @@ dependencies:
     sdk: flutter
 
 
+  # --- AI CHAT DISPLAY (Thêm mới) ---
+  flutter_markdown: ^0.6.14
+
+
   fl_chart: ^0.68.0
   flutter_screenutil: ^5.9.0
   google_fonts: ^6.1.0
