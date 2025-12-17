@@ -121,37 +121,12 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/login/admin")
-    public ResponseEntity<APIResponse<LoginResponse>> loginAdmin(
-            @RequestBody LoginRequest request) {
-
-        LoginResponse authResponse = authService.loginAdmin(request);
-
-        // Tạo cookie
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", authResponse.getRefreshToken())
-                .httpOnly(true)
-                .secure(false) // Bật nếu dùng HTTPS
-                .path("/")
-                .maxAge(7 * 24 * 60 * 60) // 7 ngày
-                .sameSite("None")
-                .build();
-
-        // Gắn cookie vào header
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                .body(APIResponse.<LoginResponse>builder()
-                        .data(LoginResponse.builder()
-                                .token(authResponse.getToken())
-                                .role(authResponse.getRole())
-                                .build())
-                        .build());
-    }
 
     @PostMapping("/refresh")
-    APIResponse<LoginResponse> refresh(HttpServletRequest request) {
-        log.info("req"+ request);
+    APIResponse<LoginResponse> refresh(@RequestBody RefreshTokenRequest refreshToken) {
+        log.info("req"+ refreshToken);
         return APIResponse.<LoginResponse>builder()
-                .data(authService.refreshToken(request))
+                .data(authService.refreshToken(refreshToken))
                 .build();
     }
 

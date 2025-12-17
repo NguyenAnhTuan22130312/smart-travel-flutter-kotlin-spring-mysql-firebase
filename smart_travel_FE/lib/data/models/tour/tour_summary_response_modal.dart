@@ -6,6 +6,7 @@ class TourSummaryResponse {
   final int? durationDays;
   final double pricePerPerson;
   final double? averageRating;
+  final int? reviewCount;
   final String? images; // Ảnh đầu tiên
 
   TourSummaryResponse({
@@ -14,6 +15,7 @@ class TourSummaryResponse {
     this.durationDays,
     required this.pricePerPerson,
     this.averageRating,
+    this.reviewCount,
     this.images,
   });
 
@@ -26,7 +28,8 @@ class TourSummaryResponse {
       averageRating: json['averageRating'] != null
           ? (json['averageRating'] as num).toDouble()
           : null,
-      images: json['images'] as String?,
+      reviewCount: json['reviewCount'] as int?,
+      images: json['thumbnail'] as String?,
     );
   }
 
@@ -37,6 +40,7 @@ class TourSummaryResponse {
       durationDays: durationDays,
       pricePerPerson: pricePerPerson,
       averageRating: averageRating,
+      reviewCount: reviewCount,
       image: images,
     );
   }

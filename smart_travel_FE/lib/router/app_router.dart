@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_travel/presentation/blocs/admin_user/admin_user_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/screens/admin/admin_dashboard.dart';
 import 'package:smart_travel/presentation/screens/admin/hotel/hotel_management_screen.dart';
-import 'package:smart_travel/presentation/screens/admin/province_mgt.dart';
+import 'package:smart_travel/presentation/screens/admin/destination/destination_management_screen.dart';
+import 'package:smart_travel/presentation/screens/admin/province/province_mgt.dart';
+import 'package:smart_travel/presentation/screens/admin/user/user_mgt.dart';
 import 'package:smart_travel/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:smart_travel/presentation/screens/auth/login_screen.dart';
 import 'package:smart_travel/presentation/screens/auth/register_screen.dart';
@@ -27,35 +30,36 @@ import '../injection_container.dart' as di;
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
-
-
     switch (settings.name) {
-    ///ADMIN
+      ///ADMIN
       case RouteNames.dashboard:
-        return MaterialPageRoute(
-          builder: (_) => const AdminDashboardScreen(),
-        );
+        return MaterialPageRoute(builder: (_) => const AdminDashboardScreen());
       case RouteNames.adminProvinces:
         return MaterialPageRoute(
           builder: (_) => const ProvinceManagementScreen(),
         );
-      case RouteNames.adminHotels:
+      case RouteNames.adminUsers:
         return MaterialPageRoute(
-          builder: (_) => BlocProvider(
-            create: (_) => di.sl<HotelBloc>(),
-            child: const HotelManagementScreen(),
-          ),
+          builder:
+              (_) => BlocProvider(
+                create: (_) => di.sl<AdminUserBloc>(),
+                child: const UserManagementScreen(),
+              ),
         );
-    /// USER
+
+      /// USER
+      case RouteNames.adminDestination:
+        return MaterialPageRoute(
+          builder: (_) => const DestinationManagementScreen(),
+        );
+
       case RouteNames.provinceDetail:
         return MaterialPageRoute(
           builder: (context) => ProvinceDetailScreen(),
           settings: settings,
         );
       case RouteNames.home:
-        return MaterialPageRoute(
-          builder: (_) => const HomeScreen(),
-        );
+        return MaterialPageRoute(builder: (_) => const HomeScreen());
       case RouteNames.explore:
         return MaterialPageRoute(builder: (_) => const ExploreScreen());
       case RouteNames.splashScreen:
@@ -93,9 +97,7 @@ class AppRouter {
 
       // Profile routes
       case RouteNames.profile:
-        return MaterialPageRoute(
-          builder: (context) => const ProfileScreen(),
-        );
+        return MaterialPageRoute(builder: (context) => const ProfileScreen());
       case RouteNames.editProfile:
         return MaterialPageRoute(
           builder: (context) => const EditProfileScreen(),
@@ -105,24 +107,20 @@ class AppRouter {
           builder: (context) => const ChangePasswordScreen(),
         );
       case RouteNames.settings:
-        return MaterialPageRoute(
-          builder: (context) => const SettingsScreen(),
-        );
+        return MaterialPageRoute(builder: (context) => const SettingsScreen());
       case RouteNames.accountManagement:
         return MaterialPageRoute(
           builder: (context) => const AccountManagementScreen(),
         );
       case RouteNames.userLevel:
-        return MaterialPageRoute(
-          builder: (context) => const UserLevelScreen(),
-        );
+        return MaterialPageRoute(builder: (context) => const UserLevelScreen());
       case RouteNames.tourDetail:
         final id = settings.arguments as int;
         return MaterialPageRoute(
           builder: (_) => TourDetailScreen(tourId: id),
           settings: settings,
         );
-        default:
+      default:
         return MaterialPageRoute(
           builder:
               (_) => const Scaffold(

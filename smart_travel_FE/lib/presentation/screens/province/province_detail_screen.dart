@@ -1,16 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:lottie/lottie.dart';
 import 'package:smart_travel/domain/entities/destinations.dart';
 import 'package:smart_travel/domain/entities/province.dart';
-import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/provicne_detail_bloc.dart';
-
-import 'package:smart_travel/presentation/blocs/province/province_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/province_detail_event.dart';
 import 'package:smart_travel/presentation/blocs/province/province_detail_state.dart';
-import 'package:smart_travel/presentation/blocs/province/province_event.dart';
-import 'package:smart_travel/presentation/blocs/province/province_state.dart';
 import '../../theme/app_colors.dart';
 
 class ProvinceDetailScreen extends StatefulWidget {
@@ -363,6 +361,28 @@ class _ProvinceDetailScreenState extends State<ProvinceDetailScreen> {
 
   // Province Description and Info
   Widget _buildProvinceInfo() {
+    QuillController readOnlyController;
+    try {
+      //decode JSON
+      if (_province!.description != null && _province!.description!.isNotEmpty) {
+        final jsonDesc = jsonDecode(_province!.description!);
+        readOnlyController = QuillController(
+          document: Document.fromJson(jsonDesc),
+          selection: const TextSelection.collapsed(offset: 0),
+          readOnly: true, //chỉ đọc
+        );
+      } else {
+        // Nếu null hoặc rỗng
+        readOnlyController = QuillController.basic();
+      }
+    } catch (e) {
+      // Nếu lỗi decode (do dữ liệu cũ là text thường), load như text
+      readOnlyController = QuillController(
+        document: Document()..insert(0, _province!.description ?? ''),
+        selection: const TextSelection.collapsed(offset: 0),
+        readOnly: true,
+      );
+    }
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -390,13 +410,16 @@ class _ProvinceDetailScreenState extends State<ProvinceDetailScreen> {
                   ),
                 ],
               ),
-              child: Text(
-                _province!.description ??
-                    'Không có thông tin giới thiệu về tỉnh này.',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textGray,
-                  height: 1.6,
+              child: QuillEditor.basic(
+                controller: readOnlyController, // Controller đã tạo ở trên
+                configurations: const QuillEditorConfigurations(
+                  // Cấu hình hiển thị
+                  showCursor: false,     // Ẩn con trỏ
+                  enableInteractiveSelection: false, // Tắt chọn text (tuỳ chọn)
+                  padding: EdgeInsets.zero, // Bỏ padding mặc định
+                  sharedConfigurations: QuillSharedConfigurations(
+                    locale: Locale('vi'), // Hỗ trợ tiếng Việt nếu cần
+                  ),
                 ),
               ),
             ),
@@ -532,16 +555,16 @@ class _ProvinceDetailScreenState extends State<ProvinceDetailScreen> {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          destination.category == "BEACH"
+                          destination.category == "Biển"
                               ? "Biển"
-                              : destination.category == "MOUNTAIN"
-                              ? "Núi"
-                              : destination.category == "CULTURE"
-                              ? "Văn hóa"
-                              : destination.category == "CITY"
-                              ? "Thành phố"
-                              : destination.category == "NATURE"
+                              : destination.category == "Thiên nhiên"
                               ? "Thiên nhiên"
+                              : destination.category == "Văn hóa"
+                              ? "Văn hóa"
+                              : destination.category == "Thể thao"
+                              ? "Thể thao"
+                              : destination.category == "Giải trí"
+                              ? "Giải trí"
                               : "Không xác định",
                           style: TextStyle(
                             fontSize: 12,

@@ -5,7 +5,7 @@ class AppColors {
   static const Color primary = Color(0xFF2196F3); // Blue
 
   // Màu phụ (Secondary)
-  static const Color green = Color(0xFF5BEDD2); // green
+  static const Color green = Color(0xFF38DFBD); // green
 
   //
   static const Color button = Color(0xFF23A39B); // Orange
@@ -31,8 +31,8 @@ class AppColors {
     end: Alignment.bottomRight,
     colors: [
       primary,
-      accent,
-      secondary,
+      green,
+      button,
     ],
   );
 

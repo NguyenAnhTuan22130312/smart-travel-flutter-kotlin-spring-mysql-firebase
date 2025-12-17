@@ -26,21 +26,42 @@ import 'package:smart_travel/domain/usecases/auth/forgot_password_use_case.dart'
 import 'package:smart_travel/domain/usecases/auth/google_login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/register_use_case.dart';
+import 'package:smart_travel/domain/usecases/destination/add_destination_use_case.dart';
+import 'package:smart_travel/domain/usecases/destination/delete_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/filter_destinations_by_category_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_featured_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_detail_destination_use_case.dart';
+import 'package:smart_travel/domain/usecases/destination/update_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/create_hotel_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/delete_hotel_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/get_hotels_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/hotel_detail_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/update_hotel_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/upload_hotel_images_use_case.dart';
+import 'package:smart_travel/domain/usecases/province/add_province_use_case.dart';
+import 'package:smart_travel/domain/usecases/province/delete_province_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/get_all_province_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/province_detail_use_case.dart';
+import 'package:smart_travel/domain/usecases/province/update_province_use_case.dart';
 import 'package:smart_travel/domain/usecases/user/get_profile_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/update_profile_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/change_password_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/get_settings_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/update_settings_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/get_level_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/delete_account_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/logout_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/get_user_list.dart';
+import 'package:smart_travel/domain/usecases/user/create_user_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/update_user_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/lock_user_usecase.dart';
+import 'package:smart_travel/domain/usecases/user/unlock_user_usecase.dart';
+import 'package:smart_travel/presentation/blocs/admin_user/admin_user_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
+import 'package:smart_travel/presentation/blocs/chat/chat_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
@@ -64,49 +85,175 @@ import 'package:smart_travel/domain/usecases/booking/create_booking_usecase.dart
 import 'package:smart_travel/data/data_sources/remote/tour_remote_data_source.dart';
 import 'package:smart_travel/data/repositories/tour_repository_impl.dart';
 import 'package:smart_travel/domain/repositories/tour_repository.dart';
+import 'package:smart_travel/presentation/blocs/tour/tour_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/tour/tour_bloc.dart';
 import 'package:smart_travel/domain/usecases/tour/get_tour_detail_usecase.dart';
+import 'package:smart_travel/domain/usecases/tour/filter_tour_usecase.dart';
+
+import 'data/repositories/chat_repository_impl.dart';
 
 final sl = GetIt.instance;
 
+//PHẦN ĐẦU - External & Core
 Future<void> init() async {
-  // --- BẮT ĐẦU: THÊM CÁC DỊCH VỤ BOOKING ---
-  // Bloc
-  sl.registerFactory(
-    () => BookingBloc(createBookingUseCase: sl()), // Sửa dòng này
-  );
-  // Use cases
-  sl.registerLazySingleton(() => CreateBookingUseCase(sl()));
+  //External dependencies
+  sl.registerLazySingleton(() => http.Client());
+  sl.registerLazySingleton(() => Connectivity());
+  sl.registerLazySingleton(() => FlutterSecureStorage());
+  sl.registerLazySingleton<GoogleSignIn>(() => GoogleSignIn());
+  sl.registerLazySingleton(() => Dio());
 
-  // Repository
-  sl.registerLazySingleton<BookingRepository>(
-    () => BookingRepositoryImpl(bookingDataSource: sl(), networkInfo: sl()),
+  final sharedPreferences = await SharedPreferences.getInstance();
+  sl.registerLazySingleton(() => sharedPreferences);
+
+  // Core services
+  sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
+  sl.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
+  sl.registerLazySingleton<FacebookAuth>(() => FacebookAuth.instance);
+
+  //PHẦN QUAN TRỌNG: DioClient TRƯỚC AuthRepository
+  // Lý do: AuthRepository sẽ dùng DioClient
+  sl.registerLazySingleton<DioClient>(() => DioClient(storage: sl()));
+
+  //Local data sources
+  sl.registerLazySingleton<AuthLocalDataSource>(
+    () => AuthLocalDataSourceImpl(storage: sl()),
   );
 
-  // Data sources
+  //Remote data sources (dùng DioClient đã register)
+  sl.registerLazySingleton<AuthDataSource>(
+    () => AuthRemoteDataSourceImpl(dio: sl<DioClient>()),
+  );
+
+  sl.registerLazySingleton<DestinationDataSource>(
+    () => DestinationDataSourceImpl(client: sl()),
+  );
+
+  sl.registerLazySingleton<ProvinceDataSource>(
+    () => ProvinceDataSourceImpl(sl<AuthLocalDataSource>(), dioClient: sl()),
+  );
+
+  sl.registerLazySingleton<HotelDataSource>(
+    () => HotelDataSourceImpl(client: sl()),
+  );
+  
+
+  sl.registerLazySingleton<TourRemoteDataSource>(
+    () => TourRemoteDataSourceImpl(client: sl()),
+  );
+
+  sl.registerLazySingleton<UserRemoteDataSource>(
+    () => UserRemoteDataSourceImpl(dioClient: sl()),
+  );
+
   sl.registerLazySingleton<BookingDataSource>(
     () => BookingDataSourceImpl(client: sl()),
   );
 
-  // Bloc
-  sl.registerFactory(
-    () => PaymentBloc(
-      processPaymentUseCase: sl(),
-      confirmCashBookingUseCase: sl(),
+  // Repositories (sau khi data sources sẵn sàng)
+  sl.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(
+      dataSource: sl(),
+      networkInfo: sl(),
+      localDataSource: sl(),
+      firebaseAuth: sl(),
+      googleSignIn: sl(),
+      facebookAuth: sl(),
     ),
   );
 
-  // Use cases
-  sl.registerLazySingleton(() => ProcessPaymentUseCase(sl()));
-  sl.registerLazySingleton(() => ConfirmCashBookingUseCase(sl()));
+  sl.registerLazySingleton<DestinationRepository>(
+    () => DestinationRepositoryImpl(
+      destinationDataSource: sl(),
+      networkInfo: sl(),
+    ),
+  );
 
-  // Repository
+  sl.registerLazySingleton<ProvinceRepository>(
+    () => ProvinceRepositoryImpl(provinceDataSource: sl(), networkInfo: sl()),
+  );
+
+  sl.registerLazySingleton<HotelRepository>(
+    () => HotelRepositoryImpl(hotelDataSource: sl(), networkInfo: sl()),
+  );
+
+  sl.registerLazySingleton<UserRepository>(
+    () => UserRepositoryImpl(remoteDataSource: sl(), localStorage: sl()),
+  );
+
+  sl.registerLazySingleton<TourRepository>(() => TourRepositoryImpl(sl()));
+
+  sl.registerLazySingleton<BookingRepository>(
+    () => BookingRepositoryImpl(bookingDataSource: sl(), networkInfo: sl()),
+  );
+
+
+  sl.registerLazySingleton(() => FilterToursUseCase(sl()));
+  // auth
   sl.registerLazySingleton<PaymentRepository>(
     () => PaymentRepositoryImpl(dioClient: sl(), networkInfo: sl()),
   );
 
-  // Features - Authentication
-  // Bloc
+  // Thêm TokenRefreshInterceptor SAU khi AuthRepository ready
+  sl<DioClient>().addRefreshTokenInterceptor(
+    authRepository: sl<AuthRepository>(),
+    localDataSource: sl<AuthLocalDataSource>(),
+  );
+
+  //Use cases
+  sl.registerLazySingleton(() => RegisterUseCase(sl()));
+  sl.registerLazySingleton(() => LoginUseCase(sl()));
+  sl.registerLazySingleton(() => ForgotPasswordUseCase(sl()));
+  sl.registerLazySingleton(() => GoogleLoginUseCase(sl()));
+  sl.registerLazySingleton(() => FacebookLoginUseCase(sl()));
+
+  sl.registerLazySingleton(() => GetAllDestinationFeaturedUseCase(sl()));
+  sl.registerLazySingleton(() => GetAllDestinationsUseCase(sl()));
+  sl.registerLazySingleton(() => FilterDestinationsByCategoryUseCase(sl()));
+  sl.registerLazySingleton(() => GetDetailDestinationUseCase(sl()));
+  sl.registerLazySingleton(() => AddDestinationUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateDestinationUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteDestinationUseCase(sl()));
+
+  sl.registerLazySingleton(() => GetAllProvinceUseCase(sl()));
+  sl.registerLazySingleton(() => ProvinceDetailUseCase(sl()));
+  sl.registerLazySingleton(() => AddProvinceUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateProvinceUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteProvinceUseCase(sl()));
+    
+  // --- THÊM USE CASE HOTEL ---
+  sl.registerLazySingleton(() => HotelDetailUseCase(sl()));
+  sl.registerLazySingleton(() => GetHotelsUseCase(sl()));
+  sl.registerLazySingleton(() => CreateHotelUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateHotelUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteHotelUseCase(sl()));
+  sl.registerLazySingleton(() => UploadHotelImagesUseCase(sl()));
+
+  sl.registerLazySingleton<GetTourDetailUseCase>(
+    () => GetTourDetailUseCase(sl()),
+  );
+    
+  sl.registerLazySingleton(() => GetProfileUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateProfileUseCase(sl()));
+  sl.registerLazySingleton(() => ChangePasswordUseCase(sl()));
+  sl.registerLazySingleton(() => GetSettingsUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateSettingsUseCase(sl()));
+  sl.registerLazySingleton(() => GetLevelUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteAccountUseCase(sl()));
+  sl.registerLazySingleton(() => LogoutUseCase(sl()));
+  sl.registerLazySingleton(() => GetUserList(repository: sl()));
+  sl.registerLazySingleton(() => CreateUser(repository: sl()));
+  sl.registerLazySingleton(() => UpdateUser(sl()));
+  sl.registerLazySingleton(() => LockUser(sl()));
+  sl.registerLazySingleton(() => UnlockUser(sl()));
+
+  sl.registerLazySingleton(() => CreateBookingUseCase(sl()));
+  sl.registerLazySingleton(() => ProcessPaymentUseCase(sl()));
+  sl.registerLazySingleton(() => ConfirmCashBookingUseCase(sl()));
+
+  sl.registerLazySingleton<ImageUploadService>(() => ImageUploadService(sl()));
+
+  //BLOCs
   sl.registerFactory(
     () => AuthBloc(
       registerUser: sl(),
@@ -118,24 +265,36 @@ Future<void> init() async {
     ),
   );
 
-  //bloc destination
+  // Chat
+  sl.registerLazySingleton(() => ChatRepository(sl()));
+  sl.registerFactory(() => ChatBloc(sl()));
+
   sl.registerFactory(
     () => DestinationBloc(
       destinationFeaturedUseCase: sl(),
       getAllDestinationUseCase: sl(),
       filterByCategoryUseCase: sl(),
-      getDetailDestinationUseCase: sl(),
+      addDestinationUseCase: sl(),
+      updateDestinationUseCase: sl(),
+      deleteDestinationUseCase: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => DestinationDetailBloc(getDetailDestinationUseCase: sl()),
+  );
+
+  sl.registerFactory(
+    () => ProvinceBloc(
+      getAllProvinceUseCase: sl(),
+      addProvinceUseCase: sl(),
+      updateProvinceUseCase: sl(),
+      deleteProvinceUseCase: sl(),
     ),
   );
 
-  //bloc province
-  sl.registerFactory(() => ProvinceBloc(getAllProvinceUseCase: sl()));
   sl.registerFactory(() => ProvinceDetailBloc(provinceDetailUseCase: sl()));
 
-  // ---  BLOC HOTEL ---
-  sl.registerFactory(() => HotelDetailBloc(hotelDetailUseCase: sl()));
-
-  // HotelBloc phải tiêm đủ 4 tham số
+   // HotelBloc phải tiêm đủ 4 tham số
   sl.registerFactory(
     () => HotelBloc(
       getHotelsUseCase: sl(),
@@ -145,21 +304,12 @@ Future<void> init() async {
       uploadHotelImagesUseCase: sl(),
     ),
   );
+    
+  // ---  BLOC HOTEL ---
+  sl.registerFactory(() => HotelBloc(getHotelsUseCase: sl()));
+  sl.registerFactory(() => HotelDetailBloc(hotelDetailUseCase: sl()));
 
-  // --- THÊM USE CASE HOTEL ---
-  sl.registerLazySingleton(() => HotelDetailUseCase(sl()));
-  sl.registerLazySingleton(() => GetHotelsUseCase(sl()));
-  sl.registerLazySingleton(() => CreateHotelUseCase(sl()));
-  sl.registerLazySingleton(() => UpdateHotelUseCase(sl()));
-  sl.registerLazySingleton(() => DeleteHotelUseCase(sl()));
-  sl.registerLazySingleton(() => UploadHotelImagesUseCase(sl()));
 
-  // --- THÊM REPO HOTEL ---
-  sl.registerLazySingleton<HotelRepository>(
-    () => HotelRepositoryImpl(hotelDataSource: sl(), networkInfo: sl()),
-  );
-
-  // --- THÊM BLOC PROFILE ---
   sl.registerFactory(
     () => ProfileBloc(
       getProfileUseCase: sl(),
@@ -172,110 +322,29 @@ Future<void> init() async {
       logoutUseCase: sl(),
     ),
   );
-
+    
   //Bloc tour
   sl.registerFactory(() => TourBloc(sl()));
-  // Use cases
-  sl.registerLazySingleton<GetTourDetailUseCase>(
-    () => GetTourDetailUseCase(sl()),
+  sl.registerFactory(
+        () => TourDetailBloc(sl()),
   );
-  // auth
-  sl.registerLazySingleton(() => RegisterUseCase(sl()));
-  sl.registerLazySingleton(() => LoginUseCase(sl()));
-  sl.registerLazySingleton(() => ForgotPasswordUseCase(sl()));
-  sl.registerLazySingleton(() => GoogleLoginUseCase(sl()));
-  sl.registerLazySingleton(() => FacebookLoginUseCase(sl()));
-
-  //  destination
-  sl.registerLazySingleton(() => GetAllDestinationFeaturedUseCase(sl()));
-  sl.registerLazySingleton(() => GetAllDestinationsUseCase(sl()));
-  sl.registerLazySingleton(() => FilterDestinationsByCategoryUseCase(sl()));
-  sl.registerLazySingleton(() => GetDetailDestinationUseCase(sl()));
-
-  //  province
-  sl.registerLazySingleton(() => GetAllProvinceUseCase(sl()));
-  sl.registerLazySingleton(() => ProvinceDetailUseCase(sl()));
-
-  // --- THÊM USE CASES USER/PROFILE ---
-  sl.registerLazySingleton(() => GetProfileUseCase(sl()));
-  sl.registerLazySingleton(() => UpdateProfileUseCase(sl()));
-  sl.registerLazySingleton(() => ChangePasswordUseCase(sl()));
-  sl.registerLazySingleton(() => GetSettingsUseCase(sl()));
-  sl.registerLazySingleton(() => UpdateSettingsUseCase(sl()));
-  sl.registerLazySingleton(() => GetLevelUseCase(sl()));
-  sl.registerLazySingleton(() => DeleteAccountUseCase(sl()));
-  sl.registerLazySingleton(() => LogoutUseCase(sl()));
-
-  // Repository
-  sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(
-      dataSource: sl(),
-      networkInfo: sl(),
-      localDataSource: sl(),
-      firebaseAuth: sl(),
-      googleSignIn: sl(),
-      facebookAuth: sl(),
+    
+  sl.registerFactory(
+    () => AdminUserBloc(
+      getUserList: sl(),
+      createUser: sl(),
+      updateUser: sl(),
+      lockUser: sl(),
+      unlockUser: sl(),
     ),
   );
-  sl.registerLazySingleton<DestinationRepository>(
-    () => DestinationRepositoryImpl(
-      destinationDataSource: sl(),
-      networkInfo: sl(),
+
+  sl.registerFactory(() => BookingBloc(createBookingUseCase: sl()));
+
+  sl.registerFactory(
+    () => PaymentBloc(
+      processPaymentUseCase: sl(),
+      confirmCashBookingUseCase: sl(),
     ),
   );
-  sl.registerLazySingleton<ProvinceRepository>(
-    () => ProvinceRepositoryImpl(provinceDataSource: sl(), networkInfo: sl()),
-  );
-
-  // --- THÊM REPO USER ---
-  sl.registerLazySingleton<UserRepository>(
-    () => UserRepositoryImpl(remoteDataSource: sl(), localStorage: sl()),
-  );
-  sl.registerLazySingleton<TourRepository>(() => TourRepositoryImpl(sl()));
-
-  // Data sources
-  sl.registerLazySingleton<AuthDataSource>(
-    () => AuthRemoteDataSourceImpl(client: sl()),
-  );
-  sl.registerLazySingleton<AuthLocalDataSource>(
-    () => AuthLocalDataSourceImpl(storage: sl()),
-  );
-  sl.registerLazySingleton<DestinationDataSource>(
-    () => DestinationDataSourceImpl(client: sl()),
-  );
-  sl.registerLazySingleton<ProvinceDataSource>(
-    () => ProvinceDataSourceImpl(client: sl()),
-  );
-  // --- THÊM DATA SOURCE HOTEL ---
-  sl.registerLazySingleton<HotelDataSource>(
-    () => HotelDataSourceImpl(client: sl()),
-  );
-
-  sl.registerLazySingleton<TourRemoteDataSource>(
-    () => TourRemoteDataSourceImpl(client: sl()),
-  );
-
-  // --- THÊM DATA SOURCE USER ---
-  sl.registerLazySingleton<UserRemoteDataSource>(
-    () => UserRemoteDataSourceImpl(dioClient: sl()),
-  );
-
-  // --- IMAGE UPLOAD SERVICE ---
-  sl.registerLazySingleton<ImageUploadService>(() => ImageUploadService(sl()));
-
-  //Core
-  sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
-  sl.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
-  sl.registerLazySingleton<FacebookAuth>(() => FacebookAuth.instance);
-
-  //External
-  sl.registerLazySingleton(() => http.Client());
-  sl.registerLazySingleton(() => Connectivity());
-  sl.registerLazySingleton(() => FlutterSecureStorage());
-  sl.registerLazySingleton<GoogleSignIn>(() => GoogleSignIn());
-
-  final sharedPreferences = await SharedPreferences.getInstance();
-  sl.registerLazySingleton(() => sharedPreferences);
-  sl.registerLazySingleton(() => Dio());
-  sl.registerLazySingleton(() => DioClient(sl(), sl()));
 }

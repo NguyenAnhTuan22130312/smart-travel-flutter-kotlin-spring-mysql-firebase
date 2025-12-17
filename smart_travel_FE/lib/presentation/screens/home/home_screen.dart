@@ -8,11 +8,15 @@ import 'package:smart_travel/presentation/blocs/province/province_event.dart';
 import 'package:smart_travel/presentation/blocs/province/province_state.dart';
 import 'package:smart_travel/presentation/widgets/category/custom_category.dart';
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
+import 'package:smart_travel/presentation/widgets/common/refreshable_scroll_view.dart';
 import 'package:smart_travel/presentation/widgets/destination/destination_card.dart';
 import 'package:smart_travel/presentation/widgets/province/province_is_popular_card.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
+import 'package:smart_travel/presentation/screens/tour/tour_list_screen.dart';
+import 'package:smart_travel/presentation/screens/booking/booking_args.dart';
 import '../../theme/app_colors.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:smart_travel/presentation/screens/chat/ai_chat_screen.dart';
 
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
@@ -35,26 +39,17 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  @override
-  void initState() {
-    super.initState();
-    context.read<DestinationBloc>().add(LoadAllDestinations());
-    context.read<DestinationBloc>().add(LoadFeaturedDestinations());
-    context.read<ProvinceBloc>().add(LoadProvinceIsPopular());
-    // Load profile data
-    context.read<ProfileBloc>().add(LoadProfile());
-  }
 
   void _onNavItemTapped(int index) {
     // Dãy routes tương ứng với các tab
-    final List<String> routes = ['/home', '/explore', '/booking', '/hotel-list', '/ai_chat', '/profile'];
+    final List<String> routes = ['/home', '/explore', '/tours', '/hotel-list', '/ai_chat', '/profile'];
     final String routeName = routes[index];
 
     // 1. Trường hợp đặc biệt: Đặt tour (index 2)
     if (index == 2) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const BookingScreen()),
+        MaterialPageRoute(builder: (context) => const TourListScreen()),
       );
       // KHÔNG CẦN return, vì logic tiếp theo cũng có thể đúng (nếu bạn muốn highlight tab)
     }
@@ -68,9 +63,20 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     // 3. Trường hợp chuyển đổi giữa các tab chính (0, 1, 4, 5)
     } else if (index == 4) {
-      // Navigate to Profile screen
-      Navigator.pushNamed(context, '/profile');
-    } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AIChatScreen()),
+        );
+        // Không cần return nếu bạn muốn tab bar ở dưới sáng lên icon chat
+        // Nhưng thường Chat sẽ mở ra màn hình riêng, nên return để giữ tab cũ cũng được.
+        return;
+      }
+
+      // 4. Profile (Index 5) - SỬA LẠI INDEX CHO ĐÚNG
+      else if (index == 5) {
+        Navigator.pushNamed(context, '/profile');
+        return;
+      } else {
       if (index == _selectedIndex) {
         return; // Tránh điều hướng lại nếu chọn lại tab đang active
       }
@@ -85,18 +91,18 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: CustomScrollView(
-          slivers: [
-            _buildAppBar(),
-            _buildSearchBar(),
-            _buildAIChatBanner(),
-            const CustomCategory(),
-            _buildDestinationsListByCategory(),
-            _buildFeaturedDestinations(),
-            _buildPopularProvinces(),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-          ],
-        ),
+      body: RefreshableScrollView(
+            slivers: [
+              _buildAppBar(),
+              _buildSearchBar(),
+              _buildAIChatBanner(),
+              const CustomCategory(),
+              _buildDestinationsListByCategory(),
+              _buildFeaturedDestinations(),
+              _buildPopularProvinces(),
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            ],
+          ),
       bottomNavigationBar: AppBottomNavigationWithIndicator(
         currentIndex: _selectedIndex,
         onTap: _onNavItemTapped,
@@ -110,13 +116,14 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context, state) {
         String fullName = 'Khách';
         String? avatarUrl;
-        
+
         if (state is ProfileLoaded) {
           fullName = state.user.fullName;
           avatarUrl = state.user.avatarUrl;
         }
 
         return SliverAppBar(
+          pinned: true,
           floating: true,
           elevation: 0,
           automaticallyImplyLeading: false,
@@ -258,25 +265,16 @@ class _HomeScreenState extends State<HomeScreen> {
     return SliverToBoxAdapter(
       child: GestureDetector(
         onTap: () {
-          // TODO: Navigate to AI chat screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AIChatScreen()),
+          );
         },
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.primary, AppColors.accent],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withOpacity(0.3),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
+          decoration: const BoxDecoration(
+              gradient: AppColors.mainGradient,
           ),
           child: Row(
             children: [
@@ -329,12 +327,6 @@ class _HomeScreenState extends State<HomeScreen> {
   //NEW: Hiển thị danh sách destinations được lọc theo category
   Widget _buildDestinationsListByCategory() {
     return BlocBuilder<DestinationBloc, DestinationState>(
-      buildWhen: (previous, current) {
-        // Chỉ rebuild khi state là FilterDestination*
-        return current is FilterDestinationLoading ||
-            current is FilterDestinationLoaded ||
-            current is FilterDestinationError;
-      },
       builder: (context, state) {
         if (state is FilterDestinationLoading) {
           return SliverToBoxAdapter(
@@ -438,14 +430,8 @@ class _HomeScreenState extends State<HomeScreen> {
   // Featured Destinations - từ bảng destinations với is_featured = true
   Widget _buildFeaturedDestinations() {
     return BlocBuilder<DestinationBloc, DestinationState>(
-      buildWhen: (previous, current) {
-        //Chỉ rebuild khi state là FeaturedDestination*
-        return current is FeaturedDestinationLoading ||
-            current is FeaturedDestinationLoaded ||
-            current is FeaturedDestinationError;
-      },
       builder: (context, state) {
-        if (state is FeaturedDestinationLoading) {
+        if (state is FilterDestinationLoading) {
           return SliverToBoxAdapter(
             child: Center(
               child: Padding(
@@ -455,8 +441,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         }
-        else if (state is FeaturedDestinationLoaded) {
-          final featuredDestinations = state.destinations;
+        else if (state is FilterDestinationLoaded) {
+          final featuredDestinations = state.destinations.where((d)=>d.isFeatured==true).toList();
           if (featuredDestinations.isEmpty) {
             return SliverToBoxAdapter(
               child: Center(
@@ -486,7 +472,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       TextButton(
                         onPressed: () {
-                          context.read<DestinationBloc>().add(LoadFeaturedDestinations(loadAll: true));
+                          context.read<DestinationBloc>().add(LoadAllDestinations(loadAll: true));
                         },
                         child: Text(
                           AppLocalizations.of(context)!.seeAll,
@@ -518,7 +504,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           );
-        } else if (state is FeaturedDestinationError) {
+        } else if (state is FilterDestinationError) {
           return SliverToBoxAdapter(
             child: Center(
               child: Padding(
@@ -550,8 +536,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             );
           }
-          else if (state is ProvincePopularLoaded) {
-            final provinceIsPopulars = state.province;
+          else if (state is ProvinceLoaded) {
+            final provinceIsPopulars = state.province.where((d)=>d.isPopular==true).toList();
             if (provinceIsPopulars.isEmpty) {
               return SliverToBoxAdapter(
                 child: Center(

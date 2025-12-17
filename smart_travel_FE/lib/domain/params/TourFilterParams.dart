@@ -1,21 +1,42 @@
 class TourFilterParams {
-  final int page;
-  final int size;
+  final String? keyword;
+  final int? minPrice;
+  final int? maxPrice;
   final int? minDays;
   final int? maxDays;
-  final double? minPrice;
-  final double? maxPrice;
-  final int? numberOfPeople;
-  final int? destinationId;
+  final int? minPeople;
+  final double? minRating;
+  final String? sort;
+  final int page;
+  final int size;
 
   TourFilterParams({
-    this.page = 0,
-    this.size = 10,
-    this.minDays,
-    this.maxDays,
+    this.keyword,
     this.minPrice,
     this.maxPrice,
-    this.numberOfPeople,
-    this.destinationId,
+    this.minDays,
+    this.maxDays,
+    this.minPeople,
+    this.minRating,
+    this.sort,
+    this.page = 0,
+    this.size = 10,
   });
+
+  factory TourFilterParams.fromMap(Map<String, dynamic> map) {
+    return TourFilterParams(
+      keyword: map["keyword"],
+      minPrice: map["minPrice"],
+      maxPrice: map["maxPrice"],
+      minDays: map["minDays"],
+      maxDays: map["maxDays"],
+      minPeople: map["minPeople"],
+      minRating: map["minRating"] != null
+          ? double.tryParse(map["minRating"].toString())
+          : null,
+      sort: map["sort"],
+      page: map["page"] ?? 0,
+      size: map["size"] ?? 10,
+    );
+  }
 }

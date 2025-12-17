@@ -1,8 +1,11 @@
 import 'package:smart_travel/data/models/tour/tour_detail_model.dart';
+import 'package:smart_travel/data/models/tour/tour_summary_response_modal.dart';
 import 'package:smart_travel/domain/repositories/tour_repository.dart';
 import 'package:smart_travel/domain/entities/tour_detail.dart';
 import 'package:smart_travel/data/data_sources/remote/tour_remote_data_source.dart';
 import 'package:smart_travel/core/error/exceptions.dart';
+import 'package:smart_travel/domain/params/TourFilterParams.dart';
+import 'package:smart_travel/domain/entities/tour.dart';
 
 class TourRepositoryImpl implements TourRepository {
   final TourRemoteDataSource remote;
@@ -45,4 +48,11 @@ class TourRepositoryImpl implements TourRepository {
       throw ServerException("Lỗi khi tải chi tiết tour: ${e.toString()}");
     }
   }
+
+  @override
+  Future<List<Tour>> filterTours(TourFilterParams params) async {
+    final list = await remote.filterTours(params);
+    return list.map((e) => e.toEntity()).toList();
+  }
+
 }

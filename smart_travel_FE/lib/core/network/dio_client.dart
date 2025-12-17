@@ -2,54 +2,89 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:smart_travel/core/constants/api_constants.dart';
 import 'package:smart_travel/core/error/exceptions.dart';
+import 'package:smart_travel/core/network/interceptors/token_refresh_interceptor.dart';
+import 'package:smart_travel/data/data_sources/local/auth_local_data_source.dart';
+import 'package:smart_travel/domain/repositories/auth_repository.dart';
 
 class DioClient {
-  final Dio _dio;
-  final FlutterSecureStorage _storage;
+  final Dio dio;
+  final FlutterSecureStorage storage;
 
-  DioClient(this._dio, this._storage) {
-    _dio.options.baseUrl = ApiConstants.baseUrl;
-    _dio.options.connectTimeout = ApiConstants.connectionTimeout;
-    _dio.options.receiveTimeout = ApiConstants.receiveTimeout;
-    _dio.options.headers['Content-Type'] = 'application/json; charset=utf-8';
+  DioClient({required this.storage})
+      : dio = Dio(BaseOptions(
+    baseUrl: ApiConstants.baseUrl,
+    connectTimeout: const Duration(seconds: 30),
+    receiveTimeout: const Duration(seconds: 30),
+    headers: {
+      'Accept': 'application/json',
+    },  )) {
+    // Chỉ thêm 2 interceptor cơ bản trước
+    // dio.interceptors.add(LogInterceptor(
+    //   requestBody: true,
+    //   responseBody: true,
+    //   error: true,
+    //   requestHeader: true,
+    //   logPrint: (log) => print('DIO: $log'),
+    // ));
 
-    _dio.interceptors.add(AuthInterceptor(_storage));
-    // Sửa: Thêm ErrorInterceptor
-    _dio.interceptors.add(ErrorInterceptor());
+    dio.interceptors.add(AuthInterceptor(storage));
+    dio.interceptors.add(ErrorInterceptor());
   }
 
-  Future<Response> get(String path) async {
-    return _dio.get(path);
+  // ===  THÊM REFRESH TOKEN INTERCEPTOR SAU KHI GetIt ĐÃ SẴN SÀNG ===
+  void addRefreshTokenInterceptor({
+    required AuthRepository authRepository,
+    required AuthLocalDataSource localDataSource,
+  }) {
+    // Nếu đã thêm rồi thì không thêm lại
+    if (dio.interceptors.any((i) => i is TokenRefreshInterceptor)) return;
+
+    dio.interceptors.insert(
+      dio.interceptors.length - 1,
+      TokenRefreshInterceptor(
+        authRepository: authRepository,
+        localDataSource: localDataSource,
+        dio: dio,
+      ),
+    );
   }
 
-  Future<Response> post(String path, {dynamic data}) async {
-    return _dio.post(path, data: data);
-  }
+  // Helper methods (có thể gọi từ mọi nơi)
+  Future<Response<T>> get<T>(String path, {Options? options}) =>
+      dio.get<T>(path, options: options);
 
-  Future<Response> put(String path, {dynamic data}) async {
-    return _dio.put(path, data: data);
-  }
+  Future<Response<T>> post<T>(String path, {dynamic data, Options? options}) =>
+      dio.post<T>(path, data: data, options: options);
 
-  Future<Response> delete(String path) async {
-    return _dio.delete(path);
-  }
+  Future<Response<T>> put<T>(String path, {dynamic data, Options? options}) =>
+      dio.put<T>(path, data: data, options: options);
+
+  Future<Response<T>> delete<T>(String path, {Options? options}) =>
+      dio.delete<T>(path, options: options);
 }
 
 class AuthInterceptor extends Interceptor {
   final FlutterSecureStorage _storage;
+  static const List<String> _noTokenEndpoints = [
+    ApiConstants.login,
+    ApiConstants.register,
+    ApiConstants.forgotPassword,
+    ApiConstants.refreshToken,
+  ];
 
   AuthInterceptor(this._storage);
+
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
     final path = options.path;
-    if (path.contains(ApiConstants.login) ||
-        path.contains(ApiConstants.register) ||
-        path.contains(ApiConstants.forgotPassword)) {
+    // Skip các endpoint không cần token
+    if (_noTokenEndpoints.any((endpoint) => path.contains(endpoint))) {
+      print('Skip token for: ${options.path}');
       return handler.next(options);
     }
 
-    // Key 'token' này phải khớp với key trong AuthLocalDataSource
+    // Lấy token từ storage
     final String? token = await _storage.read(key: 'token');
 
     if (token != null) {
@@ -59,51 +94,46 @@ class AuthInterceptor extends Interceptor {
       print('No token found for ${options.path}');
     }
 
-    return handler.next(options);
+    handler.next(options);
   }
 }
+
+
+
 
 // --- Interceptor Xử lý Lỗi API (ĐÃ SỬA) ---
 class ErrorInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    // --- SỬA LỖI: Dùng handler.reject() thay vì throw ---
-    // Điều này đảm bảo lỗi được Dio quản lý và trả về cho hàm .post()
+    String message = 'Lỗi không xác định';
 
-    ServerException serverException;
-
-    // Kiểm tra xem lỗi có phải là ServerException đã được đóng gói không
-    // (Điều này xảy ra nếu một interceptor trước đó đã reject)
-    if (err.error is ServerException) {
-      return handler.reject(err); // Chỉ cần chuyển tiếp nó
-    }
-
-    if (err.response != null && err.response?.data != null && err.response?.data is Map) {
-      // Lỗi từ backend (4xx, 5xx) VÀ có body JSON
-      try {
-        // Cố gắng đọc trường 'msg' từ JSON
-        final errorMessage = err.response?.data['msg'] ?? 'Lỗi không xác định từ máy chủ';
-        serverException = ServerException(errorMessage);
-      } catch (e) {
-        // Nếu body không phải là JSON hoặc không có 'msg'
-        serverException = ServerException('Lỗi máy chủ không thể đọc: ${err.response?.data}');
+    if (err.response != null) {
+      final data = err.response!.data;
+      if (data is Map<String, dynamic>) {
+        message = data['msg'] ?? data['message'] ?? 'Lỗi từ server';
+      } else if (data is String) {
+        message = data;
+      } else {
+        message = 'Lỗi server: ${err.response!.statusCode}';
       }
-    } else if (err.type == DioExceptionType.connectionTimeout || err.type == DioExceptionType.receiveTimeout) {
-      // Lỗi Timeout (Hết thời gian chờ)
-      serverException = ServerException('Kết nối hết thời gian chờ. Vui lòng kiểm tra IP hoặc tường lửa.');
-    }
-    else {
-      // Lỗi mạng (không có kết nối, không tìm thấy host) hoặc lỗi không xác định
-      serverException = ServerException('Lỗi mạng hoặc không thể kết nối: ${err.message}');
+    } else if (err.type == DioExceptionType.connectionTimeout ||
+        err.type == DioExceptionType.receiveTimeout) {
+      message = 'Kết nối timeout. Kiểm tra mạng hoặc server!';
+    } else if (err.type == DioExceptionType.badResponse) {
+      message = 'Lỗi phản hồi: ${err.response?.statusCode}';
+    } else {
+      message = 'Không có kết nối mạng';
     }
 
-    // Trả về (reject) một DioException mới,
-    // nhưng đính kèm ServerException (đã được chuẩn hóa) vào trường 'error'.
-    return handler.reject(DioException(
+    final serverException = ServerException(message);
+    final newError = DioException(
       requestOptions: err.requestOptions,
       response: err.response,
       type: err.type,
-      error: serverException, // Đính kèm ServerException vào đây
-    ));
+      error: serverException,
+      message: message,
+    );
+
+    handler.reject(newError);
   }
 }

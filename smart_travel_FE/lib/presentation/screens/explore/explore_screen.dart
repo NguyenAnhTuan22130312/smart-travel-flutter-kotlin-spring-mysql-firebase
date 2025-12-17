@@ -3,11 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
+import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/province_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/province_event.dart';
 import 'package:smart_travel/presentation/blocs/province/province_state.dart';
 import 'package:smart_travel/presentation/widgets/category/custom_category.dart';
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
+import 'package:smart_travel/presentation/widgets/common/refreshable_scroll_view.dart';
 import 'package:smart_travel/presentation/widgets/destination/destination_card.dart';
 import 'package:smart_travel/presentation/widgets/province/province_is_popular_card.dart';
 import '../../theme/app_colors.dart';
@@ -40,8 +42,6 @@ class _ExploreScreenState extends State<ExploreScreen>
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    context.read<DestinationBloc>().add(LoadAllDestinations());
-    context.read<ProvinceBloc>().add(LoadProvince());
   }
 
   @override
@@ -84,7 +84,7 @@ class _ExploreScreenState extends State<ExploreScreen>
     );
   }
 
-  // Sửa lại method này để nhận setModalState
+  //LỌC
   Widget _buildFilterBottomSheet(StateSetter setModalState) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
@@ -280,6 +280,7 @@ class _ExploreScreenState extends State<ExploreScreen>
     );
   }
 
+  //OPTION ĐỂ LỌC
   Widget _buildSortOptions(StateSetter setModalState) {
     final options = [
       {'id': 'popular', 'label': 'Phổ biến nhất', 'icon': Icons.trending_up},
@@ -357,6 +358,7 @@ class _ExploreScreenState extends State<ExploreScreen>
     );
   }
 
+  //SLIDER LỌC THEO GIÁ
   Widget _buildPriceRangeSlider(StateSetter setModalState) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -405,6 +407,7 @@ class _ExploreScreenState extends State<ExploreScreen>
     );
   }
 
+  //LỌC THEO ĐÁNH GIÁ
   Widget _buildRatingFilter(StateSetter setModalState) {
     return Column(
       children: List.generate(5, (index) {
@@ -474,18 +477,16 @@ class _ExploreScreenState extends State<ExploreScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            _buildAppBar(),
-            _buildSearchBar(),
-            const CustomCategory(),
-            _buildExploreDestinations(),
-            _buildProvinces(),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-          ],
-        ),
-      ),
+      body: RefreshableScrollView(
+            slivers: [
+              _buildAppBar(),
+              _buildSearchBar(),
+              const CustomCategory(),
+              _buildExploreDestinations(),
+              _buildProvinces(),
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            ],
+          ),
       bottomNavigationBar: AppBottomNavigationWithIndicator(
         currentIndex: _selectedIndex,
         onTap: _onNavItemTapped,
@@ -493,32 +494,24 @@ class _ExploreScreenState extends State<ExploreScreen>
     );
   }
 
+  //APPBAR
   Widget _buildAppBar() {
     return SliverAppBar(
+      pinned: true,
       floating: true,
-      backgroundColor: Colors.white,
       elevation: 0,
-      expandedHeight: 70,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.white, AppColors.primary.withOpacity(0.05)],
-            ),
+      automaticallyImplyLeading: false,
+      flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.mainGradient,
           ),
         ),
-      ),
       title: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)],
-              ),
-              borderRadius: BorderRadius.circular(12),
+            decoration: const BoxDecoration(
+              gradient: AppColors.mainGradient,
             ),
             child: const Icon(Icons.explore, color: Colors.white, size: 24),
           ),
@@ -528,7 +521,7 @@ class _ExploreScreenState extends State<ExploreScreen>
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1F2937),
+              color: AppColors.textWhite,
             ),
           ),
         ],
@@ -610,13 +603,7 @@ class _ExploreScreenState extends State<ExploreScreen>
 
   Widget _buildExploreDestinations() {
     return BlocBuilder<DestinationBloc, DestinationState>(
-      buildWhen: (previous, current) {
-        // Chỉ rebuild khi state là FilterDestination*
-        return current is FilterDestinationLoading ||
-            current is FilterDestinationLoaded ||
-            current is FilterDestinationError;
-      },
-      builder: (context, state) {
+       builder: (context, state) {
         // 1. Đang loading → hiện loading
         if (state is FilterDestinationLoading) {
           return const SliverToBoxAdapter(
@@ -661,7 +648,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        AppColors.primary.withOpacity(0.1),
+                        AppColors.green.withOpacity(0.2),
                         AppColors.primary.withOpacity(0.05),
                       ],
                     ),
@@ -762,7 +749,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          AppColors.primary.withOpacity(0.1),
+                          AppColors.green.withOpacity(0.2),
                           AppColors.primary.withOpacity(0.05),
                         ],
                       ),
@@ -773,15 +760,13 @@ class _ExploreScreenState extends State<ExploreScreen>
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withOpacity(0.2),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.green.withOpacity(0.1),
+                                AppColors.primary.withOpacity(0.05),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                           child: Icon(
                             Icons.place,

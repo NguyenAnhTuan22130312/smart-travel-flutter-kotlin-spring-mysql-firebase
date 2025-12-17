@@ -1,6 +1,10 @@
 package com.example.smart_travel_BE.controller;
 
+import com.example.smart_travel_BE.dto.chat.request.ChatRequest;
+import com.example.smart_travel_BE.dto.chat.response.ChatResponse;
+import com.example.smart_travel_BE.service.DeepSeekChatService;
 import com.example.smart_travel_BE.service.GeminiChatService;
+import com.example.smart_travel_BE.service.HuggingFaceChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,17 +15,16 @@ import org.springframework.web.bind.annotation.*;
 public class ChatController {
 
     private final GeminiChatService geminiChatService;
+    private final HuggingFaceChatService chatService; // Thêm cái mới
+    private final DeepSeekChatService deepSeekChatService;
 
     // SỬA CHỖ NÀY:
     @PostMapping
-    public ResponseEntity<String> askAI(@RequestBody String message) {
-        // Khi nhận text/plain, biến 'message' sẽ chứa toàn bộ nội dung chuỗi gửi lên
-        // Ví dụ: "Chào bạn"
+    public ResponseEntity<ChatResponse> askAI(@RequestBody ChatRequest request) {
+        // Lấy message từ object ChatRequest
+        String reply = chatService.sendMessage(request.getMessage());
 
-        // Cần xử lý một chút nếu chuỗi bị dính dấu ngoặc kép thừa (do JSON stringify)
-        String cleanMessage = message.replace("\"", "").trim();
-
-        String response = geminiChatService.sendMessage(cleanMessage);
-        return ResponseEntity.ok(response);
+        // Trả về object ChatResponse chuẩn JSON
+        return ResponseEntity.ok(new ChatResponse(reply));
     }
 }

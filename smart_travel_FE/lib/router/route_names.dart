@@ -3,6 +3,8 @@ class RouteNames {
   static const String dashboard = '/dashboard';
   static const String adminProvinces = '/admin/provinces';
   static const String adminHotels = '/admin/hotels';
+  static const String adminUsers = '/admin/users';
+  static const String adminDestination = '/admin/destination';
 
   /// USER
   static const String splashScreen = '/';
@@ -11,7 +13,12 @@ class RouteNames {
   static const String forgotPassword = '/forgot-password';
   static const String home = '/home';
   static const String explore = '/explore';
+
+  ///Destination
   static const String destinationDetail = '/destination-detail';
+
+
+
   static const String provinceDetail = '/province/detail';
 
   // Tour routes

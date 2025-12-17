@@ -38,5 +38,7 @@ public class DestinationUpdateRequest {
     private BigDecimal entryFee;
 
     private String openingHours; // JSON string
+    private Boolean isFeatured;
+    private List<Integer> imageIds = new ArrayList<>();
 
 }
