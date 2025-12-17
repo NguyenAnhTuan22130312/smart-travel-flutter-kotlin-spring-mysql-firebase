@@ -30,8 +30,12 @@ import 'package:smart_travel/domain/usecases/destination/filter_destinations_by_
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_featured_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_detail_destination_use_case.dart';
+import 'package:smart_travel/domain/usecases/hotel/create_hotel_use_case.dart';
+import 'package:smart_travel/domain/usecases/hotel/delete_hotel_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/get_hotels_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/hotel_detail_use_case.dart';
+import 'package:smart_travel/domain/usecases/hotel/update_hotel_use_case.dart';
+import 'package:smart_travel/domain/usecases/hotel/upload_hotel_images_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/get_all_province_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/province_detail_use_case.dart';
 import 'package:smart_travel/domain/usecases/user/get_profile_usecase.dart';
@@ -128,10 +132,32 @@ Future<void> init() async {
   sl.registerFactory(() => ProvinceBloc(getAllProvinceUseCase: sl()));
   sl.registerFactory(() => ProvinceDetailBloc(provinceDetailUseCase: sl()));
 
-  // --- THÊM BLOC HOTEL ---
+  // ---  BLOC HOTEL ---
   sl.registerFactory(() => HotelDetailBloc(hotelDetailUseCase: sl()));
-  sl.registerFactory(() => HotelBloc(getHotelsUseCase: sl()));
 
+  // HotelBloc phải tiêm đủ 4 tham số
+  sl.registerFactory(
+    () => HotelBloc(
+      getHotelsUseCase: sl(),
+      createHotelUseCase: sl(),
+      updateHotelUseCase: sl(),
+      deleteHotelUseCase: sl(),
+      uploadHotelImagesUseCase: sl(),
+    ),
+  );
+
+  // --- THÊM USE CASE HOTEL ---
+  sl.registerLazySingleton(() => HotelDetailUseCase(sl()));
+  sl.registerLazySingleton(() => GetHotelsUseCase(sl()));
+  sl.registerLazySingleton(() => CreateHotelUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateHotelUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteHotelUseCase(sl()));
+  sl.registerLazySingleton(() => UploadHotelImagesUseCase(sl()));
+
+  // --- THÊM REPO HOTEL ---
+  sl.registerLazySingleton<HotelRepository>(
+    () => HotelRepositoryImpl(hotelDataSource: sl(), networkInfo: sl()),
+  );
 
   // --- THÊM BLOC PROFILE ---
   sl.registerFactory(
@@ -148,12 +174,10 @@ Future<void> init() async {
   );
 
   //Bloc tour
-  sl.registerFactory(
-        () => TourBloc(sl()),
-  );
+  sl.registerFactory(() => TourBloc(sl()));
   // Use cases
   sl.registerLazySingleton<GetTourDetailUseCase>(
-        () => GetTourDetailUseCase(sl()),
+    () => GetTourDetailUseCase(sl()),
   );
   // auth
   sl.registerLazySingleton(() => RegisterUseCase(sl()));
@@ -171,10 +195,6 @@ Future<void> init() async {
   //  province
   sl.registerLazySingleton(() => GetAllProvinceUseCase(sl()));
   sl.registerLazySingleton(() => ProvinceDetailUseCase(sl()));
-
-  // --- THÊM USE CASE HOTEL ---
-  sl.registerLazySingleton(() => HotelDetailUseCase(sl()));
-  sl.registerLazySingleton(() => GetHotelsUseCase(sl()));
 
   // --- THÊM USE CASES USER/PROFILE ---
   sl.registerLazySingleton(() => GetProfileUseCase(sl()));
@@ -207,21 +227,11 @@ Future<void> init() async {
     () => ProvinceRepositoryImpl(provinceDataSource: sl(), networkInfo: sl()),
   );
 
-  // --- THÊM REPO HOTEL ---
-  sl.registerLazySingleton<HotelRepository>(
-    () => HotelRepositoryImpl(hotelDataSource: sl(), networkInfo: sl()),
-  );
-
   // --- THÊM REPO USER ---
   sl.registerLazySingleton<UserRepository>(
-    () => UserRepositoryImpl(
-      remoteDataSource: sl(),
-      localStorage: sl(),
-    ),
+    () => UserRepositoryImpl(remoteDataSource: sl(), localStorage: sl()),
   );
-  sl.registerLazySingleton<TourRepository>(
-        () => TourRepositoryImpl(sl()),
-  );
+  sl.registerLazySingleton<TourRepository>(() => TourRepositoryImpl(sl()));
 
   // Data sources
   sl.registerLazySingleton<AuthDataSource>(
@@ -240,20 +250,18 @@ Future<void> init() async {
   sl.registerLazySingleton<HotelDataSource>(
     () => HotelDataSourceImpl(client: sl()),
   );
-  
+
   sl.registerLazySingleton<TourRemoteDataSource>(
-        () => TourRemoteDataSourceImpl(client: sl()),
+    () => TourRemoteDataSourceImpl(client: sl()),
   );
 
   // --- THÊM DATA SOURCE USER ---
   sl.registerLazySingleton<UserRemoteDataSource>(
     () => UserRemoteDataSourceImpl(dioClient: sl()),
   );
-  
+
   // --- IMAGE UPLOAD SERVICE ---
-  sl.registerLazySingleton<ImageUploadService>(
-    () => ImageUploadService(sl()),
-  );
+  sl.registerLazySingleton<ImageUploadService>(() => ImageUploadService(sl()));
 
   //Core
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
