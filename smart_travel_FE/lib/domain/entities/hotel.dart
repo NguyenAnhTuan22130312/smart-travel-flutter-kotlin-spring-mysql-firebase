@@ -16,7 +16,7 @@ class Hotel {
   final int? reviewCount;
   final int? totalRooms;
   final int? availableRooms;
-  final Map<String, dynamic>? amenities; // JSON → Map
+  final List<String>? amenities;
   final bool? isActive;
   final DateTime? createdAt;
   final DateTime? updatedAt;

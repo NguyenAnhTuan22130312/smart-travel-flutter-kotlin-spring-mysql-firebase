@@ -23,30 +23,6 @@ public class HotelImageService {
     private final HotelRepository hotelRepository;
     private final HotelImageRepository hotelImageRepository;
 
-
-    @Transactional
-    // Upload single ảnh
-    public HotelImage uploadSingle(Long hotelId, MultipartFile file, boolean isPrimary, int displayOrder) throws IOException {
-        Hotel hotel = hotelRepository.findById(hotelId)
-                .orElseThrow(() -> new RuntimeException("Hotel not found"));
-
-        Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
-                ObjectUtils.asMap(
-                        "folder", "hotels/" + hotelId,
-                        "resource_type", "auto"
-                ));
-
-        String imageUrl = uploadResult.get("secure_url").toString();
-
-        HotelImage image = new HotelImage();
-        image.setHotel(hotel);
-        image.setImageUrl(imageUrl);
-        image.setIsPrimary(isPrimary);
-        image.setDisplayOrder(displayOrder);
-
-        return hotelImageRepository.save(image);
-    }
-
     //  Upload nhiều file
     @Transactional
     public List<HotelImage> uploadMultiple(Long hotelId, List<MultipartFile> files) throws IOException {

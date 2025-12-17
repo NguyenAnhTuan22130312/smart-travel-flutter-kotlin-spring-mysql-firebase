@@ -2,6 +2,7 @@ class RouteNames {
   ///ADMIN
   static const String dashboard = '/dashboard';
   static const String adminProvinces = '/admin/provinces';
+  static const String adminHotels = '/admin/hotels';
   static const String adminUsers = '/admin/users';
   static const String adminDestination = '/admin/destination';
 

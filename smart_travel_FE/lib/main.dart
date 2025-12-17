@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
+import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
+import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
@@ -73,6 +75,10 @@ class _MyAppState extends State<MyApp> {
           BlocProvider(
             create: (_) => di.sl<TourBloc>(),
           ),
+          BlocProvider(
+            create: (_) => di.sl<HotelBloc>(),
+          ),
+          BlocProvider(create: (_) => di.sl<HotelDetailBloc>()),
           BlocProvider(
             create: (_) => di.sl<ProfileBloc>()..add(LoadSettings()),
           ),

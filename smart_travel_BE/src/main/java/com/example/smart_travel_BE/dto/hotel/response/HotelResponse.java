@@ -3,6 +3,7 @@ package com.example.smart_travel_BE.dto.hotel.response;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @Setter
@@ -20,5 +21,13 @@ public class HotelResponse {
     private String thumbnail;     // url ảnh đại diện (nếu có)
     private Long destinationId;
     private String destinationName;
+    private String phone;
+    private String email;
+    private String description;
+    private List<String> amenities; // Tiện ích khách sạn
+    private Integer totalRooms;
+    private Integer availableRooms;
+    private Double latitude;
+    private Double longitude;
 }
 

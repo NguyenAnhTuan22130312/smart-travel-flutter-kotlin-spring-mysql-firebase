@@ -20,7 +20,11 @@ public class HotelDetailResponse {
     private String thumbnail;  // Ảnh đại diện chính (thumbnail) của khách sạn
     private List<String> images;
     private String destinationName;
-    private String provinceName; // tên tỉnh thành
+    private String phone;
+    private String email;
+    private Long destinationId;
+    private List<String> amenities;
+    private String provinceName;
     private List<RoomTypeResponse> rooms;
     private Double latitude;
     private Double longitude;
