@@ -11,6 +11,7 @@ import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_state.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_event.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_state.dart';
+import '../../../theme/app_colors.dart';
 
 class HotelFormDialog extends StatefulWidget {
   final Hotel? hotel;
@@ -29,16 +30,27 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _destIdController = TextEditingController();
-  final TextEditingController _hotelAmenitiesController = TextEditingController();
-  final TextEditingController _latController = TextEditingController(text: "0.0");
-  final TextEditingController _lngController = TextEditingController(text: "0.0");
+  final TextEditingController _hotelAmenitiesController =
+      TextEditingController();
+  final TextEditingController _latController = TextEditingController(
+    text: "0.0",
+  );
+  final TextEditingController _lngController = TextEditingController(
+    text: "0.0",
+  );
 
   // --- CONTROLLERS ROOM ---
   final TextEditingController _roomNameController = TextEditingController();
   final TextEditingController _roomPriceController = TextEditingController();
-  final TextEditingController _roomCapacityController = TextEditingController(text: "2");
-  final TextEditingController _roomTotalController = TextEditingController(text: "10");
-  final TextEditingController _roomAmenitiesController = TextEditingController(text: "Wifi, Điều hòa, TV");
+  final TextEditingController _roomCapacityController = TextEditingController(
+    text: "2",
+  );
+  final TextEditingController _roomTotalController = TextEditingController(
+    text: "10",
+  );
+  final TextEditingController _roomAmenitiesController = TextEditingController(
+    text: "Wifi, Điều hòa, TV",
+  );
 
   // State local
   int? _editingId;
@@ -57,7 +69,6 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
     super.initState();
     if (widget.hotel != null) {
       _editingId = widget.hotel!.id;
-      context.read<HotelBloc>().add(LoadHotelsEvent());
 
       // 1. Fill dữ liệu khách sạn
       _fillDataFromEntity(widget.hotel!);
@@ -154,9 +165,18 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Đã lưu phòng vào danh sách!'),
+        backgroundColor: AppColors.green,
         duration: Duration(milliseconds: 500),
       ),
     );
+  }
+
+  // Hàm format tiền tệ (Ví dụ: 500000 -> 500.000)
+  String _formatCurrency(double? value) {
+    if (value == null) return "0";
+    return value
+        .toStringAsFixed(0)
+        .replaceAll(RegExp(r'\B(?=(\d{3})+(?!\d))'), ".");
   }
 
   @override
@@ -199,7 +219,11 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
 
   List<String> _parseStringToList(String input) {
     if (input.isEmpty) return [];
-    return input.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+    return input
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
   }
 
   void _onSubmit() {
@@ -227,7 +251,8 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
     }
 
     if (_roomPriceController.text.isNotEmpty) {
-      if (_editingRoomIndex != null && _editingRoomIndex! < roomRequests.length) {
+      if (_editingRoomIndex != null &&
+          _editingRoomIndex! < roomRequests.length) {
         roomRequests[_editingRoomIndex!] = RoomTypeCreateRequest(
           name: _roomNameController.text,
           capacity: int.tryParse(_roomCapacityController.text) ?? 2,
@@ -300,8 +325,12 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
             _fillDataFromEntity(state.hotel);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Đã tải xong chi tiết (${state.hotel.rooms?.length ?? 0} phòng)'),
+                content: Text(
+                  'Đã tải xong chi tiết (${state.hotel.rooms?.length ?? 0} phòng)',
+                ),
+                backgroundColor: AppColors.green,
                 duration: const Duration(seconds: 1),
+                behavior: SnackBarBehavior.floating,
               ),
             );
           });
@@ -317,31 +346,50 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Có lỗi: ${state.message}'),
-                backgroundColor: Colors.red,
+                backgroundColor: Colors.redAccent,
+                behavior: SnackBarBehavior.floating,
               ),
             );
           }
         },
         child: Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: AppColors.background,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          insetPadding: const EdgeInsets.all(16),
           child: Container(
-            width: MediaQuery.of(context).size.width * 0.95,
-            height: MediaQuery.of(context).size.height * 0.9,
+            constraints: const BoxConstraints(maxWidth: 600, maxHeight: 900),
             child: Column(
               children: [
                 _buildHeader(context),
-                if (_isLoadingDetail) const LinearProgressIndicator(),
+                if (_isLoadingDetail)
+                  const LinearProgressIndicator(
+                    color: AppColors.secondary,
+                    backgroundColor: AppColors.dividerGray,
+                  ),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSectionTitle("1. Thông tin Khách sạn"),
-                        const SizedBox(height: 10),
+                        _buildSectionTitle(
+                          "1. Thông tin Khách sạn",
+                          Icons.hotel,
+                        ),
+                        const SizedBox(height: 12),
                         _buildHotelInfoSection(),
-                        const Divider(height: 30, thickness: 2),
+                        const SizedBox(height: 30),
+                        Divider(
+                          color: AppColors.dividerGray.withOpacity(0.5),
+                          thickness: 1,
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Phần quản lý phòng
                         _buildRoomListSection(),
+                        const SizedBox(height: 10),
                         _buildRoomFormSection(),
                       ],
                     ),
@@ -356,21 +404,41 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
     );
   }
 
+  // --- WIDGET : PHẦN ĐẦU CỦA DIALOG-----
   Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: const BoxDecoration(
+        gradient: AppColors.mainGradient,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            _editingId == null ? 'Thêm Khách Sạn' : 'Cập Nhật Thông Tin',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          Row(
+            children: [
+              Icon(
+                _editingId == null ? Icons.add_business : Icons.edit_note,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                _editingId == null
+                    ? 'Thêm Khách Sạn Mới'
+                    : 'Cập Nhật Khách Sạn',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
           ),
           IconButton(
-            icon: const Icon(Icons.close),
+            icon: const Icon(Icons.close, color: Colors.white),
             onPressed: () => Navigator.pop(context),
           ),
         ],
@@ -378,200 +446,209 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
     );
   }
 
-  Widget _buildSectionTitle(String title) => Text(
-    title,
-    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+  // --- WIDGET :  TẠO Ô NHẬP LIỆU (TEXT FIELD) ---
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    IconData? icon,
+    TextInputType type = TextInputType.text,
+    int maxLines = 1,
+    bool isRequired = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: TextField(
+        controller: controller,
+        keyboardType: type,
+        maxLines: maxLines,
+        style: const TextStyle(color: AppColors.textGray, fontSize: 14),
+        decoration: InputDecoration(
+          labelText: isRequired ? '$label *' : label,
+          labelStyle: const TextStyle(color: AppColors.menuIconGray),
+          prefixIcon:
+              icon != null
+                  ? Icon(
+                    icon,
+                    color: AppColors.primary.withOpacity(0.7),
+                    size: 20,
+                  )
+                  : null,
+          filled: true,
+          fillColor: Colors.grey[50],
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 14,
+            horizontal: 16,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: AppColors.dividerGray),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: AppColors.dividerGray),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          ),
+        ),
+      ),
+    );
+  }
+// --- WIDGET : TẠO TIÊU ĐỀ CHO TỪNG PHẦN ---
+  Widget _buildSectionTitle(String title, IconData icon) => Row(
+    children: [
+      Icon(icon, color: AppColors.button, size: 22),
+      const SizedBox(width: 8),
+      Text(
+        title.toUpperCase(),
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          color: AppColors.textGray,
+          fontSize: 15,
+          letterSpacing: 0.5,
+        ),
+      ),
+    ],
   );
 
+  //------ WIDGET giao diện nhập liệu thông tin chung---------
   Widget _buildHotelInfoSection() {
-    return Column(
-      children: [
-        TextField(
-          controller: _nameController,
-          decoration: const InputDecoration(
-            labelText: 'Tên khách sạn *',
-            border: OutlineInputBorder(),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          _buildTextField(
+            controller: _nameController,
+            label: 'Tên khách sạn',
+            icon: Icons.title,
+            isRequired: true,
           ),
-        ),
-        const SizedBox(height: 10),
-        TextField(
-          controller: _addressController,
-          decoration: const InputDecoration(
-            labelText: 'Địa chỉ *',
-            border: OutlineInputBorder(),
+          _buildTextField(
+            controller: _addressController,
+            label: 'Địa chỉ',
+            icon: Icons.location_on,
+            isRequired: true,
           ),
-        ),
-        const SizedBox(height: 10),
-        TextField(
-          controller: _descController,
-          maxLines: 2,
-          decoration: const InputDecoration(
-            labelText: 'Mô tả',
-            border: OutlineInputBorder(),
+          _buildTextField(
+            controller: _descController,
+            label: 'Mô tả',
+            icon: Icons.description,
+            maxLines: 3,
           ),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'Số điện thoại',
-                  border: OutlineInputBorder(),
+
+          Row(
+            children: [
+              Expanded(
+                child: _buildTextField(
+                  controller: _phoneController,
+                  label: 'Số điện thoại',
+                  icon: Icons.phone,
+                  type: TextInputType.phone,
                 ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildTextField(
+                  controller: _emailController,
+                  label: 'Email',
+                  icon: Icons.email,
+                  type: TextInputType.emailAddress,
                 ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              flex: 2,
-              child: TextField(
-                controller: _destIdController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Dest ID *',
-                  border: OutlineInputBorder(),
+            ],
+          ),
+
+          Row(
+            children: [
+              Expanded(
+                child: _buildTextField(
+                  controller: _destIdController,
+                  label: 'Dest ID',
+                  icon: Icons.map,
+                  type: TextInputType.number,
+                  isRequired: true,
                 ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextField(
-                controller: _latController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Lat',
-                  border: OutlineInputBorder(),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildTextField(
+                  controller: _latController,
+                  label: 'Lat',
+                  type: TextInputType.number,
                 ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextField(
-                controller: _lngController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Lng',
-                  border: OutlineInputBorder(),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildTextField(
+                  controller: _lngController,
+                  label: 'Lng',
+                  type: TextInputType.number,
                 ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _hotelAmenitiesController,
-                decoration: const InputDecoration(
-                  labelText: 'Tiện ích KS',
-                  border: OutlineInputBorder(),
+            ],
+          ),
+
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: _buildTextField(
+                  controller: _hotelAmenitiesController,
+                  label: 'Tiện ích (phân cách dấu phẩy)',
+                  icon: Icons.pool,
                 ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Column(
-              children: [
-                Text(
-                  "Sao: ${_selectedStar.toInt()}",
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 1,
+                child: Column(
+                  children: [
+                    Text(
+                      "Đánh giá: ${_selectedStar.toInt()} sao",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.secondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                    SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        activeTrackColor: AppColors.secondary,
+                        inactiveTrackColor: AppColors.secondary.withOpacity(
+                          0.2,
+                        ),
+                        thumbColor: AppColors.secondary,
+                        overlayColor: AppColors.secondary.withOpacity(0.1),
+                      ),
+                      child: Slider(
+                        value: _selectedStar,
+                        min: 1,
+                        max: 5,
+                        divisions: 4,
+                        label: "${_selectedStar.toInt()}",
+                        onChanged: (val) => setState(() => _selectedStar = val),
+                      ),
+                    ),
+                  ],
                 ),
-                Slider(
-                  value: _selectedStar,
-                  min: 1,
-                  max: 5,
-                  divisions: 4,
-                  activeColor: Colors.amber,
-                  onChanged: (val) => setState(() => _selectedStar = val),
-                ),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        _buildImagePicker(),
-      ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _buildImagePicker(),
+        ],
+      ),
     );
   }
 
+  // --- WIDGET: HIỂN THỊ DANH SÁCH PHÒNG ĐÃ THÊM ---
   Widget _buildRoomListSection() {
     if (_fetchedRooms.isEmpty) return const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle("Danh sách phòng hiện có (${_fetchedRooms.length})"),
-        const Text(
-          "Chạm vào phòng để sửa thông tin ở dưới",
-          style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12, color: Colors.grey),
-        ),
-        const SizedBox(height: 5),
-        Container(
-          height: 120,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: ListView.separated(
-            padding: const EdgeInsets.all(8),
-            itemCount: _fetchedRooms.length,
-            separatorBuilder: (_, __) => const Divider(),
-            itemBuilder: (context, index) {
-              final room = _fetchedRooms[index];
-              final isEditingThis = _editingRoomIndex == index;
-              return InkWell(
-                onTap: () => _fillRoomInputsForEdit(index),
-                child: Container(
-                  color: isEditingThis ? Colors.blue.withOpacity(0.1) : null,
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.bed,
-                        size: 20,
-                        color: isEditingThis ? Colors.blue : Colors.grey,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          room.name,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: isEditingThis ? Colors.blue : Colors.black,
-                          ),
-                        ),
-                      ),
-                      Text("${room.price?.toStringAsFixed(0)} đ"),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 15),
-      ],
-    );
-  }
-
-  Widget _buildRoomFormSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -579,155 +656,384 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _buildSectionTitle(
-              _editingRoomIndex == null
-                  ? "2. Thêm Loại phòng mới"
-                  : "2. Đang sửa: Phòng #${_editingRoomIndex! + 1}",
+              "Danh sách phòng (${_fetchedRooms.length})",
+              Icons.meeting_room,
             ),
-            if (_editingRoomIndex != null)
-              TextButton.icon(
-                onPressed: _clearRoomInputs,
-                icon: const Icon(Icons.cancel, size: 16),
-                label: const Text("Hủy chọn"),
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
+            if (_editingRoomIndex == null)
+              const Text(
+                "Chọn phòng để sửa",
+                style: TextStyle(
+                  fontStyle: FontStyle.italic,
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
               ),
           ],
         ),
         const SizedBox(height: 10),
-        TextField(
-          controller: _roomNameController,
-          decoration: const InputDecoration(
-            labelText: 'Tên loại phòng *',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _roomPriceController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Giá/đêm *',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextField(
-                controller: _roomCapacityController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Sức chứa',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextField(
-                controller: _roomTotalController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Số lượng',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        TextField(
-          controller: _roomAmenitiesController,
-          decoration: const InputDecoration(
-            labelText: 'Tiện nghi phòng',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange[50],
-              foregroundColor: Colors.orange[800],
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
-            onPressed: _saveRoomToLocalList,
-            icon: Icon(_editingRoomIndex == null ? Icons.add : Icons.save),
-            label: Text(
-              _editingRoomIndex == null
-                  ? "THÊM PHÒNG NÀY VÀO DANH SÁCH"
-                  : "LƯU CẬP NHẬT PHÒNG",
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildImagePicker() {
-    return Row(
-      children: [
         Container(
-          width: 60,
-          height: 60,
+          constraints: const BoxConstraints(maxHeight: 180),
           decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.dividerGray),
+            borderRadius: BorderRadius.circular(10),
+            color: Colors.grey[50],
           ),
-          child: _selectedImage != null
-              ? ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.file(_selectedImage!, fit: BoxFit.cover),
-          )
-              : (widget.hotel?.thumbnail != null
-              ? ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              widget.hotel!.thumbnail!,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => const Icon(Icons.error),
-            ),
-          )
-              : const Icon(Icons.image)),
+          child: ListView.separated(
+            padding: const EdgeInsets.all(8),
+            shrinkWrap: true,
+            itemCount: _fetchedRooms.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              final room = _fetchedRooms[index];
+              final isEditingThis = _editingRoomIndex == index;
+              return InkWell(
+                onTap: () => _fillRoomInputsForEdit(index),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color:
+                        isEditingThis
+                            ? AppColors.primary.withOpacity(0.1)
+                            : Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color:
+                          isEditingThis
+                              ? AppColors.primary
+                              : Colors.transparent,
+                    ),
+                    boxShadow: [
+                      if (!isEditingThis)
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 2,
+                          offset: const Offset(0, 1),
+                        ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color:
+                              isEditingThis
+                                  ? AppColors.primary.withOpacity(0.2)
+                                  : Colors.grey[100],
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.bed,
+                          size: 18,
+                          color:
+                              isEditingThis
+                                  ? AppColors.primary
+                                  : AppColors.menuIconGray,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              room.name,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color:
+                                    isEditingThis
+                                        ? AppColors.primary
+                                        : AppColors.textGray,
+                              ),
+                            ),
+                            Text(
+                              "Sức chứa: ${room.capacity ?? 2} người",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        "${_formatCurrency(room.price)} VNĐ",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
         ),
-        const SizedBox(width: 10),
-        ElevatedButton.icon(
-          onPressed: _pickImage,
-          icon: const Icon(Icons.upload),
-          label: const Text("Chọn ảnh"),
-        ),
+        const SizedBox(height: 20),
       ],
     );
   }
 
-  Widget _buildFooter(BuildContext context) {
+  // --- WIDGET : tạo phòng-----
+  Widget _buildRoomFormSection() {
+    bool isEditing = _editingRoomIndex != null;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
-        border: Border(top: BorderSide(color: Colors.grey[300]!)),
+        color:
+            isEditing
+                ? AppColors.primary.withOpacity(0.05)
+                : Colors.orange.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color:
+              isEditing
+                  ? AppColors.primary.withOpacity(0.3)
+                  : AppColors.secondary.withOpacity(0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                isEditing
+                    ? "SỬA PHÒNG #${_editingRoomIndex! + 1}"
+                    : "THÊM LOẠI PHÒNG MỚI",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: isEditing ? AppColors.primary : AppColors.secondary,
+                  fontSize: 14,
+                ),
+              ),
+              if (isEditing)
+                TextButton.icon(
+                  onPressed: _clearRoomInputs,
+                  icon: const Icon(Icons.close, size: 16),
+                  label: const Text("Hủy chọn"),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.redAccent,
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildTextField(
+            controller: _roomNameController,
+            label: 'Tên loại phòng',
+            icon: Icons.label,
+            isRequired: true,
+          ),
+
+          Row(
+            children: [
+              Expanded(
+                child: _buildTextField(
+                  controller: _roomPriceController,
+                  label: 'Giá/đêm',
+                  type: TextInputType.number,
+                  isRequired: true,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildTextField(
+                  controller: _roomCapacityController,
+                  label: 'Sức chứa',
+                  type: TextInputType.number,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildTextField(
+                  controller: _roomTotalController,
+                  label: 'Số lượng',
+                  type: TextInputType.number,
+                ),
+              ),
+            ],
+          ),
+
+          _buildTextField(
+            controller: _roomAmenitiesController,
+            label: 'Tiện nghi phòng',
+            icon: Icons.featured_play_list,
+          ),
+
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    isEditing ? AppColors.primary : AppColors.green,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 2,
+              ),
+              onPressed: _saveRoomToLocalList,
+              icon: Icon(isEditing ? Icons.save : Icons.add_circle_outline),
+              label: Text(
+                isEditing ? "CẬP NHẬT PHÒNG NÀY" : "THÊM VÀO DANH SÁCH",
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+// --- WIDGET: CHỌN ẢNH BÌA ---
+  Widget _buildImagePicker() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: AppColors.dividerGray,
+          style: BorderStyle.solid,
+        ),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 70,
+            height: 70,
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child:
+                _selectedImage != null
+                    ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(_selectedImage!, fit: BoxFit.cover),
+                    )
+                    : (widget.hotel?.thumbnail != null
+                        ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            widget.hotel!.thumbnail!,
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (_, __, ___) => const Icon(
+                                  Icons.broken_image,
+                                  color: Colors.grey,
+                                ),
+                          ),
+                        )
+                        : const Icon(
+                          Icons.add_photo_alternate,
+                          color: AppColors.menuIconGray,
+                        )),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Ảnh bìa khách sạn",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textGray,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "Kích thước tối đa 5MB. Định dạng JPG, PNG.",
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: _pickImage,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      "Tải ảnh lên",
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- WIDGET : FOOTER----------
+  Widget _buildFooter(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          top: BorderSide(color: AppColors.dividerGray.withOpacity(0.5)),
+        ),
       ),
       child: Row(
         children: [
           Expanded(
             child: OutlinedButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Hủy"),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                side: const BorderSide(color: Colors.grey),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                "Hủy Bỏ",
+                style: TextStyle(color: AppColors.textGray),
+              ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
+                backgroundColor: AppColors.primary,
                 padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 3,
+                shadowColor: AppColors.primary.withOpacity(0.4),
               ),
               onPressed: _onSubmit,
-              child: Text(_editingId == null ? "Thêm Mới" : "Lưu Thay Đổi"),
+              child: Text(
+                _editingId == null ? "Tạo Mới" : "Lưu Thay Đổi",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+              ),
             ),
           ),
         ],

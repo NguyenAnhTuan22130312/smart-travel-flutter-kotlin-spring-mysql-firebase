@@ -76,6 +76,7 @@ class AppRouter {
           builder: (context) => DetailDestinationScreen(),
           settings: settings,
         );
+      // Hotel
       case RouteNames.hotelList:
         return MaterialPageRoute(
           builder:
@@ -93,6 +94,10 @@ class AppRouter {
                 child: const DetailHotelScreen(),
               ),
           settings: settings,
+        );
+      case RouteNames.adminHotels:
+        return MaterialPageRoute(
+          builder: (_) => const HotelManagementScreen(),
         );
 
       // Profile routes

@@ -22,9 +22,7 @@ class HotelLoaded extends HotelState {
     required this.hotels,
     required this.currentPage,
     required this.totalPages,
-  }) : timestamp = DateTime
-      .now()
-      .millisecondsSinceEpoch;
+  }) : timestamp = DateTime.now().millisecondsSinceEpoch;
 
   @override
   List<Object?> get props => [hotels, currentPage, totalPages, timestamp];
@@ -43,14 +41,6 @@ class HotelError extends HotelState {
 // Xoá khách sạn
 class DeleteHotelLoading extends HotelState {}
 
-class DeleteHotelSuccess extends HotelState {
-  final String message;
-  DeleteHotelSuccess(this.message);
-
-  @override
-  List<Object?> get props => [message];
-}
-
 class DeleteHotelError extends HotelState {
   final String message;
   DeleteHotelError(this.message);
@@ -64,10 +54,7 @@ class HotelOperationSuccess extends HotelState {
   final int timestamp;
 
   HotelOperationSuccess(this.message)
-      : timestamp = DateTime
-      .now()
-      .millisecondsSinceEpoch;
-
+    : timestamp = DateTime.now().millisecondsSinceEpoch;
   @override
   List<Object?> get props => [message, timestamp];
 }

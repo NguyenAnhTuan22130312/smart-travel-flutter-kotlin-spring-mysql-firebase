@@ -215,23 +215,28 @@ class HotelDataSourceImpl implements HotelDataSource {
   Future<String> deleteHotel(int id) async {
     try {
       final path = '${ApiConstants.hotel}/$id';
-
-      final response = await client.delete(path);
-
-      developer.log('Delete Hotel Response: ${response.statusCode}');
-
+      final response = await client.delete(
+        path,
+        options: Options(responseType: ResponseType.plain),
+      );
+      developer.log('Delete Hotel Status: ${response.statusCode}');
       if (response.statusCode == 200 || response.statusCode == 204) {
-        // response.data có thể là String hoặc Map rỗng
         return "Xóa thành công";
       } else {
-        throw ServerException('Xóa thất bại: ${response.statusCode}');
+        throw ServerException('Xóa thất bại với mã: ${response.statusCode}');
       }
     } on DioException catch (e) {
-      if (e.error is ServerException) throw e.error as ServerException;
-      rethrow;
+      developer.log('Dio Error DELETE: ${e.response?.statusCode}');
+
+      String errorMessage = 'Lỗi kết nối đến máy chủ';
+
+      if (e.response != null) {
+        errorMessage = e.response!.data.toString();
+      }
+      throw ServerException(errorMessage);
     } catch (e, s) {
-      developer.log('Lỗi deleteHotel', error: e, stackTrace: s);
-      rethrow;
+      developer.log('Lỗi không xác định tại deleteHotel', error: e, stackTrace: s);
+      throw ServerException(e.toString());
     }
   }
 

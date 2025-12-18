@@ -6,6 +6,7 @@ import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_event.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_state.dart';
 import 'package:smart_travel/presentation/screens/admin/hotel/hotel_form_dialog.dart';
+import 'package:smart_travel/presentation/theme/app_colors.dart';
 
 class HotelManagementScreen extends StatefulWidget {
   const HotelManagementScreen({Key? key}) : super(key: key);
@@ -57,34 +58,127 @@ class _HotelManagementScreenState extends State<HotelManagementScreen> {
   }
 
   void _confirmDelete(Hotel hotel) {
-    //  BƯỚC 1: "Bắt" lấy cái Bloc đang hoạt động ở màn hình này trước khi mở Dialog
     final hotelBloc = context.read<HotelBloc>();
-
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text("Xác nhận xóa"),
-        content: Text("Xóa khách sạn '${hotel.name}'?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext), // Đóng dialog dùng context của dialog
-            child: const Text("Hủy"),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () {
-              // Đóng dialog trước
-              Navigator.pop(dialogContext);
+      builder:
+          (dialogContext) => AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            contentPadding: const EdgeInsets.all(24),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 1. Icon thùng rác cảnh báo
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red[50],
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.delete_forever_rounded,
+                    color: Colors.redAccent,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 20),
 
-              // BƯỚC 2: Dùng biến hotelBloc đã lấy ở trên để add event.
-              hotelBloc.add(
-                DeleteHotelEvent(hotelId: hotel.id!),
-              );
-            },
-            child: const Text("Xóa", style: TextStyle(color: Colors.white)),
+                // 2. Tiêu đề to rõ
+                const Text(
+                  "Xác nhận xóa?",
+                  style: TextStyle(
+                    color: AppColors.textGray,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // 3. Nội dung chi tiết
+                RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    style: const TextStyle(
+                      color: Color(0xFF6B7280),
+                      fontSize: 15,
+                      height: 1.5,
+                      fontFamily: 'Roboto',
+                    ),
+                    children: [
+                      const TextSpan(
+                        text: "Bạn có chắc chắn muốn xóa khách sạn\n",
+                      ),
+                      TextSpan(
+                        text: "\"${hotel.name}\"",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textGray,
+                        ),
+                      ),
+                      const TextSpan(
+                        text: " không?\nHành động này không thể hoàn tác.",
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            // 4. Khu vực nút bấm
+            actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+            actions: [
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: BorderSide(color: Colors.grey[300]!),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        "Hủy bỏ",
+                        style: TextStyle(
+                          color: AppColors.textGray,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // Nút Xóa (Màu đỏ cảnh báo)
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        hotelBloc.add(DeleteHotelEvent(hotelId: hotel.id!));
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        "Xóa ngay",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -97,63 +191,102 @@ class _HotelManagementScreenState extends State<HotelManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Quản Lý Khách Sạn')),
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: const Text(
+          'Quản Lý Khách Sạn',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        centerTitle: true,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.mainGradient),
+        ),
+        elevation: 0,
+      ),
       body: BlocConsumer<HotelBloc, HotelState>(
         listener: (context, state) {
           if (state is HotelLoaded) {
-            // 1. Cập nhật dữ liệu khi load xong
             _currentHotels = state.hotels;
             _currentPage = state.currentPage;
             _totalPages = state.totalPages;
           }
-          // 2. Hiện thông báo thành công
           if (state is HotelOperationSuccess) {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
-                backgroundColor: Colors.green,
+                backgroundColor: AppColors.green,
                 behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             );
           }
-
-          // 3. Hiện lỗi
           if (state is HotelError || state is DeleteHotelError) {
-            // Lấy message lỗi tùy state
-            String msg = state is HotelError ? state.message : (state as DeleteHotelError).message;
+            String msg =
+                state is HotelError
+                    ? state.message
+                    : (state as DeleteHotelError).message;
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(msg), backgroundColor: Colors.red),
+              SnackBar(
+                content: Text(msg),
+                backgroundColor: Colors.redAccent,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
             );
           }
         },
-
         builder: (context, state) {
-          final bool isLoading = state is HotelLoading || state is DeleteHotelLoading;
+          final bool isLoading =
+              state is HotelLoading || state is DeleteHotelLoading;
           return Stack(
             children: [
-              // --- LỚP DƯỚI: NỘI DUNG ---
+              // --- NỘI DUNG CHÍNH ---
               Column(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: _buildSearchBar(),
-                  ),
-                  const SizedBox(height: 10),
+                  _buildHeaderActions(),
                   Expanded(
-                    child: _buildHotelTable(_currentHotels),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Column(
+                            children: [
+                              Expanded(child: _buildHotelTable(_currentHotels)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  _buildPagination(_totalPages),
                   const SizedBox(height: 10),
+                  _buildPagination(_totalPages),
+                  const SizedBox(height: 20),
                 ],
               ),
 
-              // --- LỚP TRÊN: LOADING OVERLAY ---
+              // --- LOADING OVERLAY ---
               if (isLoading)
                 Container(
                   color: Colors.black.withOpacity(0.3),
                   child: const Center(
-                    child: CircularProgressIndicator(),
+                    child: CircularProgressIndicator(color: AppColors.primary),
                   ),
                 ),
             ],
@@ -163,117 +296,306 @@ class _HotelManagementScreenState extends State<HotelManagementScreen> {
     );
   }
 
-  Widget _buildSearchBar() {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            controller: _searchController,
-            decoration: const InputDecoration(
-              hintText: 'Tìm kiếm...',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
-            ),
-            onSubmitted: (_) => _loadData(page: 0),
+  // --- WIDGET: TẠO HEADER ---
+  Widget _buildHeaderActions() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            offset: const Offset(0, 4),
+            blurRadius: 4,
           ),
-        ),
-        const SizedBox(width: 10),
-        ElevatedButton.icon(
-          onPressed: () => _showModal(hotel: null),
-          icon: const Icon(Icons.add),
-          label: const Text("Thêm"),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHotelTable(List<Hotel> hotels) {
-    if (hotels.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(20),
-        child: Text("Không có dữ liệu"),
-      );
-    }
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        columns: const [
-          DataColumn(label: Text('Ảnh')),
-          DataColumn(label: Text('ID')),
-          DataColumn(label: Text('Tên')),
-          DataColumn(label: Text('Giá')),
-          DataColumn(label: Text('Hành động')),
         ],
-        rows:
-        hotels.map((hotel) {
-          return DataRow(
-            cells: [
-              DataCell(
-                hotel.thumbnail != null
-                    ? Image.network(
-                  hotel.thumbnail!,
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.cover,
-                  errorBuilder:
-                      (_, __, ___) => const Icon(Icons.broken_image),
-                )
-                    : const Icon(Icons.hotel),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.dividerGray),
               ),
-              DataCell(Text("${hotel.id}")),
-              DataCell(
-                SizedBox(
-                  width: 120,
-                  child: Text(
-                    hotel.name ?? "",
-                    overflow: TextOverflow.ellipsis,
-                  ),
+              child: TextField(
+                controller: _searchController,
+                style: const TextStyle(color: AppColors.textGray),
+                decoration: const InputDecoration(
+                  hintText: 'Tìm kiếm khách sạn...',
+                  hintStyle: TextStyle(color: Colors.grey),
+                  prefixIcon: Icon(Icons.search, color: AppColors.menuIconGray),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 14),
                 ),
+                onSubmitted: (_) => _loadData(page: 0),
               ),
-              DataCell(Text("${hotel.minPrice?.toStringAsFixed(0) ?? 0}")),
-              DataCell(
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.orange),
-                      onPressed: () => _showModal(hotel: hotel),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _confirmDelete(hotel),
-                    ),
-                  ],
-                ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          ElevatedButton.icon(
+            onPressed: () => _showModal(hotel: null),
+            icon: const Icon(Icons.add, color: Colors.white),
+            label: const Text(
+              "Thêm Mới",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
-            ],
-          );
-        }).toList(),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.button,
+              elevation: 2,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
+  // --- WIDGET: TẠO TẠO HOTEL TABLE ---
+  Widget _buildHotelTable(List<Hotel> hotels) {
+    if (hotels.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.hotel_class_outlined,
+              size: 64,
+              color: AppColors.dividerGray,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "Không có dữ liệu khách sạn",
+              style: TextStyle(
+                color: AppColors.textGray.withOpacity(0.7),
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth),
+              child: DataTable(
+                headingRowColor: MaterialStateProperty.all(
+                  AppColors.primary.withOpacity(0.08),
+                ),
+                dataRowHeight: 70,
+                dividerThickness: 0.5,
+                horizontalMargin: 20,
+                columnSpacing: 20,
+                columns: [
+                  _buildDataColumn('Ảnh'),
+                  _buildDataColumn('ID'),
+                  _buildDataColumn('Tên Khách Sạn'),
+                  _buildDataColumn('Giá Sàn (VNĐ)'),
+                  _buildDataColumn('Hành động', alignEnd: true),
+                ],
+                rows:
+                    hotels.map((hotel) {
+                      return DataRow(
+                        cells: [
+                          DataCell(
+                            Container(
+                              margin: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: AppColors.dividerGray,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(7),
+                                child:
+                                    hotel.thumbnail != null
+                                        ? Image.network(
+                                          hotel.thumbnail!,
+                                          width: 50,
+                                          height: 50,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (_, __, ___) => Container(
+                                                width: 50,
+                                                height: 50,
+                                                color: Colors.grey[200],
+                                                child: const Icon(
+                                                  Icons.broken_image,
+                                                  size: 20,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                        )
+                                        : Container(
+                                          width: 50,
+                                          height: 50,
+                                          color: Colors.grey[200],
+                                          child: const Icon(
+                                            Icons.hotel,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            Text(
+                              "#${hotel.id}",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textGray,
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            SizedBox(
+                              width: 180,
+                              child: Text(
+                                hotel.name ?? "Chưa đặt tên",
+                                style: const TextStyle(
+                                  color: AppColors.textGray,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            Text(
+                              "${hotel.minPrice?.toStringAsFixed(0) ?? 0}",
+                              style: const TextStyle(
+                                color: AppColors.secondary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                _buildActionButton(
+                                  icon: Icons.edit_outlined,
+                                  color: AppColors.secondary,
+                                  onPressed: () => _showModal(hotel: hotel),
+                                ),
+                                const SizedBox(width: 8),
+                                _buildActionButton(
+                                  icon: Icons.delete_outline,
+                                  color: Colors.redAccent,
+                                  onPressed: () => _confirmDelete(hotel),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Helper để tạo cột bảng thống nhất style
+  DataColumn _buildDataColumn(String label, {bool alignEnd = false}) {
+    return DataColumn(
+      numeric: alignEnd,
+      label: Text(
+        label.toUpperCase(),
+        style: const TextStyle(
+          color: AppColors.menuIconGray,
+          fontWeight: FontWeight.bold,
+          fontSize: 13,
+        ),
+      ),
+    );
+  }
+
+  // Helper tạo nút hành động nhỏ gọn đẹp
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, color: color, size: 20),
+      ),
+    );
+  }
+  // --- WIDGET: TẠO PAGINATION ---
   Widget _buildPagination(int totalPages) {
-    // Ẩn phân trang nếu không có trang nào
     if (totalPages <= 1) return const SizedBox.shrink();
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.chevron_left),
-          onPressed:
-          _currentPage > 0 ? () => _loadData(page: _currentPage - 1) : null,
-        ),
-        Text("Trang ${_currentPage + 1} / $totalPages"),
-        IconButton(
-          icon: const Icon(Icons.chevron_right),
-          onPressed:
-          _currentPage < totalPages - 1
-              ? () => _loadData(page: _currentPage + 1)
-              : null,
-        ),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.chevron_left),
+            color: _currentPage > 0 ? AppColors.primary : Colors.grey,
+            onPressed:
+                _currentPage > 0
+                    ? () => _loadData(page: _currentPage - 1)
+                    : null,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              "Trang ${_currentPage + 1} / $totalPages",
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppColors.textGray,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.chevron_right),
+            color:
+                _currentPage < totalPages - 1 ? AppColors.primary : Colors.grey,
+            onPressed:
+                _currentPage < totalPages - 1
+                    ? () => _loadData(page: _currentPage + 1)
+                    : null,
+          ),
+        ],
+      ),
     );
   }
 }
