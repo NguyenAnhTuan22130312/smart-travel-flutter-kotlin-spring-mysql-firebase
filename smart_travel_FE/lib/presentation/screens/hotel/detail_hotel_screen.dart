@@ -115,26 +115,24 @@ class _DetailHotelScreenState extends State<DetailHotelScreen> with TickerProvid
   Widget build(BuildContext context) {
     return BlocBuilder<HotelDetailBloc, HotelDetailState>(
       builder: (context, state) {
-        // Biến để lưu thông tin khách sạn hiển thị ở BottomBar
+        // --- 1. KHAI BÁO BIẾN Ở ĐÂY ĐỂ TOÀN BỘ BUILDER ĐỀU THẤY ---
         Widget? bottomBar;
+        double correctPrice = 0.0;
 
         if (state is HotelDetailLoaded) {
           final hotel = state.hotel;
 
-          // Tính giá hiển thị
-          double displayPrice = hotel.minPrice ?? 0.0;
+          // Tính toán giá đúng
+          correctPrice = hotel.minPrice ?? 0.0;
 
-          // 2. Nếu minPrice bằng 0 hoặc null, tự động quét trong danh sách phòng để tìm giá thấp nhất
-          if (displayPrice <= 0 && hotel.rooms != null && hotel.rooms!.isNotEmpty) {
-            // Lọc ra các phòng có giá > 0
+          if (correctPrice <= 0 && hotel.rooms != null && hotel.rooms!.isNotEmpty) {
             final validRoomPrices = hotel.rooms!
                 .map((r) => r.price ?? 0.0)
                 .where((price) => price > 0)
                 .toList();
 
             if (validRoomPrices.isNotEmpty) {
-              // Lấy giá nhỏ nhất trong các phòng hợp lệ
-              displayPrice = validRoomPrices.reduce((a, b) => a < b ? a : b);
+              correctPrice = validRoomPrices.reduce((a, b) => a < b ? a : b);
             }
           }
 
@@ -150,7 +148,6 @@ class _DetailHotelScreenState extends State<DetailHotelScreen> with TickerProvid
             child: SafeArea(
               child: Row(
                 children: [
-                  // Giá tiền
                   Expanded(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -158,7 +155,7 @@ class _DetailHotelScreenState extends State<DetailHotelScreen> with TickerProvid
                       children: [
                         Text("Giá từ", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
                         Text(
-                          "${NumberFormat('#,###').format(displayPrice)} đ",
+                          "${NumberFormat('#,###').format(correctPrice)} đ",
                           style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
@@ -169,8 +166,6 @@ class _DetailHotelScreenState extends State<DetailHotelScreen> with TickerProvid
                       ],
                     ),
                   ),
-
-                  // Nút Thêm vào giỏ
                   Container(
                     margin: const EdgeInsets.only(right: 12),
                     decoration: BoxDecoration(
@@ -180,18 +175,14 @@ class _DetailHotelScreenState extends State<DetailHotelScreen> with TickerProvid
                     child: IconButton(
                       onPressed: () => _addToCart(context, hotel),
                       icon: Icon(Icons.shopping_cart_outlined, color: AppColors.primary),
-                      tooltip: "Thêm vào giỏ",
                     ),
                   ),
-
-                  // Nút Đặt ngay
                   ElevatedButton(
-                    onPressed: () => _bookNow(context, hotel, displayPrice),
+                    onPressed: () => _bookNow(context, hotel, correctPrice),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      elevation: 0,
                     ),
                     child: const Text(
                       "Đặt ngay",
@@ -206,16 +197,13 @@ class _DetailHotelScreenState extends State<DetailHotelScreen> with TickerProvid
 
         return Scaffold(
           backgroundColor: Colors.white,
-          // Gắn Bottom Bar vào Scaffold
           bottomNavigationBar: bottomBar,
-
           body: Builder(builder: (context) {
             if (state is HotelDetailLoading) {
               return Center(child: Lottie.asset('assets/lottie/travel_is_fun.json', width: 200));
             }
-
             if (state is HotelDetailError) {
-              return Center(child: Text(state.message)); // Xử lý lỗi đơn giản
+              return Center(child: Text(state.message));
             }
 
             if (state is HotelDetailLoaded) {
@@ -226,21 +214,19 @@ class _DetailHotelScreenState extends State<DetailHotelScreen> with TickerProvid
                 if (_timer == null || !_timer!.isActive) _startAutoPlay(images);
               });
 
-              final double displayPrice = hotel.minPrice ?? 0.0; // Giá dùng để truyền vào widget con nếu cần
-
               return CustomScrollView(
                 slivers: [
                   HotelImageCarouselSliver(images: images, onBack: () => Navigator.pop(context)),
                   SliverToBoxAdapter(
                     child: HotelInfoSection(
                       hotel: hotel,
-                      displayPrice: displayPrice,
+                      displayPrice: correctPrice,
                       fadeAnimation: _fadeController,
                     ),
                   ),
                   SliverToBoxAdapter(child: HotelRoomTypeWidget(rooms: hotel.rooms ?? [])),
                   SliverToBoxAdapter(child: HotelMapSection(hotel: hotel)),
-                  const SliverToBoxAdapter(child: SizedBox(height: 20)), // Khoảng trống tránh bị che bởi bottom bar
+                  const SliverToBoxAdapter(child: SizedBox(height: 20)),
                 ],
               );
             }
