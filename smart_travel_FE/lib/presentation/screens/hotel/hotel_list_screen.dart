@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart'; // Đã thêm thư viện này để format tiền
 import 'package:smart_travel/domain/entities/hotel.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_event.dart';
@@ -77,6 +78,7 @@ class _HotelListScreenState extends State<HotelListScreen> {
       ),
     );
   }
+
   // --- HÀM MỚI: UI THANH PHÂN TRANG (1 2 3...) ---
   Widget _buildPaginationControls(int currentPage, int totalPages) {
     // Nếu chỉ có 1 trang hoặc không có trang nào thì không hiện
@@ -189,13 +191,11 @@ class _HotelListScreenState extends State<HotelListScreen> {
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [primary, button],
-              begin: Alignment.topLeft, // Bắt đầu từ góc trên bên trái
-              end: Alignment.bottomRight, // Kết thúc ở góc dưới bên phải
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
           ),
         ),
-
-        // Các thuộc tính UI khác của AppBar vẫn giữ nguyên
         foregroundColor: Colors.white,
         title: const Text(
           "Danh sách khách sạn",
@@ -206,7 +206,6 @@ class _HotelListScreenState extends State<HotelListScreen> {
           ),
         ),
         centerTitle: true,
-
         leading: GestureDetector(
           onTap: () => Navigator.pop(context),
           child: Container(
@@ -225,7 +224,6 @@ class _HotelListScreenState extends State<HotelListScreen> {
           ),
         ),
       ),
-
       body: Column(
         children: [
           // Giao diện Tìm kiếm và Lọc
@@ -253,13 +251,15 @@ class _HotelListScreenState extends State<HotelListScreen> {
 
                   return ListView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     // +1 item cho thanh phân trang
                     itemCount: hotels.length + 1,
                     itemBuilder: (context, index) {
                       // Item cuối cùng -> Render nút phân trang
                       if (index == hotels.length) {
-                        return _buildPaginationControls(state.currentPage, state.totalPages);
+                        return _buildPaginationControls(
+                            state.currentPage, state.totalPages);
                       }
                       // Item thường -> Render khách sạn
                       return _buildHotelCard(hotels[index]);
@@ -311,24 +311,22 @@ class _HotelListScreenState extends State<HotelListScreen> {
               hintText: "Tìm kiếm theo tên, địa chỉ...",
               hintStyle: TextStyle(color: AppColors.textGray, fontSize: 14),
               prefixIcon: Icon(Icons.search, color: primary, size: 20),
-              suffixIcon:
-                  _searchController.text.isNotEmpty
-                      ? IconButton(
-                        icon: Icon(
-                          Icons.clear,
-                          color: AppColors.textGray,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          _searchController.clear();
-                          _applyFilter();
-                        },
-                      )
-                      : null,
+              suffixIcon: _searchController.text.isNotEmpty
+                  ? IconButton(
+                icon: Icon(
+                  Icons.clear,
+                  color: AppColors.textGray,
+                  size: 20,
+                ),
+                onPressed: () {
+                  _searchController.clear();
+                  _applyFilter();
+                },
+              )
+                  : null,
               border: InputBorder.none,
               filled: true,
               fillColor: AppColors.background,
-              // Giảm vertical padding trong content
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 8,
                 horizontal: 16,
@@ -345,15 +343,14 @@ class _HotelListScreenState extends State<HotelListScreen> {
             onSubmitted: (value) => _applyFilter(),
           ),
 
-          const SizedBox(height: 12), // Giữ khoảng cách vừa phải
-          // 2. Filter Bar (Nút Sắp xếp duy nhất)
+          const SizedBox(height: 12),
+          // 2. Filter Bar
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               GestureDetector(
                 onTap: () => _showSortModal(context),
                 child: Container(
-                  // Giảm padding để nút nhỏ gọn hơn
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
                     vertical: 8,
@@ -452,13 +449,12 @@ class _HotelListScreenState extends State<HotelListScreen> {
                     style: TextStyle(
                       color: isSelected ? primary : textDark,
                       fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.normal,
+                      isSelected ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
-                  trailing:
-                      isSelected
-                          ? Icon(Icons.check_circle, color: primary)
-                          : null,
+                  trailing: isSelected
+                      ? Icon(Icons.check_circle, color: primary)
+                      : null,
                   onTap: () {
                     setState(() {
                       _selectedFilter = option["value"]!;
@@ -475,12 +471,14 @@ class _HotelListScreenState extends State<HotelListScreen> {
     );
   }
 
-  // --- HOTEL ITEM (Cải tiến bố cục giá và địa chỉ) ---
+  // --- HOTEL ITEM ---
   Widget _buildHotelCard(Hotel hotel) {
-    final price =
-        hotel.minPrice != null
-            ? "${hotel.minPrice!.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')} đ"
-            : "Liên hệ";
+    final hasPrice = hotel.minPrice != null && hotel.minPrice! > 0;
+
+    // Format giá tiền
+    final priceString = hasPrice
+        ? "${NumberFormat('#,###').format(hotel.minPrice)} đ"
+        : "Liên hệ";
 
     return GestureDetector(
       onTap: () {
@@ -529,18 +527,17 @@ class _HotelListScreenState extends State<HotelListScreen> {
                     ),
                   );
                 },
-                errorBuilder:
-                    (_, __, ___) => Container(
-                      height: 180,
-                      color: Colors.grey[300],
-                      child: const Center(
-                        child: Icon(
-                          Icons.hotel_rounded,
-                          size: 40,
-                          color: Color(0xFF6B7280),
-                        ),
-                      ),
+                errorBuilder: (_, __, ___) => Container(
+                  height: 180,
+                  color: Colors.grey[300],
+                  child: const Center(
+                    child: Icon(
+                      Icons.hotel_rounded,
+                      size: 40,
+                      color: Color(0xFF6B7280),
                     ),
+                  ),
+                ),
               ),
             ),
 
@@ -563,23 +560,22 @@ class _HotelListScreenState extends State<HotelListScreen> {
                   ),
                   const SizedBox(height: 6),
 
-                  // ĐỊA CHỈ & GIÁ (đặt trong Row để căn chỉnh tốt hơn)
+                  // ĐỊA CHỈ & GIÁ
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      // Thông tin Đánh giá & Địa chỉ (Cột 1)
+                      // Cột 1: Đánh giá & Địa chỉ
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Rating và Stars
+                            // Rating
                             Row(
                               children: [
-                                // Stars
                                 Row(
                                   children: List.generate(
                                     hotel.starRating ?? 0,
-                                    (i) => const Icon(
+                                        (i) => const Icon(
                                       Icons.star_rounded,
                                       color: Colors.orange,
                                       size: 18,
@@ -587,8 +583,6 @@ class _HotelListScreenState extends State<HotelListScreen> {
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-
-                                // Rating Score
                                 if (hotel.averageRating != null &&
                                     hotel.averageRating! > 0)
                                   Container(
@@ -646,10 +640,9 @@ class _HotelListScreenState extends State<HotelListScreen> {
                           ],
                         ),
                       ),
-
                       const SizedBox(width: 16),
 
-                      // Giá (Cột 2)
+                      // Cột 2: Giá
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
@@ -661,9 +654,9 @@ class _HotelListScreenState extends State<HotelListScreen> {
                             ),
                           ),
                           Text(
-                            price,
+                            priceString, // Sửa lại: dùng priceString
                             style: TextStyle(
-                              fontSize: 18, // Giảm cỡ chữ một chút để cân đối
+                              fontSize: 18,
                               fontWeight: FontWeight.w900,
                               color: AppColors.primary,
                             ),

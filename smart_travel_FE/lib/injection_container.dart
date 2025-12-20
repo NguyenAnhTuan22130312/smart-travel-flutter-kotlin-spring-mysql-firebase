@@ -33,8 +33,12 @@ import 'package:smart_travel/domain/usecases/destination/get_all_destination_fea
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_detail_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/update_destination_use_case.dart';
+import 'package:smart_travel/domain/usecases/hotel/create_hotel_use_case.dart';
+import 'package:smart_travel/domain/usecases/hotel/delete_hotel_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/get_hotels_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/hotel_detail_use_case.dart';
+import 'package:smart_travel/domain/usecases/hotel/update_hotel_use_case.dart';
+import 'package:smart_travel/domain/usecases/hotel/upload_hotel_images_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/add_province_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/delete_province_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/get_all_province_use_case.dart';
@@ -53,7 +57,6 @@ import 'package:smart_travel/domain/usecases/user/create_user_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/update_user_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/lock_user_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/unlock_user_usecase.dart';
-
 import 'package:smart_travel/presentation/blocs/admin_user/admin_user_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/chat/chat_bloc.dart';
@@ -133,6 +136,7 @@ Future<void> init() async {
   sl.registerLazySingleton<HotelDataSource>(
     () => HotelDataSourceImpl(client: sl()),
   );
+  
 
   sl.registerLazySingleton<TourRemoteDataSource>(
     () => TourRemoteDataSourceImpl(client: sl()),
@@ -183,10 +187,7 @@ Future<void> init() async {
     () => BookingRepositoryImpl(bookingDataSource: sl(), networkInfo: sl()),
   );
 
-  //Bloc tour
-  sl.registerFactory(
-        () => TourDetailBloc(sl()),
-  );
+
   sl.registerLazySingleton(() => FilterToursUseCase(sl()));
   // auth
   sl.registerLazySingleton<PaymentRepository>(
@@ -219,14 +220,19 @@ Future<void> init() async {
   sl.registerLazySingleton(() => AddProvinceUseCase(sl()));
   sl.registerLazySingleton(() => UpdateProvinceUseCase(sl()));
   sl.registerLazySingleton(() => DeleteProvinceUseCase(sl()));
-
+    
+  // --- THÊM USE CASE HOTEL ---
   sl.registerLazySingleton(() => HotelDetailUseCase(sl()));
   sl.registerLazySingleton(() => GetHotelsUseCase(sl()));
+  sl.registerLazySingleton(() => CreateHotelUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateHotelUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteHotelUseCase(sl()));
+  sl.registerLazySingleton(() => UploadHotelImagesUseCase(sl()));
 
   sl.registerLazySingleton<GetTourDetailUseCase>(
     () => GetTourDetailUseCase(sl()),
   );
-
+    
   sl.registerLazySingleton(() => GetProfileUseCase(sl()));
   sl.registerLazySingleton(() => UpdateProfileUseCase(sl()));
   sl.registerLazySingleton(() => ChangePasswordUseCase(sl()));
@@ -288,9 +294,20 @@ Future<void> init() async {
 
   sl.registerFactory(() => ProvinceDetailBloc(provinceDetailUseCase: sl()));
 
+   // HotelBloc phải tiêm đủ 4 tham số
+  sl.registerFactory(
+    () => HotelBloc(
+      getHotelsUseCase: sl(),
+      createHotelUseCase: sl(),
+      updateHotelUseCase: sl(),
+      deleteHotelUseCase: sl(),
+      uploadHotelImagesUseCase: sl(),
+    ),
+  );
+    
+  // ---  BLOC HOTEL ---
   sl.registerFactory(() => HotelDetailBloc(hotelDetailUseCase: sl()));
 
-  sl.registerFactory(() => HotelBloc(getHotelsUseCase: sl()));
 
   sl.registerFactory(
     () => ProfileBloc(
@@ -304,9 +321,13 @@ Future<void> init() async {
       logoutUseCase: sl(),
     ),
   );
-
+    
+  //Bloc tour
   sl.registerFactory(() => TourBloc(sl()));
-
+  sl.registerFactory(
+        () => TourDetailBloc(sl()),
+  );
+    
   sl.registerFactory(
     () => AdminUserBloc(
       getUserList: sl(),

@@ -26,7 +26,6 @@ import java.util.List;
 @EnableWebSecurity
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SecurityConfig {
-
     String[] PUBLIC_ENDPOINTS = new String[]{
 
             // --- AUTH ---
@@ -54,11 +53,10 @@ public class SecurityConfig {
 
             // --- HOTELS ---
             "/api/v1/hotels",
-            "/api/v1/hotels/{id}/detail",
+            "/api/v1/hotels/*/detail",
             "/api/v1/hotels/*/images",
-            "/api/v1/hotels/*/images/upload",
-            "/api/v1/hotels/*/images/upload-multiple",
             "/api/v1/hotels/*/images/*",
+            
 
             // --- PAYMENTS ---
             "/api/v1/payment/vnpay-return",
@@ -76,7 +74,6 @@ public class SecurityConfig {
             "/api/v1/chat",
             "/api/v1/vouchers/**",
     };
-
     CustomAuthEntryPoint customAuthEntryPoint;
     UserHeaderAuthenticationFilter userHeaderAuthenticationFilter;
     @Bean
