@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long> {
     List<TourSchedule> findByTourIdOrderByDayNumber(Long tourId);
+    void deleteByTourId(Long tourId);
 }

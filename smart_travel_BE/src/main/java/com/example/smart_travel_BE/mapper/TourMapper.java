@@ -29,11 +29,22 @@ public interface TourMapper {
     @Mapping(target = "excluded", source = "excluded", qualifiedByName = "jsonToMap")
     TourDetailResponse toDetail(Tour tour);
 
+    @Mapping(source = "destination.name", target = "destinationName")
+    @Mapping(target = "images", expression = "java(getThumbnail(tour))")
+    @Mapping(source = "bookingCount", target = "bookingCount")
+    @Mapping(source = "createdAt", target = "createdAt")
+    TourSummaryResponse toAdminSummary(Tour tour);
+
     default String getThumbnail(Tour tour) {
-        if (tour.getImages() != null && !tour.getImages().isEmpty()) {
-            return tour.getImages().get(0).getImageUrl();
+        if (tour.getImages() == null || tour.getImages().isEmpty()) {
+            return null;
         }
-        return null;
+
+        return tour.getImages().stream()
+                .filter(img -> Boolean.TRUE.equals(img.getIsPrimary()))
+                .findFirst()
+                .map(TourImage::getImageUrl)
+                .orElse(tour.getImages().get(0).getImageUrl());
     }
 
     @Named("jsonToMap")

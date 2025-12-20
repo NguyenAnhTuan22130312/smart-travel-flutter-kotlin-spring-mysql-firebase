@@ -65,4 +65,16 @@ public class TourSpecification {
             );
         };
     }
+    public static Specification<Tour> byDestination(Long destinationId) {
+        return (root, query, cb) -> {
+            if (destinationId == null) return null;
+            return cb.equal(root.get("destination").get("id"), destinationId);
+        };
+    }
+    public static Specification<Tour> isActive(Boolean isActive) {
+        return (root, query, cb) -> {
+            if (isActive == null) return null;
+            return cb.equal(root.get("isActive"), isActive);
+        };
+    }
 }

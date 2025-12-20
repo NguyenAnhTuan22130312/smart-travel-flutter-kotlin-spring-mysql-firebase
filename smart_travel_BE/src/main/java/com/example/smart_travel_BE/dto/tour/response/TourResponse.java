@@ -16,6 +16,7 @@ public class TourResponse {
 
     private Double averageRating;
     private Integer reviewCount;
+    private boolean isActive;
 
     private String thumbnail; // ảnh đầu tiên
 }

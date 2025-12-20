@@ -1,23 +1,28 @@
 package com.example.smart_travel_BE.service;
 
-import com.example.smart_travel_BE.dto.tour.request.TourFilterRequest;
 import com.example.smart_travel_BE.dto.tour.response.*;
 import com.example.smart_travel_BE.entity.Tour;
 import com.example.smart_travel_BE.entity.TourImage;
 import com.example.smart_travel_BE.entity.TourSchedule;
+import com.example.smart_travel_BE.exception.AppException;
 import com.example.smart_travel_BE.mapper.TourMapper;
+import com.example.smart_travel_BE.dto.tour.request.*;
+import com.example.smart_travel_BE.repository.DestinationRepository;
 import com.example.smart_travel_BE.repository.TourImageRepository;
 import com.example.smart_travel_BE.repository.TourRepository;
 import com.example.smart_travel_BE.repository.TourScheduleRepository;
 import com.example.smart_travel_BE.specification.TourSpecification;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.gax.rpc.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,6 +42,8 @@ public class TourService {
     private TourMapper tourMapper;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private DestinationRepository destinationRepository;
 
     /**
      * Lấy danh sách tour (phân trang)
@@ -45,7 +52,7 @@ public class TourService {
         Sort sort = Sort.by(Sort.Direction.fromString(Optional.ofNullable(sortDir).orElse("asc")), Optional.ofNullable(sortBy).orElse("id"));
         Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size), sort);
 
-        Page<Tour> tours = tourRepository.findAll(pageable);
+        Page<Tour> tours = tourRepository.findByIsActive(true, pageable);
         return tours.map(tourMapper::toSummary);
     }
 
@@ -62,7 +69,8 @@ public class TourService {
             Double minRating,
             String sort,
             int page,
-            int size
+            int size,
+            Boolean isActive
     ) {
 
         // BUILD SPEC
@@ -70,7 +78,8 @@ public class TourService {
                 .and(TourSpecification.priceBetween(minPrice, maxPrice))
                 .and(TourSpecification.daysBetween(minDays, maxDays))
                 .and(TourSpecification.peopleMin(minPeople))
-                .and(TourSpecification.ratingMin(minRating));
+                .and(TourSpecification.ratingMin(minRating))
+                .and(TourSpecification.isActive(isActive));
 
         Sort sortOption = Sort.by(Sort.Direction.DESC, "updatedAt")
                 .and(Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -188,5 +197,248 @@ public class TourService {
         img.setDisplayOrder(displayOrder != null ? displayOrder : 0);
         TourImage saved = tourImageRepository.save(img);
         return tourMapper.toImageResponse(saved);
+    }
+    /**
+     * (ADMIN) Lấy ra tất cả Tour + sreach+ phân trang
+     */
+    public Page<TourSummaryResponse> getTours(
+            String keyword,
+            Long destinationId,
+            Boolean isActive,
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    ) {
+        Specification<Tour> spec = Specification.where(
+                        TourSpecification.nameContains(keyword))
+                .and(TourSpecification.byDestination(destinationId))
+                .and(TourSpecification.isActive(isActive));
+
+        Sort sort = Sort.by(
+                "desc".equalsIgnoreCase(sortDir) ? Sort.Direction.DESC : Sort.Direction.ASC,
+                sortBy == null ? "createdAt" : sortBy
+        );
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        return tourRepository.findAll(spec, pageable)
+                .map(tourMapper::toAdminSummary);
+    }
+
+    /**
+     * (ADMIN) Tạo tour
+     */
+    @Transactional
+    public TourDetailResponse createTour(CreateTourRequest req) {
+        Tour tour = new Tour();
+        tour.setName(req.getName());
+        tour.setDescription(req.getDescription());
+        tour.setPricePerPerson(req.getPricePerPerson());
+        tour.setDurationDays(req.getDurationDays());
+        tour.setDurationNights(req.getDurationNights());
+        tour.setMinPeople(req.getMinPeople());
+        tour.setMaxPeople(req.getMaxPeople());
+        tour.setIsActive(true);
+
+        tour.setDestination(
+                destinationRepository.findById(req.getDestinationId())
+                        .orElseThrow(() -> new NoSuchElementException("Destination not found"))
+        );
+
+        tour.setIncluded(toJson(req.getIncluded()));
+        tour.setExcluded(toJson(req.getExcluded()));
+
+        tourRepository.save(tour);
+
+        saveImages(tour, req.getImages());
+        saveSchedules(tour, req.getSchedules());
+
+        return tourMapper.toDetail(tour);
+    }
+
+    @Transactional(readOnly = true)
+    public TourDetailResponse getDetail(Long id) {
+        Tour tour = tourRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tour not found"));
+
+        TourDetailResponse dto = tourMapper.toDetail(tour);
+
+        dto.setImages(
+                tourMapper.toImageResponses(
+                        tourImageRepository.findByTourIdOrderByDisplayOrder(id)
+                )
+        );
+
+        dto.setSchedules(
+                tourMapper.toScheduleResponses(
+                        tourScheduleRepository.findByTourIdOrderByDayNumber(id)
+                )
+        );
+
+        return dto;
+    }
+
+    // ================= UPDATE =================
+    public TourDetailResponse updateTour(Long id, UpdateTourRequest req) {
+
+        Tour tour = tourRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Tour not found"));
+
+        if (req.getName() != null) tour.setName(req.getName());
+        if (req.getDescription() != null) tour.setDescription(req.getDescription());
+        if (req.getPricePerPerson() != null)
+            tour.setPricePerPerson(BigDecimal.valueOf(req.getPricePerPerson()));
+        if (req.getDurationDays() != null) tour.setDurationDays(req.getDurationDays());
+        if (req.getDurationNights() != null) tour.setDurationNights(req.getDurationNights());
+        if (req.getMinPeople() != null) tour.setMinPeople(req.getMinPeople());
+        if (req.getMaxPeople() != null) tour.setMaxPeople(req.getMaxPeople());
+        if (req.getIsActive() != null) tour.setIsActive(req.getIsActive());
+
+        if (req.getIncluded() != null) tour.setIncluded(toJson(req.getIncluded()));
+        if (req.getExcluded() != null) tour.setExcluded(toJson(req.getExcluded()));
+
+        tourRepository.save(tour);
+        return tourMapper.toDetail(tour);
+    }
+
+    public void updateStatus(Long id, Boolean isActive) {
+        Tour tour = tourRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tour not found"));
+
+        tour.setIsActive(isActive);
+    }
+
+    // ================= DELETE =================
+    public void deleteTour(Long id) {
+        tourImageRepository.deleteByTourId(id);
+        tourScheduleRepository.deleteByTourId(id);
+        tourRepository.deleteById(id);
+    }
+
+    // ================= IMAGE =================
+    public TourImageResponse addImage(Long tourId, TourImageRequest req) {
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new NoSuchElementException("Tour not found"));
+
+        TourImage img = new TourImage();
+        img.setTour(tour);
+        img.setImageUrl(req.getImageUrl());
+        img.setIsPrimary(Boolean.TRUE.equals(req.getIsPrimary()));
+        img.setDisplayOrder(req.getDisplayOrder());
+
+        return tourMapper.toImageResponse(tourImageRepository.save(img));
+    }
+
+    // Upload 1 ảnh
+    public TourImageResponse updateImage(Long imageId, TourImageRequest req) {
+        TourImage img = tourImageRepository.findById(imageId)
+                .orElseThrow(() -> new NoSuchElementException("Image not found"));
+
+        if (req.getImageUrl() != null) img.setImageUrl(req.getImageUrl());
+        if (req.getIsPrimary() != null) img.setIsPrimary(req.getIsPrimary());
+        if (req.getDisplayOrder() != null) img.setDisplayOrder(req.getDisplayOrder());
+
+        return tourMapper.toImageResponse(tourImageRepository.save(img));
+    }
+
+    public void deleteImage(Long imageId) {
+        tourImageRepository.deleteById(imageId);
+    }
+
+    // Upload nhiều ảnh
+    public List<TourImageResponse> addImages(Long tourId, List<TourImageRequest> requests) {
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new RuntimeException("Tour not found"));
+
+        boolean hasPrimary = tourImageRepository.existsPrimaryByTourId(tourId);
+
+        List<TourImage> images = new ArrayList<>();
+
+        for (TourImageRequest req : requests) {
+            TourImage img = new TourImage();
+            img.setTour(tour);
+            img.setImageUrl(req.getImageUrl());
+            img.setIsPrimary(!hasPrimary && Boolean.TRUE.equals(req.getIsPrimary()));
+            img.setDisplayOrder(req.getDisplayOrder());
+
+            images.add(img);
+            hasPrimary = true;
+        }
+
+        return tourMapper.toImageResponses(tourImageRepository.saveAll(images));
+    }
+
+    // Set ảnh Primary
+    public void setPrimaryImage(Long imageId) {
+        TourImage image = tourImageRepository.findById(imageId)
+                .orElseThrow(() -> new RuntimeException("Image not found"));
+
+        tourImageRepository.resetPrimary(image.getTour().getId());
+        image.setIsPrimary(true);
+    }
+
+    public void reorderImages(List<TourImageRequest> requests) {
+        for (TourImageRequest req : requests) {
+            TourImage img = tourImageRepository.findById(Long.valueOf(req.getId()))
+                    .orElseThrow(() -> new RuntimeException("Image not found"));
+            img.setDisplayOrder(req.getDisplayOrder());
+        }
+    }
+
+    // ================= SCHEDULE =================
+    public TourScheduleResponse addSchedule(Long tourId, TourScheduleRequest req) {
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new NoSuchElementException("Tour not found"));
+
+        TourSchedule s = new TourSchedule();
+        s.setTour(tour);
+        s.setDayNumber(req.getDayNumber());
+        s.setTitle(req.getTitle());
+        s.setActivities(req.getActivities());
+        s.setMeals(req.getMeals());
+        s.setAccommodation(req.getAccommodation());
+
+        return tourMapper.toScheduleResponse(tourScheduleRepository.save(s));
+    }
+
+    public TourScheduleResponse updateSchedule(Long scheduleId, TourScheduleRequest req) {
+        TourSchedule s = tourScheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new NoSuchElementException("Schedule not found"));
+
+        if (req.getDayNumber() != null) s.setDayNumber(req.getDayNumber());
+        if (req.getTitle() != null) s.setTitle(req.getTitle());
+        if (req.getActivities() != null) s.setActivities(req.getActivities());
+        if (req.getMeals() != null) s.setMeals(req.getMeals());
+        if (req.getAccommodation() != null) s.setAccommodation(req.getAccommodation());
+
+        return tourMapper.toScheduleResponse(tourScheduleRepository.save(s));
+    }
+
+    public void deleteSchedule(Long scheduleId) {
+        tourScheduleRepository.deleteById(scheduleId);
+    }
+
+    // ================= UTIL =================
+    private void saveImages(Tour tour, List<TourImageRequest> images) {
+        if (images == null) return;
+        for (TourImageRequest req : images) {
+            addImage(tour.getId(), req);
+        }
+    }
+
+    private void saveSchedules(Tour tour, List<TourScheduleRequest> schedules) {
+        if (schedules == null) return;
+        for (TourScheduleRequest req : schedules) {
+            addSchedule(tour.getId(), req);
+        }
+    }
+
+    private String toJson(Map<String, Object> map) {
+        try {
+            return objectMapper.writeValueAsString(map);
+        } catch (Exception e) {
+            return "{}";
+        }
     }
 }
