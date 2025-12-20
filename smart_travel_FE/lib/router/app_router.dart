@@ -38,6 +38,10 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => const ProvinceManagementScreen(),
         );
+      case RouteNames.adminHotels:
+        return MaterialPageRoute(
+          builder: (_) => const HotelManagementScreen(),
+        );
       case RouteNames.adminUsers:
         return MaterialPageRoute(
           builder:

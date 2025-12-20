@@ -306,7 +306,6 @@ Future<void> init() async {
   );
     
   // ---  BLOC HOTEL ---
-  sl.registerFactory(() => HotelBloc(getHotelsUseCase: sl()));
   sl.registerFactory(() => HotelDetailBloc(hotelDetailUseCase: sl()));
 
 
