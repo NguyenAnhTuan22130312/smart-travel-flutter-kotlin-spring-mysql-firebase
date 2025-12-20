@@ -2,6 +2,7 @@ package com.example.smart_travel_BE.dto.hotel.response;
 
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
@@ -28,4 +29,7 @@ public class HotelDetailResponse {
     private List<RoomTypeResponse> rooms;
     private Double latitude;
     private Double longitude;
+    private BigDecimal pricePerNight; // giá mặc định / hiển thị
+
+
 }

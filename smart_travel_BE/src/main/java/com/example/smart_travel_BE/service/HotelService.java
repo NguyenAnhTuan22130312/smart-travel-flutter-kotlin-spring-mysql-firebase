@@ -136,12 +136,14 @@ public class HotelService {
                 )
                 .latitude(hotel.getLatitude())
                 .longitude(hotel.getLongitude())
+                .pricePerNight(hotel.getPricePerNight())
                 .rooms(roomResponses)
                 .phone(hotel.getPhone())
                 .email(hotel.getEmail())
                 .amenities(convertAmenitiesToList(hotel.getAmenities()))
                 .destinationId(hotel.getDestination() != null ? hotel.getDestination().getId() : null)
                 .build();
+
     }
 
     @Transactional

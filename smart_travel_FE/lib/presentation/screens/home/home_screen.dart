@@ -34,10 +34,17 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0; // Index cho thanh điều hướng dưới
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    context.read<ProfileBloc>().add(LoadProfile());
+  }
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
+
 
 
   void _onNavItemTapped(int index) {

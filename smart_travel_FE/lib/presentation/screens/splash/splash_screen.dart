@@ -85,7 +85,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               Navigator.pushReplacementNamed(context, '/home');
             }
            else if (state is Unauthenticated) {
-            Navigator.pushReplacementNamed(context, '/login');
+            Navigator.pushReplacementNamed(context, '/home');
           }
         },
         child: Scaffold(

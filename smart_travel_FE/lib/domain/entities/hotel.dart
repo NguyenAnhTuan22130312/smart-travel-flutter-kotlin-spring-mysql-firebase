@@ -28,6 +28,7 @@ class Hotel {
   final String? provinceName;
   final List<RoomType>? rooms;
 
+
   Hotel({
     required this.id,
     this.name,
