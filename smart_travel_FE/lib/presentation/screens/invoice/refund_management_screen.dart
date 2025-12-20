@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/invoice/empty_order_widget.dart';
+import '../../widgets/invoice/invoice_status_card.dart';
 
 class RefundManagementScreen extends StatelessWidget {
   const RefundManagementScreen({Key? key}) : super(key: key);
@@ -59,64 +61,53 @@ class RefundManagementScreen extends StatelessWidget {
               ),
             ),
 
-            // KHÔNG CÓ FILTER NỮA → BỎ HOÀN TOÀN PHẦN NÀY
 
-            // PHẦN LIST HOÀN TIỀN - TẠM TRỐNG
             Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Stack(
-                      alignment: Alignment.topRight,
-                      children: [
-                        Icon(
-                          Icons.folder_outlined,
-                          size: 140,
-                          color: const Color(0xFF8CC9E8),
-                        ),
-                        Positioned(
-                          right: 20,
-                          top: 20,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFFE082),
-                              borderRadius: BorderRadius.all(Radius.circular(30)),
-                            ),
-                            child: const Text(
-                              "Zzz",
-                              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-                    const Text(
-                      "Bạn không có bất kì yêu cầu hoàn tiền nào",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+              child: Builder(
+                builder: (context) {
+                  // === GIẢ LẬP DỮ LIỆU CHO TRANG HOÀN TIỀN ===
+                  // Đổi thành false để test empty state
+                  final bool hasRefundRequests = true;
+
+                  if (!hasRefundRequests) {
+                    return const EmptyInvoiceWidget(
+                      title: 'Bạn không có bất kỳ yêu cầu hoàn tiền nào',
+                      description: 'Các yêu cầu hoàn tiền sẽ được hiển thị tại đây khi bạn thực hiện hủy đặt chỗ hợp lệ.',
+                    );
+                  }
+
+                  // === CÓ YÊU CẦU HOÀN TIỀN → HIỂN THỊ LIST CARD ===
+                  return ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                    children: [
+                      // ==== DỮ LIỆU GIẢ LẬP CHỈ LIÊN QUAN ĐẾN HOÀN TIỀN ====
+                      InvoiceStatusCard(
+                        bookingId: 4,
+                        invoiceNumber: "INV20250115-003",
+                        itemName: "Vinpearl Resort & Spa Hội An",
+                        startDate: "2025-01-15",
+                        endDate: "2025-01-18",
+                        nights: 3,
+                        status: "PENDING_REFUND", // Đang chờ hoàn tiền
+                        reviewed: false,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
-                      child: Text(
-                        "Các yêu cầu hoàn tiền sẽ được hiển thị tại đây khi bạn thực hiện hủy đặt chỗ hợp lệ.",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[700],
-                          height: 1.5,
-                        ),
-                        textAlign: TextAlign.center,
+                      const SizedBox(height: 12),
+
+                      InvoiceStatusCard(
+                        bookingId: 5,
+                        invoiceNumber: "INV20250220-004",
+                        itemName: "Tour Phú Quốc 3N2Đ",
+                        startDate: "2025-02-20",
+                        endDate: "2025-02-23",
+                        nights: 2,
+                        status: "REFUNDED", // Đã hoàn tiền
+                        reviewed: true,
                       ),
-                    ),
-                  ],
-                ),
+
+                      const SizedBox(height: 20),
+                    ],
+                  );
+                },
               ),
             ),
           ],

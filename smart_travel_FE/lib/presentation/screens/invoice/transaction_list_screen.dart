@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/invoice/empty_order_widget.dart';
+import '../../widgets/invoice/invoice_status_card.dart';
 
 class TransactionListScreen extends StatefulWidget {
   const TransactionListScreen({Key? key}) : super(key: key);
@@ -110,64 +112,94 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               ),
             ),
 
-            // PHẦN LIST ĐƠN HÀNG - TẠM TRỐNG
+
+            // PHẦN NỘI DUNG CHÍNH - HIỂN THỊ ĐỘNG: EMPTY HOẶC LIST CARD
             Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Stack(
-                      alignment: Alignment.topRight,
-                      children: [
-                        Icon(
-                          Icons.folder_outlined,
-                          size: 140,
-                          color: const Color(0xFF8CC9E8),
-                        ),
-                        Positioned(
-                          right: 20,
-                          top: 20,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFFE082),
-                              borderRadius: BorderRadius.all(Radius.circular(30)),
-                            ),
-                            child: const Text(
-                              "Zzz",
-                              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-                    const Text(
-                      "Chưa có giao dịch nào",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+              child: Builder(
+                builder: (context) {
+                  // === GIẢ LẬP DỮ LIỆU ĐỂ TEST ===
+                  // Đổi thành false để test empty state
+                   bool hasTransactions = true;
+
+                  if (!hasTransactions) {
+                    return const EmptyInvoiceWidget(
+                      title: 'Bạn hiện không có bất kỳ giao dịch nào',
+                      description:
+                      'Khi bạn đặt tour hoặc khách sạn, các giao dịch sẽ hiện ra tại đây.',
+                    );
+                  }
+
+                  // === CÓ DỮ LIỆU → HIỂN THỊ LIST CARD ===
+                  return ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                    children: [
+                      // ==== DỮ LIỆU GIẢ LẬP - DÙNG InvoiceStatusCard ====
+                      InvoiceStatusCard(
+                        bookingId: 1,
+                        invoiceNumber: "INV20251026-000",
+                        itemName: "Mercure Ba Na Hills French Village",
+                        startDate: "2025-10-26",
+                        endDate: "2025-10-27",
+                        nights: 1,
+                        status: "ACTIVE",
+                        reviewed: false,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
-                      child: Text(
-                        "Khi bạn đặt tour hoặc khách sạn, các giao dịch sẽ hiện ra tại đây.",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[700],
-                          height: 1.5,
-                        ),
-                        textAlign: TextAlign.center,
+                      const SizedBox(height: 12),
+
+                      InvoiceStatusCard(
+                        bookingId: 2,
+                        invoiceNumber: "INV20251209-001",
+                        itemName: "Tour Bà Nà Hills 1 Ngày",
+                        startDate: "2025-12-09",
+                        endDate: "2025-12-10",
+                        nights: 0,
+                        status: "COMPLETED",
+                        reviewed: true,
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(height: 12),
+
+                      InvoiceStatusCard(
+                        bookingId: 3,
+                        invoiceNumber: "INV20251225-002",
+                        itemName: "Tour Bà Nà Hills - Hội An 2N1Đ",
+                        startDate: "2025-12-25",
+                        endDate: "2025-12-26",
+                        nights: 1,
+                        status: "CANCELED",
+                        reviewed: false,
+                      ),
+                      const SizedBox(height: 12),
+
+                      InvoiceStatusCard(
+                        bookingId: 4,
+                        invoiceNumber: "INV20250115-003",
+                        itemName: "Vinpearl Resort & Spa Hội An",
+                        startDate: "2025-01-15",
+                        endDate: "2025-01-18",
+                        nights: 3,
+                        status: "PENDING_REFUND",
+                        reviewed: false,
+                      ),
+                      const SizedBox(height: 12),
+
+                      InvoiceStatusCard(
+                        bookingId: 5,
+                        invoiceNumber: "INV20250220-004",
+                        itemName: "Tour Phú Quốc 3N2Đ",
+                        startDate: "2025-02-20",
+                        endDate: "2025-02-23",
+                        nights: 2,
+                        status: "REFUNDED",
+                        reviewed: true,
+                      ),
+
+                      const SizedBox(height: 20),
+                    ],
+                  );
+                },
               ),
             ),
+
           ],
         ),
       ),

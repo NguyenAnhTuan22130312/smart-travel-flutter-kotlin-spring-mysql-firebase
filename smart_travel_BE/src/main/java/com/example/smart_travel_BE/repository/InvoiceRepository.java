@@ -46,16 +46,18 @@ public interface InvoiceRepository extends JpaRepository<Booking, Long> {
             """)
     List<Booking> findActiveInvoicesByUserId(@Param("userId") Long userId);
 
-    // 3. Đơn đã HOÀN TIỀN – giữ nguyên tên method cũ
+    // 3. Đơn đã / đang hoàn tiền
     @Query("""
-            SELECT b FROM Booking b
-            LEFT JOIN FETCH b.invoice
-            WHERE b.user.id = :userId
-              AND b.status = 'REFUNDED'
-            ORDER BY b.createdAt DESC
-            """)
+        SELECT b FROM Booking b
+        LEFT JOIN FETCH b.invoice
+        WHERE b.user.id = :userId
+          AND b.status IN ('REFUNDED', 'PENDING_REFUND')
+        ORDER BY b.createdAt DESC
+        """)
     List<Booking> findRefundedInvoices(
-            @Param("userId") Long userId);
+            @Param("userId") Long userId
+    );
+
 
     // 4. Đơn có thể ĐÁNH GIÁ – giữ nguyên tên method cũ + sửa isReviewed từ Booking
     @Query("""

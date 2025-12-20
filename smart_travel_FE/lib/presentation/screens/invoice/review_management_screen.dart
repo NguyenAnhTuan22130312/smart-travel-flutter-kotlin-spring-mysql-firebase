@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:smart_travel/presentation/widgets/invoice/invoice_review_card.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/invoice/succes_request_review.dart';
 
 class ReviewManagementScreen extends StatelessWidget {
   const ReviewManagementScreen({Key? key}) : super(key: key);
@@ -59,56 +61,78 @@ class ReviewManagementScreen extends StatelessWidget {
               ),
             ),
 
-            // KHÔNG CÓ FILTER → BỎ HOÀN TOÀN
-
-            // PHẦN LIST ĐÁNH GIÁ - TẠM TRỐNG
+            // PHẦN LIST ĐƠN HÀNG - TEST GIẢ LẬP VỚI InvoiceStatusCard
             Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Icon check vòng tròn xanh - biểu tượng hoàn thành
-                    Container(
-                      width: 140,
-                      height: 140,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.primary.withOpacity(0.15), // Nền xanh nhạt
-                      ),
-                      child: Icon(
-                        Icons.check_circle_outline,
-                        size: 100,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                children: [
+                  // ==== DỮ LIỆU GIẢ LẬP - COPY ĐOẠN NÀY SANG CÁC TRANG KHÁC NẾU CẦN ====
+                  InvoiceReviewCard(
+                    bookingId: 1,
+                    invoiceNumber: "INV20251026-000",
+                    itemName: "Mercure Ba Na Hills French Village",
+                    startDate: "2025-10-26",
+                    endDate: "2025-10-27",
+                    nights: 1,
+                    status: "ACTIVE", // → Hiển thị "Đang hoạt động" màu xanh
+                    reviewed: false,
+                  ),
+                  const SizedBox(height: 12),
 
-                    const Text(
-                      "Tất cả yêu cầu đánh giá đã được hoàn thành",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
-                      child: Text(
-                        "Cảm ơn bạn đã dành thời gian đánh giá! Ý kiến của bạn giúp chúng tôi cải thiện dịch vụ tốt hơn mỗi ngày.",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[700],
-                          height: 1.5,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
+                  InvoiceReviewCard(
+                    bookingId: 2,
+                    invoiceNumber: "INV20251209-001",
+                    itemName: "Tour Bà Nà Hills 1 Ngày",
+                    startDate: "2025-12-09",
+                    endDate: "2025-12-10",
+                    nights: 0,
+                    status: "COMPLETED", // → "Đã hoàn thành" màu xanh lá
+                    reviewed: true,
+                  ),
+                  const SizedBox(height: 12),
+
+                  InvoiceReviewCard(
+                    bookingId: 3,
+                    invoiceNumber: "INV20251225-002",
+                    itemName: "Tour Bà Nà Hills - Hội An 2N1Đ",
+                    startDate: "2025-12-25",
+                    endDate: "2025-12-26",
+                    nights: 1,
+                    status: "CANCELED", // → "Đã hủy" màu đỏ
+                    reviewed: false,
+                  ),
+                  const SizedBox(height: 12),
+
+                  InvoiceReviewCard(
+                    bookingId: 4,
+                    invoiceNumber: "INV20250115-003",
+                    itemName: "Vinpearl Resort & Spa Hội An",
+                    startDate: "2025-01-15",
+                    endDate: "2025-01-18",
+                    nights: 3,
+                    status: "PENDING_REFUND", // → "Đang chờ hoàn tiền" màu cam
+                    reviewed: false,
+                  ),
+                  const SizedBox(height: 12),
+
+                  InvoiceReviewCard(
+                    bookingId: 5,
+                    invoiceNumber: "INV20250220-004",
+                    itemName: "Tour Phú Quốc 3N2Đ",
+                    startDate: "2025-02-20",
+                    endDate: "2025-02-23",
+                    nights: 2,
+                    status: "REFUNDED", // → "Đã hoàn tiền" màu tím/xám
+                    reviewed: true,
+                  ),
+                  // ==== KẾT THÚC ĐOẠN TEST GIẢ LẬP ====
+
+                  const SizedBox(height: 20),
+                  SuccessReviewEmptyWidget()
+                ],
               ),
             ),
+
           ],
         ),
       ),

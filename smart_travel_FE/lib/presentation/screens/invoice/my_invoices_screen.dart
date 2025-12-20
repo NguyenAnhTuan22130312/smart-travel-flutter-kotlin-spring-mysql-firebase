@@ -5,6 +5,7 @@ import 'package:smart_travel/presentation/screens/invoice/transaction_list_scree
 import '../../theme/app_colors.dart';
 import 'package:flutter/services.dart';
 
+import '../../widgets/invoice/empty_order_widget.dart';
 import '../../widgets/invoice/invoice_card.dart';
 
 class MyInvoicesScreen extends StatelessWidget {
@@ -68,78 +69,24 @@ class MyInvoicesScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
 
-                    // Center(
-                    //   child: Column(
-                    //     children: [
-                    //       Stack(
-                    //         alignment: Alignment.topRight,
-                    //         children: [
-                    //           Icon(
-                    //             Icons.folder_outlined,
-                    //             size: 140,
-                    //             color: const Color(0xFF8CC9E8),
-                    //           ),
-                    //           Positioned(
-                    //             right: 20,
-                    //             top: 20,
-                    //             child: Container(
-                    //               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    //               decoration: const BoxDecoration(
-                    //                 color: Color(0xFFFFE082),
-                    //                 borderRadius: BorderRadius.all(Radius.circular(30)),
-                    //               ),
-                    //               child: const Text(
-                    //                 "Zzz",
-                    //                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                    //               ),
-                    //             ),
-                    //           ),
-                    //         ],
-                    //       ),
-                    //
-                    //       const SizedBox(height: 32),
-                    //
-                    //       const Text(
-                    //         "Bạn hiện không có bất kỳ yêu cầu đặt chỗ nào",
-                    //         style: TextStyle(
-                    //           fontSize: 18,
-                    //           fontWeight: FontWeight.w600,
-                    //           color: Colors.black87,
-                    //         ),
-                    //         textAlign: TextAlign.center,
-                    //       ),
-                    //       const SizedBox(height: 16),
-                    //       Padding(
-                    //         padding: const EdgeInsets.symmetric(horizontal: 20),
-                    //         child: Text(
-                    //           "Khám phá cuộc phiêu lưu mới với những ý tưởng truyền cảm hứng của chúng tôi dưới đây! Nếu bạn không thể tìm thấy đặt chỗ trước đó của mình, hãy thử đăng nhập bằng email mà bạn đã sử dụng khi đặt chỗ.",
-                    //           style: TextStyle(
-                    //             fontSize: 14,
-                    //             color: Colors.grey[700],
-                    //             height: 1.5,
-                    //           ),
-                    //           textAlign: TextAlign.center,
-                    //         ),
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
+
 
                     // ===== SECTION COLLAPSIBLE: ĐƠN ĐẶT CHỖ ĐANG HOẠT ĐỘNG =====
+                    // ===== SECTION COLLAPSIBLE: ĐƠN ĐẶT CHỖ ĐANG HOẠT ĐỘNG =====
                     ExpansionTile(
-                      tilePadding: EdgeInsets.zero, // ← XÓA HOÀN TOÀN PADDING TRÁI/PHẢI CỦA TIÊU ĐỀ
-                      childrenPadding: EdgeInsets.zero, // ← XÓA PADDING TRONG KHU VỰC CHILDREN
+                      tilePadding: EdgeInsets.zero,
+                      childrenPadding: EdgeInsets.zero,
                       backgroundColor: Colors.transparent,
                       collapsedBackgroundColor: Colors.transparent,
                       maintainState: true,
-                      trailing: const SizedBox.shrink(), // ẨN MŨI TÊN THỪA
-                      title: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0), // ← TỰ THÊM PADDING ĐẸP CHO TIÊU ĐỀ
+                      trailing: const SizedBox.shrink(),
+                      title: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         child: Row(
                           children: [
                             Expanded(
                               child: Text(
-                                "Đơn đặt chỗ đang hoạt động........",
+                                "Đơn đặt chỗ đang hoạt động",
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -155,52 +102,75 @@ class MyInvoicesScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                      initiallyExpanded: true, // Mở sẵn
+                      initiallyExpanded: true,
                       children: [
-                        // XÓA ĐƯỜNG KẺ NGANG TRÊN/DƯỚI BẰNG CÁCH KHÔNG DÙNG DIVIDER
-                        Column(
-                          children: const [
-                            InvoiceCard(
-                              bookingId: 1,
-                              invoiceNumber: "INV20251026-000",
-                              itemName: "Mercure Ba Na Hills French Village",
-                              startDate: "2025-10-26",
-                              endDate: "2025-10-27",
-                              nights: 1,
-                              status: "ACTIVE",
-                              reviewed: false,
-                            ),
-                            SizedBox(height: 12),
-                            InvoiceCard(
-                              bookingId: 2,
-                              invoiceNumber: "INV20251209-001",
-                              itemName: "Tour Bà Nà Hills 1 Ngày",
-                              startDate: "2025-12-09",
-                              endDate: "2025-12-10",
-                              nights: 0,
-                              status: "ACTIVE",
-                              reviewed: true,
-                            ),
-                            SizedBox(height: 12),
-                            InvoiceCard(
-                              bookingId: 3,
-                              invoiceNumber: "INV20251225-002",
-                              itemName: "Tour Bà Nà Hills - Hội An 2N1Đ",
-                              startDate: "2025-12-25",
-                              endDate: "2025-12-26",
-                              nights: 1,
-                              status: "ACTIVE",
-                              reviewed: false,
-                            ),
-                            SizedBox(height: 16), // Khoảng cách dưới cùng trước phần bên dưới
-                          ],
+                        // === LOGIC ĐÚNG: HIỂN THỊ EMPTY HOẶC LIST CARD ===
+                        Builder(
+                          builder: (context) {
+                            // Giả lập: có dữ liệu hay không
+                            final hasActiveInvoices = true; // Đổi thành false để test empty state
+
+                            if (!hasActiveInvoices) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 40),
+                                child: EmptyInvoiceWidget(
+                                  title: 'Bạn hiện không có bất kỳ yêu cầu đặt chỗ nào',
+                                  description:
+                                  'Khám phá cuộc phiêu lưu mới với những ý tưởng truyền cảm hứng của chúng tôi dưới đây! '
+                                      'Nếu bạn không thể tìm thấy đặt chỗ trước đó của mình, '
+                                      'hãy thử đăng nhập bằng email mà bạn đã sử dụng khi đặt chỗ.',
+                                ),
+                              );
+                            }
+
+                            // Có dữ liệu → hiển thị list card
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
+                              child: Column(
+                                children: const [
+                                  InvoiceCard(
+                                    bookingId: 1,
+                                    invoiceNumber: "INV20251026-000",
+                                    itemName: "Mercure Ba Na Hills French Village",
+                                    startDate: "2025-10-26",
+                                    endDate: "2025-10-27",
+                                    nights: 1,
+                                    status: "ACTIVE",
+                                    reviewed: false,
+                                  ),
+                                  SizedBox(height: 12),
+                                  InvoiceCard(
+                                    bookingId: 2,
+                                    invoiceNumber: "INV20251209-001",
+                                    itemName: "Tour Bà Nà Hills 1 Ngày",
+                                    startDate: "2025-12-09",
+                                    endDate: "2025-12-10",
+                                    nights: 0,
+                                    status: "ACTIVE",
+                                    reviewed: true,
+                                  ),
+                                  SizedBox(height: 12),
+                                  InvoiceCard(
+                                    bookingId: 3,
+                                    invoiceNumber: "INV20251225-002",
+                                    itemName: "Tour Bà Nà Hills - Hội An 2N1Đ",
+                                    startDate: "2025-12-25",
+                                    endDate: "2025-12-26",
+                                    nights: 1,
+                                    status: "ACTIVE",
+                                    reviewed: false,
+                                  ),
+                                  SizedBox(height: 16),
+                                ],
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
 
 
-
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 10),
 
                     const Text(
                       "Tất cả các hoạt động mua hàng và hoàn vé",
@@ -215,7 +185,7 @@ class MyInvoicesScreen extends StatelessWidget {
                     // Button 1: Danh sách mua hàng
                     _buildMenuButton(
                       icon: Icons.receipt_long_outlined,
-                      title: "Danh sách mua hàng của bạn",
+                      title: "Danh sách đặt chỗ của bạn",
                       onTap: () {
                         Navigator.push(
                           context,
