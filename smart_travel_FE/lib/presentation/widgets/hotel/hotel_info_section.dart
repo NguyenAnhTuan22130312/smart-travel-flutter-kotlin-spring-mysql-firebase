@@ -86,7 +86,7 @@ class HotelInfoSection extends StatelessWidget {
               child: Row(
                 children: [
                   const Text(
-                    "Giá tiền : ",
+                    "Giá chỉ từ: ",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,

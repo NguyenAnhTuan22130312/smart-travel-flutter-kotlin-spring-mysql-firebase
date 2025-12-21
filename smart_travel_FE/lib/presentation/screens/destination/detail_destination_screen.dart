@@ -553,11 +553,10 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
               onTap: () {
-                // (Tôi giả sử thuộc tính ID của bạn là 'id')
                 Navigator.pushNamed(
                   context,
                   RouteNames.hotelDetail,
-                  arguments: h.id, // <-- GỬI ID (int)
+                  arguments: h.id,
                 );
               },
               child: Padding(
@@ -595,7 +594,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            '${_formatPrice(h.pricePerNight!)}đ / đêm',
+                            'Từ ${_formatPrice(h.pricePerNight!)}đ / đêm',
                             style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2DBBAA), fontSize: 14),
                           ),
                         ],

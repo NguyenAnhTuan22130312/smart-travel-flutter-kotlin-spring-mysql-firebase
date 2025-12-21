@@ -81,8 +81,6 @@ class HotelDetailResponseModel {
       email: json['email']?.toString(),
       destinationId: json['destinationId'] is int ? json['destinationId'] : int.tryParse(json['destinationId'].toString() ?? ""),
       amenities: safeAmenities,
-      // ------------------------------------
-
       images: json['images'] != null
           ? (json['images'] is List ? List<String>.from(json['images']) : [])
           : [],

@@ -27,6 +27,7 @@ public class HotelDetailResponse {
     private List<String> amenities;
     private String provinceName;
     private List<RoomTypeResponse> rooms;
+    private Double minPrice;
     private Double latitude;
     private Double longitude;
     private BigDecimal pricePerNight; // giá mặc định / hiển thị
