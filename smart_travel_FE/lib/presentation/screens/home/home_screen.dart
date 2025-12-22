@@ -18,7 +18,7 @@ import 'package:smart_travel/router/route_names.dart';
 import '../../theme/app_colors.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:smart_travel/presentation/screens/chat/ai_chat_screen.dart';
-
+import 'package:smart_travel/router/route_names.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
@@ -45,7 +45,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _searchController.dispose();
     super.dispose();
   }
-  void _onNavItemTapped(int index) {
+
+void _onNavItemTapped(int index) {
     // Nếu ấn vào tab đang đứng thì không làm gì
     if (index == _selectedIndex) return;
 
@@ -60,15 +61,15 @@ class _HomeScreenState extends State<HomeScreen> {
         Navigator.pushReplacementNamed(context, RouteNames.explore);
         break;
 
-      case 2: // Tour (Push màn hình mới)
+      case 2: // Tour 
         Navigator.push(context, MaterialPageRoute(builder: (_) => const TourListScreen()));
         break;
 
-      case 3: // Khách sạn (Push màn hình mới - Dùng RouteNames chuẩn)
+      case 3: // Khách sạn 
         Navigator.pushNamed(context, RouteNames.hotelList);
         break;
 
-      case 4: // AI Chat (Push màn hình mới)
+      case 4: // AI Chat
         Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatScreen()));
         break;
 
@@ -558,7 +559,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         TextButton(
                           onPressed: () {
-                            // TODO: Navigate to all provinces
+                           context.read<ProvinceBloc>().add(LoadProvince(loadAll: true));
                           },
                           child: Text(
                             AppLocalizations.of(context)!.seeAll,

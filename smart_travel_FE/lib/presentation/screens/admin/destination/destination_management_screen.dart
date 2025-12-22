@@ -456,7 +456,7 @@ class _DestinationManagementScreenState extends State<DestinationManagementScree
                       fit: BoxFit.contain,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 10),
                   // Info
                   Expanded(
                     child: Column(
@@ -474,6 +474,12 @@ class _DestinationManagementScreenState extends State<DestinationManagementScree
                           children: [
                             _buildTag(item.category, Colors.purple),
                             const SizedBox(width: 8),
+
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
                             _buildTag(item.province?.name ?? "", Colors.blue),
                           ],
                         )

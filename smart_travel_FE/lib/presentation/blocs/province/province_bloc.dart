@@ -2,6 +2,7 @@
 
   import 'package:flutter_bloc/flutter_bloc.dart';
   import 'package:smart_travel/core/usecases/usecase.dart';
+import 'package:smart_travel/domain/entities/province.dart';
   import 'package:smart_travel/domain/usecases/province/add_province_use_case.dart';
   import 'package:smart_travel/domain/usecases/province/delete_province_use_case.dart';
   import 'package:smart_travel/domain/usecases/province/get_all_province_use_case.dart';
@@ -37,7 +38,13 @@ import 'package:smart_travel/domain/usecases/province/update_province_use_case.d
 
       result.fold(
             (failure) => emit(ProvinceError(failure.message)),
-            (province) => emit(ProvinceLoaded(province)),
+            (province) {
+              List<ProvinceEntity> list = province;
+              if(event.loadAll == false){
+                list = province.take(6).toList();
+              }
+              emit(ProvinceLoaded(list));
+            }
       );
     }
 

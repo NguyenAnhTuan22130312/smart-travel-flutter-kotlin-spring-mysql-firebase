@@ -489,6 +489,7 @@ class _DestinationFormModalState extends State<DestinationFormModal> {
         if (state is ProvinceLoaded) {
           final provinces = state.province; // <-- danh sách ProvinceEntity
           return DropdownButtonFormField<int>(
+            isExpanded: true,
             value: _selectedProvinceId,
             decoration: InputDecoration(
               labelText: "Tỉnh thành *",
