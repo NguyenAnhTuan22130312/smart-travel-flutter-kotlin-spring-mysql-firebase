@@ -157,47 +157,6 @@ class _ProvinceDetailScreenState extends State<ProvinceDetailScreen> {
       pinned: true,
       backgroundColor: Colors.white,
       elevation: 0,
-      leading: GestureDetector(
-        onTap: () => Navigator.pop(context),
-        child: Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.9),
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-              ),
-            ],
-          ),
-          child: const Icon(Icons.arrow_back, color: Color(0xFF1F2937)),
-        ),
-      ),
-      actions: [
-        GestureDetector(
-          onTap: () {
-
-          },
-          child: Container(
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.9),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 8,
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.favorite_border,
-              color: AppColors.primary,
-            ),
-          ),
-        ),
-      ],
       flexibleSpace: FlexibleSpaceBar(
         title: _isAppBarExpanded
             ? null

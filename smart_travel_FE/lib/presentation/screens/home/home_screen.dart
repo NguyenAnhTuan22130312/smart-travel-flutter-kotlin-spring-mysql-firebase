@@ -51,46 +51,32 @@ class _HomeScreenState extends State<HomeScreen> {
     // Dãy routes tương ứng với các tab
     final List<String> routes = ['/home', '/explore', '/tours', '/hotel-list', '/ai_chat', '/profile'];
     final String routeName = routes[index];
-
-    // 1. Trường hợp đặc biệt: Đặt tour (index 2)
     if (index == 2) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const TourListScreen()),
       );
-      // KHÔNG CẦN return, vì logic tiếp theo cũng có thể đúng (nếu bạn muốn highlight tab)
     }
-
-    // 2. Trường hợp màn hình Phụ cần nút Back: Khách sạn (index 3)
     else if (index == 3) {
-      // SỬ DỤNG pushNamed để GIỮ HomeScreen lại trong Stack.
       Navigator.pushNamed(context, routeName);
-
-      // KHÔNG thay đổi _selectedIndex, giữ tab Home (hoặc tab hiện tại) được highlight
       return;
-    // 3. Trường hợp chuyển đổi giữa các tab chính (0, 1, 4, 5)
     } else if (index == 4) {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const AIChatScreen()),
         );
-        // Không cần return nếu bạn muốn tab bar ở dưới sáng lên icon chat
-        // Nhưng thường Chat sẽ mở ra màn hình riêng, nên return để giữ tab cũ cũng được.
         return;
       }
-
-      // 4. Profile (Index 5) - SỬA LẠI INDEX CHO ĐÚNG
       else if (index == 5) {
         Navigator.pushNamed(context, '/profile');
         return;
       } else {
       if (index == _selectedIndex) {
-        return; // Tránh điều hướng lại nếu chọn lại tab đang active
+        return;
       }
       setState(() {
         _selectedIndex = index;
       });
-      // Dùng pushReplacementNamed để thay thế màn hình chính hiện tại.
       Navigator.pushReplacementNamed(context, routeName);
     }
   }
@@ -573,7 +559,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         TextButton(
                           onPressed: () {
-                            // TODO: Navigate to all provinces
+                           context.read<ProvinceBloc>().add(LoadProvince(loadAll: true));
                           },
                           child: Text(
                             AppLocalizations.of(context)!.seeAll,
