@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:smart_travel/domain/entities/hotel.dart';
 import 'package:smart_travel/domain/entities/room_type.dart';
 import 'package:smart_travel/data/models/hotel/hotel_create_request.dart';
-import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
+import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_event.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_state.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
@@ -495,7 +495,8 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
       ),
     );
   }
-// --- WIDGET : TẠO TIÊU ĐỀ CHO TỪNG PHẦN ---
+
+  // --- WIDGET : TẠO TIÊU ĐỀ CHO TỪNG PHẦN ---
   Widget _buildSectionTitle(String title, IconData icon) => Row(
     children: [
       Icon(icon, color: AppColors.button, size: 22),
@@ -540,44 +541,36 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
             maxLines: 3,
           ),
 
-          Row(
-            children: [
-              Expanded(
-                child: _buildTextField(
-                  controller: _phoneController,
-                  label: 'Số điện thoại',
-                  icon: Icons.phone,
-                  type: TextInputType.phone,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildTextField(
-                  controller: _emailController,
-                  label: 'Email',
-                  icon: Icons.email,
-                  type: TextInputType.emailAddress,
-                ),
-              ),
-            ],
+          _buildTextField(
+            controller: _phoneController,
+            label: 'Số điện thoại',
+            icon: Icons.phone,
+            type: TextInputType.phone,
+          ),
+          const SizedBox(height: 12),
+          _buildTextField(
+            controller: _emailController,
+            label: 'Email',
+            icon: Icons.email,
+            type: TextInputType.emailAddress,
           ),
 
+          _buildTextField(
+            controller: _destIdController,
+            label: 'Destination ID',
+            icon: Icons.map,
+            type: TextInputType.number,
+            isRequired: true,
+          ),
+
+          const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(
-                child: _buildTextField(
-                  controller: _destIdController,
-                  label: 'Dest ID',
-                  icon: Icons.map,
-                  type: TextInputType.number,
-                  isRequired: true,
-                ),
-              ),
-              const SizedBox(width: 12),
               Expanded(
                 child: _buildTextField(
                   controller: _latController,
-                  label: 'Lat',
+                  label: 'Vĩ độ (Lat)',
+                  icon: Icons.location_searching,
                   type: TextInputType.number,
                 ),
               ),
@@ -585,7 +578,8 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
               Expanded(
                 child: _buildTextField(
                   controller: _lngController,
-                  label: 'Lng',
+                  label: 'Kinh độ (Lng)',
+                  icon: Icons.explore,
                   type: TextInputType.number,
                 ),
               ),
@@ -598,7 +592,7 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
                 flex: 2,
                 child: _buildTextField(
                   controller: _hotelAmenitiesController,
-                  label: 'Tiện ích (phân cách dấu phẩy)',
+                  label: 'Tiện ích',
                   icon: Icons.pool,
                 ),
               ),
@@ -893,7 +887,7 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
     );
   }
 
-// --- WIDGET: CHỌN ẢNH BÌA ---
+  // --- WIDGET: CHỌN ẢNH BÌA ---
   Widget _buildImagePicker() {
     return Container(
       padding: const EdgeInsets.all(12),

@@ -14,6 +14,7 @@ import 'package:smart_travel/presentation/widgets/province/province_is_popular_c
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import 'package:smart_travel/presentation/screens/tour/tour_list_screen.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_args.dart';
+import 'package:smart_travel/router/route_names.dart';
 import '../../theme/app_colors.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:smart_travel/presentation/screens/chat/ai_chat_screen.dart';
@@ -44,56 +45,40 @@ class _HomeScreenState extends State<HomeScreen> {
     _searchController.dispose();
     super.dispose();
   }
-
-
-
   void _onNavItemTapped(int index) {
-    // Dãy routes tương ứng với các tab
-    final List<String> routes = ['/home', '/explore', '/tours', '/hotel-list', '/ai_chat', '/profile'];
-    final String routeName = routes[index];
+    // Nếu ấn vào tab đang đứng thì không làm gì
+    if (index == _selectedIndex) return;
 
-    // 1. Trường hợp đặc biệt: Đặt tour (index 2)
-    if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const TourListScreen()),
-      );
-      // KHÔNG CẦN return, vì logic tiếp theo cũng có thể đúng (nếu bạn muốn highlight tab)
-    }
+    switch (index) {
+      case 0: // Home
+        setState(() => _selectedIndex = index);
+        Navigator.pushReplacementNamed(context, RouteNames.home);
+        break;
 
-    // 2. Trường hợp màn hình Phụ cần nút Back: Khách sạn (index 3)
-    else if (index == 3) {
-      // SỬ DỤNG pushNamed để GIỮ HomeScreen lại trong Stack.
-      Navigator.pushNamed(context, routeName);
+      case 1: // Khám phá
+        setState(() => _selectedIndex = index);
+        Navigator.pushReplacementNamed(context, RouteNames.explore);
+        break;
 
-      // KHÔNG thay đổi _selectedIndex, giữ tab Home (hoặc tab hiện tại) được highlight
-      return;
-    // 3. Trường hợp chuyển đổi giữa các tab chính (0, 1, 4, 5)
-    } else if (index == 4) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AIChatScreen()),
-        );
-        // Không cần return nếu bạn muốn tab bar ở dưới sáng lên icon chat
-        // Nhưng thường Chat sẽ mở ra màn hình riêng, nên return để giữ tab cũ cũng được.
-        return;
-      }
+      case 2: // Tour (Push màn hình mới)
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const TourListScreen()));
+        break;
 
-      // 4. Profile (Index 5) - SỬA LẠI INDEX CHO ĐÚNG
-      else if (index == 5) {
-        Navigator.pushNamed(context, '/profile');
-        return;
-      } else {
-      if (index == _selectedIndex) {
-        return; // Tránh điều hướng lại nếu chọn lại tab đang active
-      }
-      setState(() {
-        _selectedIndex = index;
-      });
-      // Dùng pushReplacementNamed để thay thế màn hình chính hiện tại.
-      Navigator.pushReplacementNamed(context, routeName);
+      case 3: // Khách sạn (Push màn hình mới - Dùng RouteNames chuẩn)
+        Navigator.pushNamed(context, RouteNames.hotelList);
+        break;
+
+      case 4: // AI Chat (Push màn hình mới)
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatScreen()));
+        break;
+
+      case 5: // Profile
+        setState(() => _selectedIndex = index);
+        Navigator.pushReplacementNamed(context, RouteNames.profile);
+        break;
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

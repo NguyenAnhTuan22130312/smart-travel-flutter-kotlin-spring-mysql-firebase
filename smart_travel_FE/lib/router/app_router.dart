@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/presentation/blocs/admin_user/admin_user_bloc.dart';
-import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
+import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/screens/admin/admin_dashboard.dart';
 import 'package:smart_travel/presentation/screens/admin/hotel/hotel_management_screen.dart';
@@ -99,11 +99,6 @@ class AppRouter {
               ),
           settings: settings,
         );
-      case RouteNames.adminHotels:
-        return MaterialPageRoute(
-          builder: (_) => const HotelManagementScreen(),
-        );
-
       // Profile routes
       case RouteNames.profile:
         return MaterialPageRoute(builder: (context) => const ProfileScreen());
