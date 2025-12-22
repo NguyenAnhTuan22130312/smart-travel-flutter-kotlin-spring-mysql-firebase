@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/domain/entities/hotel.dart';
-import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
+import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_event.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_state.dart';

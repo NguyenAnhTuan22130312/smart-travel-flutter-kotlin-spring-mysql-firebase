@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart' hide Marker;
 import 'package:smart_travel/domain/entities/hotel.dart';
-import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
+import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_event.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_state.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart'; // Import màu
@@ -23,9 +23,6 @@ class DetailHotelScreen extends StatefulWidget {
 }
 
 class _DetailHotelScreenState extends State<DetailHotelScreen> with TickerProviderStateMixin {
-  late PageController _pageController;
-  Timer? _timer;
-  int _currentImageIndex = 0;
   late AnimationController _fadeController;
 
   @override
@@ -42,31 +39,14 @@ class _DetailHotelScreenState extends State<DetailHotelScreen> with TickerProvid
       );
     });
 
-    _pageController = PageController();
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     )..forward();
   }
 
-  void _startAutoPlay(List<String> images) {
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (_pageController.hasClients && images.isNotEmpty) {
-        final nextPage = (_currentImageIndex + 1) % images.length;
-        _pageController.animateToPage(
-          nextPage,
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.easeInOut,
-        );
-      }
-    });
-  }
-
   @override
   void dispose() {
-    _pageController.dispose();
-    _timer?.cancel();
     _fadeController.dispose();
     super.dispose();
   }
@@ -104,7 +84,7 @@ class _DetailHotelScreenState extends State<DetailHotelScreen> with TickerProvid
             imageUrl: (hotel.imageUrls != null && hotel.imageUrls!.isNotEmpty)
                 ? hotel.imageUrls![0]
                 : '',
-            bookingType: 'HOTEL', // Quan trọng: Đánh dấu là đặt khách sạn
+            bookingType: 'HOTEL',
           ),
         ),
       ),
@@ -124,7 +104,6 @@ class _DetailHotelScreenState extends State<DetailHotelScreen> with TickerProvid
 
           // Tính toán giá đúng
           correctPrice = hotel.minPrice ?? 0.0;
-
           if (correctPrice <= 0 && hotel.rooms != null && hotel.rooms!.isNotEmpty) {
             final validRoomPrices = hotel.rooms!
                 .map((r) => r.price ?? 0.0)
@@ -209,11 +188,6 @@ class _DetailHotelScreenState extends State<DetailHotelScreen> with TickerProvid
             if (state is HotelDetailLoaded) {
               final hotel = state.hotel;
               final List<String> images = hotel.imageUrls ?? [];
-
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (_timer == null || !_timer!.isActive) _startAutoPlay(images);
-              });
-
               return CustomScrollView(
                 slivers: [
                   HotelImageCarouselSliver(images: images, onBack: () => Navigator.pop(context)),

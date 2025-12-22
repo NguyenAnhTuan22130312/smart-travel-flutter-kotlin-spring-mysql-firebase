@@ -7,9 +7,12 @@ import 'package:smart_travel/data/data_sources/local/auth_local_data_source.dart
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
+import 'package:smart_travel/presentation/screens/chat/ai_chat_screen.dart';
+import 'package:smart_travel/presentation/screens/tour/tour_list_screen.dart';
 import 'package:smart_travel/presentation/widgets/profile/profile_menu_item_widget.dart';
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
+import 'package:smart_travel/router/route_names.dart';
 import '../../theme/app_colors.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_args.dart';
@@ -51,28 +54,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _onNavItemTapped(int index) {
+    // Nếu ấn vào tab đang đứng thì không làm gì
+    if (index == _selectedIndex) return;
 
-    // if (index == 2) {
-    //   Navigator.push(
-    //     context,
-    //     MaterialPageRoute(builder: (context) => const BookingScreen()),
-    //   );
-    // } else
-      if (index == 4) {
+    switch (index) {
+      case 0: // Home
+        setState(() => _selectedIndex = index);
+        Navigator.pushReplacementNamed(context, RouteNames.home);
+        break;
 
-      return; // Already on Profile
-    } else {
-      Navigator.pushReplacementNamed(
-        context,
-        [
-          '/home',
-          '/explore',
-          '/booking',
-          '/hotel',
-          '/ai_chat',
-          '/profile',
-        ][index],
-      );
+      case 1: // Khám phá
+        setState(() => _selectedIndex = index);
+        Navigator.pushReplacementNamed(context, RouteNames.explore);
+        break;
+
+      case 2: // Tour (Push màn hình mới)
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const TourListScreen()));
+        break;
+
+      case 3: // Khách sạn (Push màn hình mới - Dùng RouteNames chuẩn)
+        Navigator.pushNamed(context, RouteNames.hotelList);
+        break;
+
+      case 4: // AI Chat (Push màn hình mới)
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatScreen()));
+        break;
+
+      case 5: // Profile
+        setState(() => _selectedIndex = index);
+        Navigator.pushReplacementNamed(context, RouteNames.profile);
+        break;
     }
   }
 
