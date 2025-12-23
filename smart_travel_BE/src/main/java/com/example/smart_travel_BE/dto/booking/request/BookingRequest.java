@@ -1,5 +1,6 @@
 package com.example.smart_travel_BE.dto.booking.request; // Gói DTO của bạn
 
+import com.example.smart_travel_BE.entity.RoomType;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -33,7 +34,6 @@ public class BookingRequest {
     private int numberOfPeople;
 
     private String couponCode;
+    private Long roomTypeId;
 
-    // Lưu ý: Không truyền totalPrice từ FE lên để tránh hack giá.
-    // Backend tự tính based on ID.
 }

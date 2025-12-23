@@ -14,6 +14,7 @@ class CreateBookingSubmitted extends BookingEvent {
   final int numberOfPeople;
   final int numberOfRooms;  // 0 nếu là Tour
   final String? couponCode;
+  final int? roomTypeId;
 
   const CreateBookingSubmitted({
     required this.bookingType,
@@ -23,8 +24,9 @@ class CreateBookingSubmitted extends BookingEvent {
     required this.numberOfPeople,
     required this.numberOfRooms,
     this.couponCode,
+    this.roomTypeId,
   });
 
   @override
-  List<Object?> get props => [bookingType, id, startDate, endDate, numberOfPeople, numberOfRooms,couponCode];
+  List<Object?> get props => [bookingType, id, startDate, endDate, numberOfPeople, numberOfRooms,couponCode,roomTypeId];
 }

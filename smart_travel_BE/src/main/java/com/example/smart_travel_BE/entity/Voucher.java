@@ -18,7 +18,7 @@ public class Voucher {
 
     private BigDecimal discountAmount; // Số tiền giảm
 
-    private LocalDateTime expirationDate;
+    private LocalDateTime expiryDate;
     private Boolean isActive;
     private Integer usageLimit; // Giới hạn số lần dùng
 }
