@@ -25,8 +25,7 @@ public class VoucherController {
         }
 
         Voucher voucher = voucherOpt.get();
-
-        if (voucher.getExpirationDate().isBefore(LocalDateTime.now())) {
+        if (voucher.getExpiryDate().isBefore(LocalDateTime.now())) {
             return ResponseEntity.badRequest().body(Map.of("message", "Mã đã hết hạn!"));
         }
 

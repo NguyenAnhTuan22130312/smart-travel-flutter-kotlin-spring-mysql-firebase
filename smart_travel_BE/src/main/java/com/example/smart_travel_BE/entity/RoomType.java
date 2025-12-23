@@ -36,6 +36,9 @@ public class RoomType {
     @Column(name = "total_rooms")
     private Integer totalRooms;
 
+    @Column(name = "available_rooms")
+    private Integer availableRooms;
+
     @Column(columnDefinition = "text")
     private String amenities; // JSON hoặc text, ví dụ: ["WiFi","Breakfast","Pool"]
 
@@ -56,6 +59,9 @@ public class RoomType {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (availableRooms == null) {
+            availableRooms = totalRooms != null ? totalRooms : 0;
+        }
     }
 
     @PreUpdate

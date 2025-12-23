@@ -368,8 +368,8 @@ class _BookingScreenState extends State<BookingScreen> {
                       endDate: isTour ? null : _dateRange!.end,
                       numberOfPeople: _numberOfPeople,
                       numberOfRooms: isTour ? 0 : _numberOfRooms,
-                      // Truyền couponCode xuống Bloc nếu đã áp dụng
                       couponCode: _isVoucherApplied ? _couponController.text.trim() : null,
+                      roomTypeId: widget.args.roomTypeId,
                     ),
                   );
                 },
