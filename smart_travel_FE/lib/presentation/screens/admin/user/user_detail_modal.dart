@@ -532,20 +532,36 @@ class UserDetailModal extends StatelessWidget {
   }
 
   Widget _buildRoleBadge(String role) {
-    final isAdmin = role.toUpperCase() == 'ADMIN';
+    final roleUpper = role.toUpperCase();
+    List<Color> gradientColors;
+    IconData icon;
+
+    switch (roleUpper) {
+      case 'ADMIN':
+        gradientColors = [Colors.red[400]!, Colors.red[600]!];
+        icon = Icons.admin_panel_settings;
+        break;
+      case 'ADMINTOUR':
+        gradientColors = [Colors.green[400]!, Colors.green[600]!];
+        icon = Icons.tour;
+        break;
+      case 'ADMINHOTEL':
+        gradientColors = [Colors.purple[400]!, Colors.purple[600]!];
+        icon = Icons.hotel;
+        break;
+      default:
+        gradientColors = [Colors.blue[400]!, Colors.blue[600]!];
+        icon = Icons.person;
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors:
-              isAdmin
-                  ? [Colors.red[400]!, Colors.red[600]!]
-                  : [Colors.blue[400]!, Colors.blue[600]!],
-        ),
+        gradient: LinearGradient(colors: gradientColors),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: (isAdmin ? Colors.red : Colors.blue).withValues(alpha: 0.3),
+            color: gradientColors[0].withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -554,14 +570,14 @@ class UserDetailModal extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            isAdmin ? Icons.admin_panel_settings : Icons.person,
-            size: 16,
-            color: Colors.white,
-          ),
+          Icon(icon, size: 16, color: Colors.white),
           const SizedBox(width: 6),
           Text(
-            role.toUpperCase(),
+            roleUpper == 'ADMINTOUR'
+                ? 'ADMIN TOUR'
+                : roleUpper == 'ADMINHOTEL'
+                ? 'ADMIN HOTEL'
+                : roleUpper,
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
@@ -751,7 +767,7 @@ class UserDetailModal extends StatelessWidget {
                       boxShadow: [
                         BoxShadow(
                           color: (isActive ? Colors.red : Colors.green)
-                              .withOpacity(0.3),
+                              .withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),

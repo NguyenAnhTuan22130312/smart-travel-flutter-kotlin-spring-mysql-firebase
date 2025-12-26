@@ -30,7 +30,7 @@ public class CreateUserRequest {
     @Max(value = 2024, message = "Năm sinh không hợp lệ")
     private Integer birthYear;
     
-    @Pattern(regexp = "^(USER|ADMIN)$", message = "Role phải là USER hoặc ADMIN")
+    @Pattern(regexp = "^(USER|ADMIN|ADMINTOUR|ADMINHOTEL)$", message = "Role phải là USER, ADMIN, ADMINTOUR hoặc ADMINHOTEL")
     @Builder.Default
     private String role = "USER";
     
