@@ -105,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (state is LoginSuccess) {
                         if (state.response.role == "ADMIN") {
                           Navigator.pushReplacementNamed(context, '/dashboard');
-                        } else if (state.response.role == "ADMIN_HOTEL") {
+                        } else if (state.response.role == "ADMINHOTEL") {
                           Navigator.pushReplacementNamed(context, '/dashboard');
                         } else {
                           Navigator.pushReplacementNamed(context, '/home');

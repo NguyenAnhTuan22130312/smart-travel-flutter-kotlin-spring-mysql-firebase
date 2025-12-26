@@ -196,14 +196,12 @@ class _HotelManagementScreenState extends State<HotelManagementScreen> {
     } else if (authState is AdminAuthenticated) {
       role = authState.role;
     }
-
-    // CHỈ chấp nhận ADMIN_HOTEL, loại bỏ hoàn toàn ADMIN
-    return role == "ADMIN_HOTEL" || role == "ADMINHOTEL";
+    return role == "ADMINHOTEL";
   }
 
   void _handleStrictAction(VoidCallback action) {
     if (_isStrictHotelAdmin()) {
-      action(); // Nếu là ADMIN_HOTEL thì cho phép làm tiếp
+      action(); // Nếu là ADMINHOTEL thì cho phép làm tiếp
     } else {
       // Nếu là ADMIN tổng hoặc USER thường, dừng lại và báo lỗi
       _showForbiddenSnackBar();
