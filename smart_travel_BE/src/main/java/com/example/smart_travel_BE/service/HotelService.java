@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +32,6 @@ public class HotelService {
 
     @Autowired
     private HotelRepository hotelRepository;
-
     @Autowired
     private RoomTypeRepository roomTypeRepository;
     @Autowired
@@ -40,6 +40,9 @@ public class HotelService {
     private ProvinceRepository provinceRepository;
     @Autowired
     private HotelImageRepository hotelImageRepository;
+    @Autowired
+    private UserRepository userRepository;
+
     ObjectMapper mapper = new ObjectMapper();
 
     /**
@@ -148,11 +151,20 @@ public class HotelService {
 
     @Transactional
     public HotelDetailResponse createHotel(HotelCreateRequest req) throws JsonProcessingException {
+        // 1. Lấy email của User đang đăng nhập từ SecurityContext
+        String currentUserEmail = getCurrentUserEmail();
+        // 2. Tìm User trong DB
+        User owner = userRepository.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người quản lý!"));
 
+        if (req.getRoomTypes() == null || req.getRoomTypes().isEmpty()) {
+            throw new RuntimeException("Khách sạn phải có ít nhất một loại phòng!");
+        }
         Destination destination = destinationRepository.findById(req.getDestinationId())
                 .orElseThrow(() -> new RuntimeException("Destination not found"));
 
         Hotel hotel = new Hotel();
+        hotel.setOwner(owner);
         hotel.setName(req.getName());
         hotel.setAddress(req.getAddress());
         hotel.setDescription(req.getDescription());
@@ -164,10 +176,6 @@ public class HotelService {
         hotel.setPhone(req.getPhone());
         hotel.setEmail(req.getEmail());
         hotel.setAmenities(mapper.writeValueAsString(req.getAmenities()));
-        hotel.setTotalRooms(req.getTotalRooms());
-        hotel.setAvailableRooms(req.getAvailableRooms());
-
-        // [FIX] Set mặc định là ACTIVE khi tạo mới
         hotel.setIsActive(true);
 
         hotel.setImages(new ArrayList<>());
@@ -175,7 +183,6 @@ public class HotelService {
 
         // ==== Images ====
         int order = 0;
-
         if (req.getThumbnail() != null && !req.getThumbnail().isBlank()) {
             HotelImage thumb = new HotelImage();
             thumb.setHotel(hotel);
@@ -197,29 +204,35 @@ public class HotelService {
                 hotel.getImages().add(img);
             }
         }
-
-        // ==== Room Types ====
+        // ==== TỰ ĐỘNG TÍNH TOÁN GIÁ VÀ PHÒNG ====
         BigDecimal minPrice = null;
+        int totalRoomsCounter = 0; // Biến đếm tổng số phòng
 
-        if (req.getRoomTypes() != null) {
-            for (RoomTypeCreateRequest rtReq : req.getRoomTypes()) {
+        for (RoomTypeCreateRequest rtReq : req.getRoomTypes()) {
+            RoomType rt = new RoomType();
+            rt.setHotel(hotel);
+            rt.setName(rtReq.getName());
+            rt.setCapacity(rtReq.getCapacity());
+            rt.setPrice(rtReq.getPrice());
+            rt.setTotalRooms(rtReq.getTotalRooms()); // Số lượng phòng của loại này
+            rt.setAmenities(mapper.writeValueAsString(rtReq.getAmenities()));
 
-                RoomType rt = new RoomType();
-                rt.setHotel(hotel);
-                rt.setName(rtReq.getName());
-                rt.setCapacity(rtReq.getCapacity());
-                rt.setPrice(rtReq.getPrice());
-                rt.setTotalRooms(rtReq.getTotalRooms());
-                rt.setAmenities(mapper.writeValueAsString(rtReq.getAmenities()));
-                hotel.getRoomTypes().add(rt);
+            hotel.getRoomTypes().add(rt);
 
-                if (minPrice == null || rtReq.getPrice().compareTo(minPrice) < 0) {
-                    minPrice = rtReq.getPrice();
-                }
+            // Cộng dồn tổng số phòng của khách sạn
+            totalRoomsCounter += rtReq.getTotalRooms();
+
+            // Tìm giá thấp nhất để làm "Giá từ..." (Price per night)
+            if (minPrice == null || rtReq.getPrice().compareTo(minPrice) < 0) {
+                minPrice = rtReq.getPrice();
             }
         }
 
+        // Gán các giá trị đã tính toán vào Hotel
+        hotel.setTotalRooms(totalRoomsCounter);
+        hotel.setAvailableRooms(totalRoomsCounter); // Lúc mới tạo, tất cả phòng đều trống
         hotel.setPricePerNight(minPrice);
+
         hotelRepository.save(hotel);
         return HotelMapper.toDetailResponse(hotel);
     }
@@ -229,10 +242,12 @@ public class HotelService {
         Hotel hotel = hotelRepository.findById(hotelId)
                 .orElseThrow(() -> new RuntimeException("Hotel not found"));
 
+        validateOwnership(hotel);
+
         Destination destination = destinationRepository.findById(req.getDestinationId())
                 .orElseThrow(() -> new RuntimeException("Destination not found"));
 
-        // === Cập nhật thông tin cơ bản ===
+        // === 1. Cập nhật thông tin cơ bản (Xóa bỏ gán totalRooms/availableRooms từ req) ===
         hotel.setName(req.getName());
         hotel.setAddress(req.getAddress());
         hotel.setDescription(req.getDescription());
@@ -243,10 +258,8 @@ public class HotelService {
         hotel.setPhone(req.getPhone());
         hotel.setEmail(req.getEmail());
         hotel.setAmenities(mapper.writeValueAsString(req.getAmenities()));
-        hotel.setTotalRooms(req.getTotalRooms());
-        hotel.setAvailableRooms(req.getAvailableRooms());
 
-        // === Xử lý hình ảnh ===
+        // === 2. Xử lý hình ảnh (Giữ nguyên) ===
         hotel.getImages().clear();
         int order = 0;
         if (req.getThumbnail() != null && !req.getThumbnail().isBlank()) {
@@ -269,9 +282,11 @@ public class HotelService {
             }
         }
 
-        // === Xử lý Room Types ===
+        // === 3. Xử lý Room Types và TÍNH TOÁN LẠI DỮ LIỆU ===
         hotel.getRoomTypes().clear();
         BigDecimal minPrice = null;
+        int totalRoomsCounter = 0; // Dùng để tính lại tổng số phòng mới
+
         if (req.getRoomTypes() != null) {
             for (RoomTypeCreateRequest rtReq : req.getRoomTypes()) {
                 RoomType rt = new RoomType();
@@ -281,17 +296,27 @@ public class HotelService {
                 rt.setPrice(rtReq.getPrice());
                 rt.setTotalRooms(rtReq.getTotalRooms());
                 rt.setAmenities(mapper.writeValueAsString(rtReq.getAmenities()));
+
                 hotel.getRoomTypes().add(rt);
 
+                // Cộng dồn tổng số phòng mới
+                totalRoomsCounter += rtReq.getTotalRooms();
+
+                // Cập nhật giá thấp nhất (giá "chỉ từ")
                 if (minPrice == null || rtReq.getPrice().compareTo(minPrice) < 0) {
                     minPrice = rtReq.getPrice();
                 }
             }
         }
+
+        // === 4. Gán các giá trị đã tính toán chuẩn xác ===
         hotel.setPricePerNight(minPrice);
+        hotel.setTotalRooms(totalRoomsCounter);
+
+        // Nếu chưa có logic Booking phức tạp, gán availableRooms bằng tổng số phòng mới
+        hotel.setAvailableRooms(totalRoomsCounter);
 
         hotelRepository.save(hotel);
-
         return HotelMapper.toDetailResponse(hotel);
     }
 
@@ -299,11 +324,11 @@ public class HotelService {
     public void deleteHotel(Long hotelId) {
         // 1. Dùng findById
         Hotel hotel = hotelRepository.findById(hotelId)
-                .orElseThrow(() -> new RuntimeException("Hotel not found with id: " + hotelId));
-
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách sạn với id : " + hotelId + "này"));
+        validateOwnership(hotel);
         // 2. Kiểm tra logic: Nếu đã bị xóa (isActive == false) thì báo lỗi
         if (Boolean.FALSE.equals(hotel.getIsActive())) {
-            throw new RuntimeException("Hotel is already deleted");
+            throw new RuntimeException("Khách sạn này đã bị xóa");
         }
 
         // 3. Set trạng thái active = false (Xóa ẩn)
@@ -312,7 +337,6 @@ public class HotelService {
         // 4. Lưu thay đổi
         hotelRepository.save(hotel);
     }
-
     private List<String> convertAmenitiesToList(String jsonAmenities) {
         if (jsonAmenities == null || jsonAmenities.isBlank()) {
             return new ArrayList<>();
@@ -323,6 +347,30 @@ public class HotelService {
         } catch (JsonProcessingException e) {
             // Nếu lỗi (hoặc dữ liệu cũ không phải JSON), trả về list chứa chuỗi gốc
             return Collections.singletonList(jsonAmenities);
+        }
+    }
+
+    // Hàm bổ trợ lấy Email người dùng đang đăng nhập
+    private String getCurrentUserEmail() {
+        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("Người dùng chưa xác thực!");
+        }
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof User) {
+            return ((User) principal).getEmail();
+        }
+        return authentication.getName();
+    }
+
+    private void validateOwnership(Hotel hotel) {
+        String currentPrincipal = getCurrentUserEmail();
+        boolean isOwner = hotel.getOwner().getEmail().equalsIgnoreCase(currentPrincipal)
+                || hotel.getOwner().getId().toString().equals(currentPrincipal);
+
+        if (!isOwner) {
+            throw new RuntimeException("Bạn không có quyền thực hiện thao tác này trên khách sạn!");
         }
     }
 }
