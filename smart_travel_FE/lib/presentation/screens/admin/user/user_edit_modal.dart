@@ -21,7 +21,7 @@ class _UserEditModalState extends State<UserEditModal> {
   late TextEditingController _phoneCtrl;
   String? _selectedRole;
 
-  final List<String> _roles = ['USER', 'ADMIN'];
+  final List<String> _roles = ['USER', 'ADMIN', 'ADMINTOUR', 'ADMINHOTEL'];
 
   @override
   void initState() {
@@ -255,17 +255,39 @@ class _UserEditModalState extends State<UserEditModal> {
       ),
       items:
           _roles.map((role) {
+            IconData icon;
+            Color color;
+            String displayName;
+
+            switch (role) {
+              case 'ADMIN':
+                icon = Icons.shield;
+                color = Colors.orange;
+                displayName = 'Admin';
+                break;
+              case 'ADMINTOUR':
+                icon = Icons.tour;
+                color = Colors.green;
+                displayName = 'Admin Tour';
+                break;
+              case 'ADMINHOTEL':
+                icon = Icons.hotel;
+                color = Colors.purple;
+                displayName = 'Admin Hotel';
+                break;
+              default:
+                icon = Icons.person;
+                color = Colors.blue;
+                displayName = 'User';
+            }
+
             return DropdownMenuItem(
               value: role,
               child: Row(
                 children: [
-                  Icon(
-                    role == 'ADMIN' ? Icons.shield : Icons.person,
-                    size: 18,
-                    color: role == 'ADMIN' ? Colors.orange : Colors.blue,
-                  ),
+                  Icon(icon, size: 18, color: color),
                   const SizedBox(width: 8),
-                  Text(role),
+                  Text(displayName),
                 ],
               ),
             );
@@ -307,7 +329,7 @@ class _UserEditModalState extends State<UserEditModal> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.blue.withOpacity(0.3),
+                    color: Colors.blue.withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),

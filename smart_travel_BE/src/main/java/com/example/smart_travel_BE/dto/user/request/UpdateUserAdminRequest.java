@@ -17,6 +17,6 @@ public class UpdateUserAdminRequest {
     @Pattern(regexp = "^(\\+84|0)[0-9]{9,10}$", message = "Số điện thoại không hợp lệ")
     private String phone;
     
-    @Pattern(regexp = "^(USER|ADMIN)$", message = "Role chỉ được là USER hoặc ADMIN")
+    @Pattern(regexp = "^(USER|ADMIN|ADMINTOUR|ADMINHOTEL)$", message = "Role chỉ được là USER, ADMIN, ADMINTOUR hoặc ADMINHOTEL")
     private String role;
 }
