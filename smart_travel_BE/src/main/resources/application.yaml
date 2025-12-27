@@ -50,6 +50,13 @@ deepseek:
   api:
     key: sk-e28afb22bbff4ab79869ab4f9e5eb17e
 
+ai:
+  service:
+    url: https://21c09fca4ef9.ngrok-free.app/predict-type
+
+
+
+
 cloudinary:
   cloud-name: dcwqv4rng
   api-key: 528641466816236
