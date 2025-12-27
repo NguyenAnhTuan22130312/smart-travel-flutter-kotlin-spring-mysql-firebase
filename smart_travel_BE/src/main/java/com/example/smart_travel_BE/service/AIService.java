@@ -2,6 +2,7 @@ package com.example.smart_travel_BE.service;
 
 import com.example.smart_travel_BE.dto.destination.response.DestinationResponse;
 import com.example.smart_travel_BE.entity.Destination;
+import com.example.smart_travel_BE.entity.DestinationImage;
 import com.example.smart_travel_BE.repository.DestinationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +29,22 @@ public class AIService {
     @Value("${ai.service.url}")
     private String pythonServiceUrl;
 
+    // 🔥 1. BỘ TỪ ĐIỂN DỊCH (Quan trọng: Phải khớp với Code Python và DB của bạn)
+    private static final Map<String, String> CATEGORY_MAP = new HashMap<>();
+
+    static {
+        // Key (Python trả về)  ->  Value (Database tiếng Việt)
+        CATEGORY_MAP.put("BEACH", "Biển");
+        CATEGORY_MAP.put("NATURE", "Thiên nhiên"); // Núi, Rừng, Thác...
+        CATEGORY_MAP.put("LAKE", "Hồ");
+        CATEGORY_MAP.put("CULTURE", "Văn hóa");    // Chợ nổi, Làng nghề
+
+        // Nhóm này bạn có thể map về "Di tích lịch sử" hoặc "Tôn giáo" tùy ý
+        CATEGORY_MAP.put("HISTORY", "Di tích lịch sử");
+
+        CATEGORY_MAP.put("ENTERTAINMENT", "Khu vui chơi");
+    }
+
     public Map<String, Object> suggestFromImage(MultipartFile imageFile) {
         Map<String, Object> finalResult = new HashMap<>();
 
@@ -53,20 +70,26 @@ public class AIService {
 
             // 4. Xử lý kết quả
             if (aiResult != null && aiResult.containsKey("type")) {
-                String detectedType = (String) aiResult.get("type");
+                String aiType = (String) aiResult.get("type"); // Ví dụ: BEACH
 
-                // Lấy List Entity từ DB
-                List<Destination> rawDestinations = destinationRepository.findSuggestDestinations(detectedType);
+                // 🔥 2. DỊCH TỪ KHÓA: Tiếng Anh -> Tiếng Việt
+                String dbCategory = CATEGORY_MAP.getOrDefault(aiType, aiType);
 
-                // 🔥 QUAN TRỌNG: Convert từ Entity sang DTO để tránh lỗi JSON/User ID 0
+                System.out.println("AI tìm thấy: " + aiType + " -> Đang tìm trong DB category: " + dbCategory);
+
+                // Tìm trong DB bằng từ khóa Tiếng Việt
+                List<Destination> rawDestinations = destinationRepository.findSuggestDestinations(dbCategory);
+
+                // Convert sang DTO để tránh lỗi User ID 0
                 List<DestinationResponse> dtoList = rawDestinations.stream()
-                        .map(this::mapToDTO) // Gọi hàm map ở dưới
+                        .map(this::mapToDTO)
                         .collect(Collectors.toList());
 
                 finalResult.put("success", true);
-                finalResult.put("ai_detected", detectedType);
+                finalResult.put("ai_detected", aiType);       // Loại AI nhìn thấy
+                finalResult.put("mapped_category", dbCategory); // Loại tìm trong DB
                 finalResult.put("confidence", aiResult.get("confidence"));
-                finalResult.put("data", dtoList); // Trả về DTO thay vì Entity
+                finalResult.put("data", dtoList);
             } else {
                 finalResult.put("success", false);
                 finalResult.put("message", "AI không nhận diện được.");
@@ -80,7 +103,7 @@ public class AIService {
         return finalResult;
     }
 
-    // Hàm chuyển đổi thủ công để đảm bảo an toàn tuyệt đối
+    // Hàm chuyển đổi DTO (Đã sửa lỗi ImageUrl và Province)
     private DestinationResponse mapToDTO(Destination entity) {
         DestinationResponse dto = new DestinationResponse();
         dto.setId(entity.getId());
@@ -94,22 +117,20 @@ public class AIService {
         dto.setIsFeatured(entity.getIsFeatured());
         dto.setEntryFee(entity.getEntryFee());
 
-        // --- SỬA LỖI IMAGE TẠI ĐÂY ---
-        // Logic: Tìm ảnh có isPrimary = true. Nếu không có thì lấy ảnh đầu tiên.
+        // Xử lý Image: Lấy ảnh Primary, nếu không có lấy ảnh đầu tiên
         if (entity.getImages() != null && !entity.getImages().isEmpty()) {
             String finalUrl = entity.getImages().stream()
-                    .filter(img -> Boolean.TRUE.equals(img.getIsPrimary())) // Tìm ảnh chính
+                    .filter(img -> Boolean.TRUE.equals(img.getIsPrimary()))
                     .findFirst()
-                    .map(img -> img.getImageUrl()) // Lấy URL
-                    .orElse(entity.getImages().get(0).getImageUrl()); // Fallback: lấy ảnh đầu tiên
+                    .map(DestinationImage::getImageUrl) // Method reference gọn hơn
+                    .orElse(entity.getImages().get(0).getImageUrl());
 
             dto.setImageUrl(finalUrl);
         } else {
-            dto.setImageUrl(null); // Hoặc set 1 ảnh default nếu muốn
+            dto.setImageUrl(null);
         }
-        // -----------------------------
 
-        // Xử lý Province
+        // Xử lý Province (tránh NullPointer)
         if (entity.getProvince() != null) {
             dto.setProvinceName(entity.getProvince().getName());
         } else {
