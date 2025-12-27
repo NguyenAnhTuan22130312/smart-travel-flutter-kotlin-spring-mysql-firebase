@@ -29,7 +29,7 @@ public enum ErrorCode {
     INVALID_PASSWORD(1004, "Mật khẩu xác nhận không khớp", HttpStatus.BAD_REQUEST),
     EMAIL_NOT_EXISTED(1005, "Email không tồn tại", HttpStatus.NOT_FOUND),
     UNAUTHENTICATED(1006, "Tài khoản không chính xác", HttpStatus.UNAUTHORIZED),
-    UNAUTHORIZED(1007, "Unauthorized", HttpStatus.UNAUTHORIZED),
+    UNAUTHORIZED(1007, "Không có quyền truy cập hoặc phiên đăng nhập đã hết hạn", HttpStatus.UNAUTHORIZED),
     INVOICE_NOT_FOUND(1040, "Không tìm thấy hóa đơn", HttpStatus.NOT_FOUND),
     REFUND_NOT_ALLOWED(1041, "Không thể yêu cầu hoàn tiền với trạng thái hiện tại", HttpStatus.BAD_REQUEST),
     REFUND_ALREADY_REQUESTED(1042, "Yêu cầu hoàn tiền đã được gửi trước đó", HttpStatus.BAD_REQUEST),

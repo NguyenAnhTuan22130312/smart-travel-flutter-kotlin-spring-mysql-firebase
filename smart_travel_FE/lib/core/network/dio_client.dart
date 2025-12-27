@@ -17,15 +17,17 @@ class DioClient {
     receiveTimeout: const Duration(seconds: 30),
     headers: {
       'Accept': 'application/json',
-    },  )) {
+    },
+
+  )) {
     // Chỉ thêm 2 interceptor cơ bản trước
-    // dio.interceptors.add(LogInterceptor(
-    //   requestBody: true,
-    //   responseBody: true,
-    //   error: true,
-    //   requestHeader: true,
-    //   logPrint: (log) => print('DIO: $log'),
-    // ));
+    dio.interceptors.add(LogInterceptor(
+      requestBody: true,
+      responseBody: true,
+      error: true,
+      requestHeader: true,
+      logPrint: (log) => print('DIO: $log'),
+    ));
 
     dio.interceptors.add(AuthInterceptor(storage));
     dio.interceptors.add(ErrorInterceptor());
@@ -101,7 +103,7 @@ class AuthInterceptor extends Interceptor {
 
 
 
-// --- Interceptor Xử lý Lỗi API (ĐÃ SỬA) ---
+// --- Interceptor Xử lý Lỗi API  ---
 class ErrorInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
