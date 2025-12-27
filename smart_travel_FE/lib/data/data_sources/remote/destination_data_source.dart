@@ -151,7 +151,10 @@ class DestinationDataSourceImpl implements DestinationDataSource{
         return apiResponse.data!;
 
     } on DioException catch (e) {
-      throw ServerException(e.message ?? "Lỗi không xác định");
+      if (e.error is ServerException) {
+        throw e.error as ServerException;
+      }
+      throw ServerException(e.message ?? 'Lỗi khi xem chi tiết địa điểm');
     } catch (e) {
       if (e is ServerException || e is NetworkException) rethrow;
       throw ServerException('Lỗi không mong muốn: ${e.toString()}');
@@ -196,7 +199,10 @@ class DestinationDataSourceImpl implements DestinationDataSource{
       );
       return apiResponse.data!;
     } on DioException catch (e) {
-      throw ServerException(e.message ?? "Lỗi không xác định");
+      if (e.error is ServerException) {
+        throw e.error as ServerException;
+      }
+      throw ServerException(e.message ?? 'Lỗi khi thêm địa điểm');
     } catch (e) {
       if (e is ServerException || e is NetworkException) rethrow;
       throw ServerException('Lỗi không mong muốn: ${e.toString()}');
@@ -241,7 +247,10 @@ class DestinationDataSourceImpl implements DestinationDataSource{
       );
       return apiResponse.data!;
     } on DioException catch (e) {
-      throw ServerException(e.message ?? "Lỗi không xác định");
+      if (e.error is ServerException) {
+        throw e.error as ServerException;
+      }
+      throw ServerException(e.message ?? 'Lỗi khi cập nhật địa điểm');
     } catch (e) {
       if (e is ServerException || e is NetworkException) rethrow;
       throw ServerException('Lỗi không mong muốn: ${e.toString()}');
