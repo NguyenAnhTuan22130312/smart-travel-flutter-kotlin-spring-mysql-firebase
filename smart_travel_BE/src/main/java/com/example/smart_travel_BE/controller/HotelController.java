@@ -28,7 +28,7 @@ public class HotelController {
      * PUT /api/v1/hotels/{id}
      */
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMINHOTEL')")
     public ResponseEntity<HotelDetailResponse> createHotel(
             @RequestBody HotelCreateRequest request
     ) throws JsonProcessingException {
@@ -41,7 +41,7 @@ public class HotelController {
      * PUT /api/v1/hotels/{id}
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMINHOTEL')")
     public ResponseEntity<HotelDetailResponse> updateHotel(
             @PathVariable("id") Long hotelId,
             @RequestBody HotelCreateRequest request
@@ -55,7 +55,7 @@ public class HotelController {
      * PUT /api/v1/hotels/{id}
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMINHOTEL')")
     public ResponseEntity<String> deleteHotel(@PathVariable("id") Long hotelId) {
         hotelService.deleteHotel(hotelId);
         return ResponseEntity.ok("Đã xóa khách sạn thành công.");
