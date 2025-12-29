@@ -77,6 +77,9 @@ public class SecurityConfig {
             "/api/v1/vouchers/**",
             "/api/v1/ai/search-image",
             "/api/v1/ai/**"
+
+            // ---BANNER ---
+            "/api/v1/banners"
     };
     CustomAuthEntryPoint customAuthEntryPoint;
     UserHeaderAuthenticationFilter userHeaderAuthenticationFilter;

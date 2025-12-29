@@ -181,12 +181,13 @@ class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
 
     emit(AddDestinationLoading());
     final result = await addDestinationUseCase(event.destinationAddParams);
-    result.fold((failure)=> emit(AddDestinationError(failure.message)),
-            (success) async {
+    result.fold((failure) {
+      emit(AddDestinationError(failure.message));
+    },
+            (success)  {
           emit(AddDestinationSuccess(success));
-          add(LoadAllDestinations(loadAll: true));
         });
-
+    add(LoadAllDestinations(loadAll: true));
   }
   ///Cập nhật địa điểm
   FutureOr<void> _onUpdateDestinationEvent(
@@ -195,23 +196,31 @@ class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
 
     emit(UpdateDestinationLoading());
     final result = await updateDestinationUseCase(event.destinationUpdateParams);
-    result.fold((failure)=> emit(UpdateDestinationError(failure.message)),
-            (success) async {
+    result.fold((failure) {
+      emit(UpdateDestinationError(failure.message));
+    },(success)  {
           emit(UpdateDestinationSuccess(success));
-          add(LoadAllDestinations(loadAll: true));
         });
+    add(LoadAllDestinations(loadAll: true));
   }
 
   ///Xóa địa điểm
   FutureOr<void> _onDeleteDestinationEvent(
       DeleteDestinationEvent event,
       Emitter<DestinationState> emit) async {
+
     emit(DeleteDestinationLoading());
+
     final result = await deleteDestinationUseCase(event.destinationId);
-    result.fold((failure)=> emit(DeleteDestinationError(failure.message)),
-            (success) async{
-          emit(DeleteDestinationSuccess(success));
-          add(LoadAllDestinations());
-        });
+
+    result.fold(
+          (failure) {
+        emit(DeleteDestinationError(failure.message));
+      },
+          (success) {
+        emit(DeleteDestinationSuccess(success));
+      },
+    );
+    add(LoadAllDestinations());
   }
 }

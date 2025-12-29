@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_travel/presentation/blocs/banner/banner_bloc.dart';
+import 'package:smart_travel/presentation/blocs/banner/banner_event.dart';
+import 'package:smart_travel/presentation/blocs/banner/banner_state.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
@@ -10,6 +13,7 @@ import 'package:smart_travel/presentation/widgets/category/custom_category.dart'
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
 import 'package:smart_travel/presentation/widgets/common/refreshable_scroll_view.dart';
 import 'package:smart_travel/presentation/widgets/destination/destination_card.dart';
+import 'package:smart_travel/presentation/widgets/home/home_banner_slider.dart';
 import 'package:smart_travel/presentation/widgets/province/province_is_popular_card.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import 'package:smart_travel/presentation/screens/tour/tour_list_screen.dart';
@@ -88,6 +92,7 @@ void _onNavItemTapped(int index) {
             slivers: [
               _buildAppBar(),
               _buildSearchBar(),
+              const HomeBannerSlider(),
               _buildAIChatBanner(),
               const CustomCategory(),
               _buildDestinationsListByCategory(),
@@ -252,6 +257,7 @@ void _onNavItemTapped(int index) {
       ),
     );
   }
+
 
   // AI Chat Banner - liên quan đến tính năng AI chatbot
   Widget _buildAIChatBanner() {

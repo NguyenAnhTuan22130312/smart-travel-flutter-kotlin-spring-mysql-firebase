@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_event.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_state.dart';
+import 'package:smart_travel/presentation/blocs/banner/banner_bloc.dart';
+import 'package:smart_travel/presentation/blocs/banner/banner_event.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
@@ -40,6 +42,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       context.read<DestinationBloc>().add(LoadAllDestinations());
       context.read<ProvinceBloc>().add(LoadProvince());
       context.read<ProfileBloc>().add(LoadProfile());
+      context.read<BannerBloc>().add(LoadAllBanner());
     });
   }
 

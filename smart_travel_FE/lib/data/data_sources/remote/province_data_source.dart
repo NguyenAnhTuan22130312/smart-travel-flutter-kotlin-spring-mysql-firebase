@@ -156,9 +156,9 @@ class ProvinceDataSourceImpl implements ProvinceDataSource {
         response.data,
             (json) => json as Map<String, dynamic>,
       );
+
       return ProvinceModal.formJson(apiResponse.data);
     } on DioException catch (e) {
-      // Xử lý lỗi từ ErrorInterceptor
       if (e.error is ServerException) {
         throw e.error as ServerException;
       }
