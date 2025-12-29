@@ -12,6 +12,37 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   ChatBloc(this.chatRepository) : super(ChatInitial()) {
     on<SendMessageEvent>(_onSendMessage);
+    on<SendImageEvent>(_onSendImage);
+  }
+
+  Future<void> _onSendImage(SendImageEvent event, Emitter<ChatState> emit) async {
+    // 1. Hiển thị tin nhắn của User (Giả lập hiển thị ảnh bằng text)
+    _messages.insert(0, ChatMessage(
+      text: "[Đã gửi 1 hình ảnh...]",
+      isUser: true,
+      timestamp: DateTime.now(),
+    ));
+    emit(ChatLoaded(messages: List.from(_messages), isTyping: true));
+
+    try {
+      // 2. Gọi API qua Repository
+      final reply = await chatRepository.sendImageToAI(event.imageFile);
+
+      // 3. Hiển thị phản hồi từ AI
+      _messages.insert(0, ChatMessage(
+        text: reply,
+        isUser: false,
+        timestamp: DateTime.now(),
+      ));
+      emit(ChatLoaded(messages: List.from(_messages), isTyping: false));
+    } catch (e) {
+      _messages.insert(0, ChatMessage(
+        text: "Lỗi khi gửi ảnh: $e",
+        isUser: false,
+        timestamp: DateTime.now(),
+      ));
+      emit(ChatLoaded(messages: List.from(_messages), isTyping: false));
+    }
   }
 
   Future<void> _onSendMessage(SendMessageEvent event, Emitter<ChatState> emit) async {

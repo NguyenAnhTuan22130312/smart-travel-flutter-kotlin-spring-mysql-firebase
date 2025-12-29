@@ -1,5 +1,6 @@
 package com.example.smart_travel_BE.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -30,6 +31,7 @@ public class Destination {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "province_id", nullable = false)
+    @JsonIgnoreProperties({"destinations", "hibernateLazyInitializer", "handler"})
     private Province province;
 
     @Column(name = "description", columnDefinition = "TEXT")

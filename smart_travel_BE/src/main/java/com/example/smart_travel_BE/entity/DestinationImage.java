@@ -1,5 +1,6 @@
 package com.example.smart_travel_BE.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -17,6 +18,7 @@ public class DestinationImage {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "destination_id", nullable = false)
+    @JsonIgnore
     private Destination destination;
 
     @Column(name = "image_url", nullable = false, length = 500)
