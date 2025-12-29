@@ -69,6 +69,11 @@ class ApiConstants {
   static const String invoiceRefund = '/invoices/refund/';
 
 
+  //Banner
+  static const String getAllBanner = '/banners';
+  static const String updateBanner = '/banners/';
+  static const String createBanner = '/banners/banner';
+  static const String deleteBanner = '/banners/';
 
   // Timeout
   static const Duration connectionTimeout = Duration(seconds: 30);

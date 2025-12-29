@@ -73,6 +73,9 @@ public class SecurityConfig {
             // --- CHAT ---
             "/api/v1/chat",
             "/api/v1/vouchers/**",
+
+            // ---BANNER ---
+            "/api/v1/banners"
     };
     CustomAuthEntryPoint customAuthEntryPoint;
     UserHeaderAuthenticationFilter userHeaderAuthenticationFilter;

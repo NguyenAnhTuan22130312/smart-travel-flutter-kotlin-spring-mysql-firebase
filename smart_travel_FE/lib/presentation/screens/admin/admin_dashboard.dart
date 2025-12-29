@@ -16,6 +16,8 @@ class AdminDashboardScreen extends StatelessWidget {
     {'id': 'admin/bookings', 'icon': Icons.calendar_month, 'label': 'Lịch Đặt', 'color': Colors.red},
     {'id': 'admin/promotions', 'icon': Icons.sticky_note_2_outlined, 'label': 'Khuyến Mãi', 'color': Colors.pink},
     {'id': 'admin/users', 'icon': Icons.people, 'label': 'Người Dùng', 'color': Colors.indigo},
+    {'id': 'admin/banner', 'icon': Icons.add_photo_alternate, 'label': 'Banner', 'color': Colors.amberAccent},
+
   ];
 
   @override

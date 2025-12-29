@@ -107,9 +107,13 @@ public enum ErrorCode {
     FILE_TYPE_NOT_SUPPORTED(1115, "Chỉ hỗ trợ JPG, PNG, WebP, GIF", HttpStatus.BAD_REQUEST),
     IMAGE_UPLOAD_FAILED_ERROR(1116, "Upload ảnh thất bại", HttpStatus.INTERNAL_SERVER_ERROR),
     IMAGE_NOT_FOUND(1117, "Hình ảnh không tồn tài", HttpStatus.NOT_FOUND),
+
+    ///BANNER
+    BANNER_NAME_BLANK(1080, "Tên banner không được để trống", HttpStatus.BAD_REQUEST),
+    IMAGE_URL_BLANK(1081, "Đường dẫn hình ảnh không được để trống", HttpStatus.BAD_REQUEST),
+    BANNER_NOT_EXISTED(1082, "Banner không tồn tại", HttpStatus.NOT_FOUND),
+
     ;
-
-
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
         this.message = message;

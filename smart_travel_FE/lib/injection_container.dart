@@ -7,16 +7,19 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:smart_travel/core/services/image_upload_service.dart';
 import 'package:smart_travel/data/data_sources/local/auth_local_data_source.dart';
+import 'package:smart_travel/data/data_sources/remote/banner_data_source.dart';
 import 'package:smart_travel/data/data_sources/remote/destination_data_source.dart';
 import 'package:smart_travel/data/data_sources/remote/hotel_data_source.dart';
 import 'package:smart_travel/data/data_sources/remote/province_data_source.dart';
 import 'package:smart_travel/data/data_sources/remote/user_remote_datasource.dart';
 import 'package:smart_travel/data/repositories/auth_repository_impl.dart';
+import 'package:smart_travel/data/repositories/banner_repository_impl.dart';
 import 'package:smart_travel/data/repositories/destination_repository_impl.dart';
 import 'package:smart_travel/data/repositories/hotel_repository_impl.dart';
 import 'package:smart_travel/data/repositories/province_repository_impl.dart';
 import 'package:smart_travel/data/repositories/user_repository_impl.dart';
 import 'package:smart_travel/domain/repositories/auth_repository.dart';
+import 'package:smart_travel/domain/repositories/banner_repository.dart';
 import 'package:smart_travel/domain/repositories/destination_repository.dart';
 import 'package:smart_travel/domain/repositories/hotel_repository.dart';
 import 'package:smart_travel/domain/repositories/province_repository.dart';
@@ -26,6 +29,10 @@ import 'package:smart_travel/domain/usecases/auth/forgot_password_use_case.dart'
 import 'package:smart_travel/domain/usecases/auth/google_login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/register_use_case.dart';
+import 'package:smart_travel/domain/usecases/banner/create_banner_uc.dart';
+import 'package:smart_travel/domain/usecases/banner/delete_banner_uc.dart';
+import 'package:smart_travel/domain/usecases/banner/get_all_banner_use_case.dart';
+import 'package:smart_travel/domain/usecases/banner/update_banner_uc.dart';
 import 'package:smart_travel/domain/usecases/destination/add_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/delete_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/filter_destinations_by_category_use_case.dart';
@@ -59,6 +66,7 @@ import 'package:smart_travel/domain/usecases/user/lock_user_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/unlock_user_usecase.dart';
 import 'package:smart_travel/presentation/blocs/admin_user/admin_user_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
+import 'package:smart_travel/presentation/blocs/banner/banner_bloc.dart';
 import 'package:smart_travel/presentation/blocs/chat/chat_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_bloc.dart';
@@ -149,6 +157,9 @@ Future<void> init() async {
   sl.registerLazySingleton<BookingDataSource>(
     () => BookingDataSourceImpl(client: sl()),
   );
+  sl.registerLazySingleton<BannerDataSource>(
+        () => BannerDataSourceImpl(dioClient: sl()),
+  );
 
   // Repositories (sau khi data sources sẵn sàng)
   sl.registerLazySingleton<AuthRepository>(
@@ -185,6 +196,10 @@ Future<void> init() async {
 
   sl.registerLazySingleton<BookingRepository>(
     () => BookingRepositoryImpl(bookingDataSource: sl(), networkInfo: sl()),
+  );
+
+  sl.registerLazySingleton<BannerRepository>(
+        () => BannerRepositoryImpl(bannerDataSource: sl(), networkInfo: sl()),
   );
 
 
@@ -251,6 +266,12 @@ Future<void> init() async {
   sl.registerLazySingleton(() => ProcessPaymentUseCase(sl()));
   sl.registerLazySingleton(() => ConfirmCashBookingUseCase(sl()));
 
+  //uc banner
+  sl.registerLazySingleton(() => GetAllBannerUseCase(sl()));
+  sl.registerLazySingleton(() => CreateBannerUc(sl()));
+  sl.registerLazySingleton(() => UpdateBannerUc(sl()));
+  sl.registerLazySingleton(() => DeleteBannerUc(sl()));
+
   sl.registerLazySingleton<ImageUploadService>(() => ImageUploadService(sl()));
 
   //BLOCs
@@ -308,6 +329,10 @@ Future<void> init() async {
   // ---  BLOC HOTEL ---
   sl.registerFactory(() => HotelDetailBloc(hotelDetailUseCase: sl()));
 
+  // ---  BLOC BANNER ---
+  sl.registerFactory(() => BannerBloc(allBannerUseCase: sl(), createBannerUseCase: sl(),
+  deleteBannerUseCase: sl(),
+  updateBannerUseCase: sl()));
 
   sl.registerFactory(
     () => ProfileBloc(
