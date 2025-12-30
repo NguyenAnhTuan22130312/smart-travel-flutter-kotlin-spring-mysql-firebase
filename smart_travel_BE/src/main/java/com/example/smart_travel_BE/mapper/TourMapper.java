@@ -1,5 +1,6 @@
 package com.example.smart_travel_BE.mapper;
 
+import com.example.smart_travel_BE.dto.tour.request.TourScheduleRequest;
 import com.example.smart_travel_BE.dto.tour.response.*;
 import com.example.smart_travel_BE.entity.Tour;
 import com.example.smart_travel_BE.entity.TourImage;
@@ -25,27 +26,42 @@ public interface TourMapper {
 
     @Mapping(source = "destination.id", target = "destinationId")
     @Mapping(source = "destination.name", target = "destinationName")
-    @Mapping(target = "included", source = "included", qualifiedByName = "jsonToMap")
-    @Mapping(target = "excluded", source = "excluded", qualifiedByName = "jsonToMap")
+//    @Mapping(target = "included", source = "included", qualifiedByName = "jsonToMap")
+//    @Mapping(target = "excluded", source = "excluded", qualifiedByName = "jsonToMap")
+    @Mapping(target = "images", source = "images")
+    @Mapping(target = "schedules", source = "schedules")
     TourDetailResponse toDetail(Tour tour);
 
-    default String getThumbnail(Tour tour) {
-        if (tour.getImages() != null && !tour.getImages().isEmpty()) {
-            return tour.getImages().get(0).getImageUrl();
-        }
-        return null;
-    }
+    @Mapping(source = "destination.name", target = "destinationName")
+    @Mapping(target = "images", expression = "java(getThumbnail(tour))")
+    @Mapping(source = "bookingCount", target = "bookingCount")
+    @Mapping(source = "createdAt", target = "createdAt")
+    TourSummaryResponse toAdminSummary(Tour tour);
 
+    default String getThumbnail(Tour tour) {
+        if (tour.getImages() == null || tour.getImages().isEmpty()) {
+            return null;
+        }
+
+        return tour.getImages().stream()
+                .filter(img -> Boolean.TRUE.equals(img.getIsPrimary()))
+                .findFirst()
+                .map(TourImage::getImageUrl)
+                .orElse(tour.getImages().get(0).getImageUrl());
+    }
     @Named("jsonToMap")
-    public static Map<String, Object> jsonToMap(String json) {
-        if (json == null || json.isEmpty()) return Collections.emptyMap();
+    static Map<String, Object> jsonToMap(String json) {
+        if (json == null || json.trim().isEmpty()) {
+            return Collections.emptyMap();
+        }
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+            return new ObjectMapper().readValue(
+                    json, new TypeReference<Map<String, Object>>() {});
         } catch (Exception e) {
             return Collections.emptyMap();
         }
     }
+
     TourImageResponse toImageResponse(TourImage image);
 
     TourScheduleResponse toScheduleResponse(TourSchedule schedule);

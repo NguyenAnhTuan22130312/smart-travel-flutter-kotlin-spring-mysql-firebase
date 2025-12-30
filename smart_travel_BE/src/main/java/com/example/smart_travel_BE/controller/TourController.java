@@ -3,6 +3,7 @@ package com.example.smart_travel_BE.controller;
 import com.example.smart_travel_BE.dto.tour.request.TourFilterRequest;
 import com.example.smart_travel_BE.dto.tour.response.*;
 import com.example.smart_travel_BE.service.TourService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/tours")
@@ -18,21 +20,6 @@ public class TourController {
     @Autowired
     private TourService tourService;
 
-    // 1. GET /api/v1/tours?page=0&size=10
-    @GetMapping
-    public ResponseEntity<Page<TourResponse>> getAllTours(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String sortBy,
-            @RequestParam(required = false) String sortDir
-    ) {
-        return ResponseEntity.ok(tourService.getAllTours(page, size, sortBy, sortDir));
-    }
-
-    // 2. POST /api/v1/tours/filter  (body: TourFilterRequest)
-    /**
-     * Lọc + phân trang + sắp xếp tour
-     */
     @GetMapping("/filter")
     public Page<TourResponse> filterTours(
             @RequestParam(required = false) String keyword,
@@ -44,8 +31,10 @@ public class TourController {
             @RequestParam(required = false) String minRating,
             @RequestParam(required = false) String sort,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Boolean isActive // Thêm param
     ) {
+        boolean activeFilter = Optional.ofNullable(isActive).orElse(true); // default = true
         return tourService.filterTours(
                 keyword,
                 parseDouble(minPrice),
@@ -56,7 +45,8 @@ public class TourController {
                 parseDouble(minRating),
                 sort,
                 page,
-                size
+                size,
+                activeFilter // truyền vào service
         );
     }
 
