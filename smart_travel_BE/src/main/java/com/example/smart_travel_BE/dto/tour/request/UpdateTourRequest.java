@@ -1,5 +1,7 @@
 package com.example.smart_travel_BE.dto.tour.request;
 
+import com.example.smart_travel_BE.dto.tour.response.TourImageResponse;
+import com.example.smart_travel_BE.dto.tour.response.TourScheduleResponse;
 import lombok.Data;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +16,9 @@ public class UpdateTourRequest {
     private Integer minPeople;
     private Integer maxPeople;
     private Boolean isActive;
+    private List<TourImageResponse> images;
+    private List<TourScheduleResponse> schedules;
 
-    private Map<String, Object> included;
-    private Map<String, Object> excluded;
+    private List<String> included;
+    private List<String> excluded;
 }

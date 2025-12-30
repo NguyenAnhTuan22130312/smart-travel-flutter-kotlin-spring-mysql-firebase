@@ -21,8 +21,8 @@ public class TourDetailResponse {
     private BigDecimal pricePerPerson;
     private Integer maxPeople;
     private Integer minPeople;
-    private Map<String, Object> included; // parse JSON -> map
-    private Map<String, Object> excluded;
+    private String included;
+    private String excluded;
     private Double averageRating;
     private Integer reviewCount;
     private Integer bookingCount;

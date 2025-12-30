@@ -12,6 +12,7 @@ import com.example.smart_travel_BE.repository.TourImageRepository;
 import com.example.smart_travel_BE.repository.TourRepository;
 import com.example.smart_travel_BE.repository.TourScheduleRepository;
 import com.example.smart_travel_BE.specification.TourSpecification;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.gax.rpc.NotFoundException;
@@ -135,19 +136,20 @@ public class TourService {
         // Map Tour -> DTO (MapStruct)
         TourDetailResponse dto = tourMapper.toDetail(tour);
 
-        // Parse included/excluded JSON string -> Map (nếu entity lưu string)
-        try {
-            if (tour.getIncluded() != null) {
-                Map<String, Object> inc = objectMapper.readValue(tour.getIncluded(), new TypeReference<Map<String,Object>>(){});
-                dto.setIncluded(inc);
-            }
-            if (tour.getExcluded() != null) {
-                Map<String, Object> exc = objectMapper.readValue(tour.getExcluded(), new TypeReference<Map<String,Object>>(){});
-                dto.setExcluded(exc);
-            }
-        } catch (Exception e) {
-            // nếu parse lỗi thì để null hoặc log
-        }
+//        // Parse included/excluded JSON string -> Map (nếu entity lưu string)
+//        try {
+//            if (tour.getIncluded() != null) {
+//                Map<String, Object> inc = objectMapper.readValue(tour.getIncluded(), new TypeReference<Map<String,Object>>(){});
+//                dto.setIncluded(inc);
+//            }
+//            if (tour.getExcluded() != null) {
+//                Map<String, Object> exc = objectMapper.readValue(tour.getExcluded(), new TypeReference<Map<String,Object>>(){});
+//                dto.setExcluded(exc);
+//            }
+//        } catch (Exception e) {
+//            // nếu parse lỗi thì để null hoặc log
+//            e.printStackTrace();
+//        }
 
         // images: lấy từ tourImageRepository (theo displayOrder)
         List<TourImage> images = tourImageRepository.findByTourIdOrderByDisplayOrder(id);
@@ -280,6 +282,7 @@ public class TourService {
     }
 
     // ================= UPDATE =================
+    @Transactional
     public TourDetailResponse updateTour(Long id, UpdateTourRequest req) {
 
         Tour tour = tourRepository.findById(id)
@@ -295,12 +298,38 @@ public class TourService {
         if (req.getMaxPeople() != null) tour.setMaxPeople(req.getMaxPeople());
         if (req.getIsActive() != null) tour.setIsActive(req.getIsActive());
 
-        if (req.getIncluded() != null) tour.setIncluded(toJson(req.getIncluded()));
-        if (req.getExcluded() != null) tour.setExcluded(toJson(req.getExcluded()));
+        // ===== SCHEDULE =====
+        if (req.getSchedules() != null) {
+            // Xóa schedule cũ
+            tour.getSchedules().clear();
+
+            List<TourSchedule> newSchedules = req.getSchedules().stream()
+                    .map(s -> {
+                        TourSchedule ts = new TourSchedule();
+                        ts.setDayNumber(s.getDayNumber());
+                        ts.setTitle(s.getTitle());
+                        ts.setAccommodation(s.getAccommodation());
+                        ts.setActivities(s.getActivities());
+                        ts.setMeals(s.getMeals());
+                        ts.setTour(tour);
+                        return ts;
+                    })
+                    .toList();
+
+            tour.getSchedules().addAll(newSchedules);
+        }
+
+        // ===== INCLUDED / EXCLUDED =====
+        if (req.getIncluded() != null)
+            tour.setIncluded(toJson(req.getIncluded()));
+
+        if (req.getExcluded() != null)
+            tour.setExcluded(toJson(req.getExcluded()));
 
         tourRepository.save(tour);
         return tourMapper.toDetail(tour);
     }
+
 
     public void updateStatus(Long id, Boolean isActive) {
         Tour tour = tourRepository.findById(id)
@@ -370,13 +399,23 @@ public class TourService {
     }
 
     // Set ảnh Primary
+    @Transactional
     public void setPrimaryImage(Long imageId) {
         TourImage image = tourImageRepository.findById(imageId)
                 .orElseThrow(() -> new RuntimeException("Image not found"));
 
-        tourImageRepository.resetPrimary(image.getTour().getId());
+        Long tourId = image.getTour().getId();
+
+        // reset tất cả ảnh khác
+        tourImageRepository.resetPrimary(tourId);
+
+        // set ảnh này là primary
         image.setIsPrimary(true);
+
+        // save lại
+        tourImageRepository.save(image);
     }
+
 
     public void reorderImages(List<TourImageRequest> requests) {
         for (TourImageRequest req : requests) {
@@ -434,11 +473,12 @@ public class TourService {
         }
     }
 
-    private String toJson(Map<String, Object> map) {
+    private String toJson(Object obj) {
         try {
-            return objectMapper.writeValueAsString(map);
-        } catch (Exception e) {
-            return "{}";
+            return new ObjectMapper().writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
+
 }
