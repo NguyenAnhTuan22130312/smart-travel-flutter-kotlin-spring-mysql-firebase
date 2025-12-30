@@ -19,7 +19,7 @@ public class HotelImageController {
     private final HotelImageService hotelImageService;
 
     @PostMapping("/upload")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMINHOTEL')")
     public ResponseEntity<List<HotelImage>> uploadMultiple(
             @PathVariable Long hotelId,
             @RequestParam("file") List<MultipartFile> files
@@ -33,7 +33,7 @@ public class HotelImageController {
     }
 
     @DeleteMapping("/{imageId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMINHOTEL')")
     public ResponseEntity<Void> deleteImage(@PathVariable Long imageId) {
         hotelImageService.deleteImage(imageId);
         return ResponseEntity.noContent().build();

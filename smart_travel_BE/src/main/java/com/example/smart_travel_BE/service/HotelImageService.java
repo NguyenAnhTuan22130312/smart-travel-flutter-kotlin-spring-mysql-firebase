@@ -23,35 +23,43 @@ public class HotelImageService {
     private final HotelRepository hotelRepository;
     private final HotelImageRepository hotelImageRepository;
 
-    //  Upload nhiều file
     @Transactional
     public List<HotelImage> uploadMultiple(Long hotelId, List<MultipartFile> files) throws IOException {
         Hotel hotel = hotelRepository.findById(hotelId)
                 .orElseThrow(() -> new RuntimeException("Hotel not found"));
 
-        int order = hotelImageRepository.findByHotelIdOrderByDisplayOrderAsc(hotelId).size();
+        // 1. Hạ cấp tất cả ảnh hiện có của Hotel này về false
+        hotelImageRepository.resetPrimaryStatus(hotelId);
+
+        // 2. Lấy order hiện tại để nối tiếp danh sách
+        List<HotelImage> currentImages = hotelImageRepository.findByHotelIdOrderByDisplayOrderAsc(hotelId);
+        int order = currentImages.size();
 
         List<HotelImage> saved = new java.util.ArrayList<>();
+        boolean hasSetPrimary = false;
 
         for (MultipartFile file : files) {
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
-                    ObjectUtils.asMap(
-                            "folder", "hotels/" + hotelId,
-                            "resource_type", "auto"
-                    ));
+                    ObjectUtils.asMap("folder", "hotels/" + hotelId, "resource_type", "auto"));
 
             HotelImage img = new HotelImage();
             img.setHotel(hotel);
             img.setImageUrl(uploadResult.get("secure_url").toString());
-            img.setIsPrimary(false);
-            img.setDisplayOrder(order++);
 
+            // 3. Tấm đầu tiên trong đợt upload này sẽ trở thành Primary mới
+            if (!hasSetPrimary) {
+                img.setIsPrimary(true);
+                hasSetPrimary = true;
+            } else {
+                img.setIsPrimary(false);
+            }
+
+            img.setDisplayOrder(order++);
             saved.add(hotelImageRepository.save(img));
         }
 
         return saved;
     }
-
 
     public List<HotelImage> getImagesByHotel(Long hotelId) {
         return hotelImageRepository.findByHotelIdOrderByDisplayOrderAsc(hotelId);
