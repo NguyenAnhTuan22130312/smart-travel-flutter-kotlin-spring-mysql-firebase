@@ -59,10 +59,15 @@ class _ChatViewState extends State<ChatView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text("Trợ lý ảo Smart Travel"),
-        backgroundColor: AppColors.background,
+        title: const Text("Trợ lý ảo Smart Travel", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),),
         elevation: 1,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.mainGradient,
+          ),
+        ),
       ),
       body: Column(
         children: [
