@@ -84,7 +84,7 @@ class _DetailHotelScreenState extends State<DetailHotelScreen>
         // --- ĐÃ XÓA BOTTOM NAVIGATION BAR ---
 
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           // bottomNavigationBar: null, // Không cần dòng này vì mặc định là null
           body: Builder(builder: (context) {
             if (state is HotelDetailLoading) {

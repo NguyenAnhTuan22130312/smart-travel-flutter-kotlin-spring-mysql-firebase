@@ -26,8 +26,7 @@ class _HotelListScreenState extends State<HotelListScreen> {
 
   // --- KHAI BÁO MÀU SẮC (CẤU HÌNH UI) ---
   static const Color textDark = Color(0xFF1F2937);
-  static const Color primary = Color(0xFF2196F3);
-  static const Color button = Color(0xFF23A39B);
+  static const Color primary = Color(0xFF51CCD1);
 
   @override
   void initState() {
@@ -220,17 +219,12 @@ class _HotelListScreenState extends State<HotelListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
         elevation: 0,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [primary, button],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            gradient: AppColors.mainGradient,
           ),
         ),
         foregroundColor: Colors.white,
@@ -238,28 +232,10 @@ class _HotelListScreenState extends State<HotelListScreen> {
           "Danh sách khách sạn",
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 20,
             color: Colors.white,
           ),
         ),
         centerTitle: true,
-        leading: GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: Container(
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  blurRadius: 12,
-                ),
-              ],
-            ),
-            child: const Icon(Icons.arrow_back, color: textDark, size: 24),
-          ),
-        ),
       ),
       body: Column(
         children: [

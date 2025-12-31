@@ -196,6 +196,7 @@ class AuthRepositoryImpl implements AuthRepository {
       // Facebook Sign In
       final loginResult = await facebookAuth.login(
         permissions: ['email', 'public_profile'],
+        loginBehavior: LoginBehavior.webOnly,
       );
 
       if (loginResult.status != LoginStatus.success) {
