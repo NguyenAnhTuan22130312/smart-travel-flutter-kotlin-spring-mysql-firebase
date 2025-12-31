@@ -4,6 +4,8 @@ class RouteNames {
   static const String adminProvinces = '/admin/provinces';
   static const String adminUsers = '/admin/users';
   static const String adminDestination = '/admin/destination';
+  static const String adminTours = '/admin/tours';
+  static const String adminTourDetail = 'admin/tours/';
 
   /// USER
   static const String splashScreen = '/';

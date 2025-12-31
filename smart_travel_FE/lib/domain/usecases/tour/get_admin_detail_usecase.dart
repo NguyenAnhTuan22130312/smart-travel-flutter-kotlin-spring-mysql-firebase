@@ -1,12 +1,13 @@
+import 'package:smart_travel/data/models/tour/admin_tour_model.dart';
 import 'package:smart_travel/domain/entities/tour_detail.dart';
 import 'package:smart_travel/domain/repositories/tour_repository.dart';
 
-class GetTourDetailUseCase {
+class GetAdminTourDetailUseCase {
   final TourRepository repository;
 
-  GetTourDetailUseCase(this.repository);
+  GetAdminTourDetailUseCase(this.repository);
 
-  Future<TourDetail> call(int id) {
-    return repository.getTourDetail(id);
+  Future<AdminTourModel> call(int id) {
+    return repository.getToursDetail(id);
   }
 }

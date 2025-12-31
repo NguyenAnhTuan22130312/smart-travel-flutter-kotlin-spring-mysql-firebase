@@ -57,6 +57,12 @@ class ApiConstants {
   static const String adminUserLock = '/admin/users/';
   static const String adminUserUnlock = '/admin/users/';
 
+  // ================== ADMIN TOUR ==================
+  static const String adminTours = '/admin/tours';
+  static const String adminTourDetail = '/admin/tours/';
+  static const String adminTourImages = '/admin/tours/images/';
+  static const String adminTourSchedules = '/admin/tours/schedules/';
+
   // Timeout
   static const Duration connectionTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
