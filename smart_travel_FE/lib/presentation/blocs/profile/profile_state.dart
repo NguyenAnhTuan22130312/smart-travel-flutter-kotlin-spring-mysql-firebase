@@ -87,7 +87,14 @@ class AccountDeletedSuccess extends ProfileState {
 }
 
 // Logout Success State
-class LogoutSuccess extends ProfileState {}
+class LogoutSuccess extends ProfileState {
+  final UserSettings? defaultSettings;
+
+  const LogoutSuccess({this.defaultSettings});
+
+  @override
+  List<Object?> get props => [defaultSettings];
+}
 
 // Error State
 class ProfileError extends ProfileState {
