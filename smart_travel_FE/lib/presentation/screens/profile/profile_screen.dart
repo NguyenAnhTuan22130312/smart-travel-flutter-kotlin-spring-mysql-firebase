@@ -8,6 +8,7 @@ import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
 import 'package:smart_travel/presentation/screens/chat/ai_chat_screen.dart';
+import 'package:smart_travel/presentation/screens/profile/favorite_places_screen.dart';
 import 'package:smart_travel/presentation/screens/tour/tour_list_screen.dart';
 import 'package:smart_travel/presentation/widgets/profile/profile_menu_item_widget.dart';
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
@@ -253,7 +254,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
-
+                          // NEW SECTION: Danh sách yêu thích
+                        _buildSection(
+                          context,
+                          title: "Hoạt động của tôi", // Hoặc AppLocalizations.of(context)!.myActivity
+                          items: [
+                            // Trong profile_screen.dart
+                            ProfileMenuItemWidget(
+                              icon: Icons.favorite_border_rounded,
+                              title: "Danh sách địa điểm yêu thích",
+                              iconColor: Colors.pinkAccent,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const FavoritePlacesScreen(),
+                                  ),
+                                );
+                              },
+                              showDivider: false,
+                            ),
+                          ],
+                        ),
                         // Section 2: Quyền lợi thành viên
                         _buildSection(
                           context,

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/banner/banner_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
+import 'package:smart_travel/presentation/blocs/favorite/favorite_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_bloc.dart';
@@ -68,6 +69,7 @@ class _MyAppState extends State<MyApp> {
         BlocProvider(create: (_) => di.sl<HotelDetailBloc>()),
         BlocProvider(create: (_) => di.sl<ProfileBloc>()..add(LoadSettings())),
         BlocProvider(create: (_) => di.sl<BannerBloc>()),
+        BlocProvider(create: (_) => di.sl<FavoriteBloc>()),
       ],
       child: BlocListener<ProfileBloc, ProfileState>(
         listener: (context, state) {
