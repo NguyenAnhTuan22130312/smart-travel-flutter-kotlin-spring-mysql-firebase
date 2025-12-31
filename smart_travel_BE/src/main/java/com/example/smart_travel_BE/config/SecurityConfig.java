@@ -76,7 +76,7 @@ public class SecurityConfig {
             "/api/v1/chat",
             "/api/v1/vouchers/**",
             "/api/v1/ai/search-image",
-            "/api/v1/ai/**"
+            "/api/v1/ai/**",
 
             // ---BANNER ---
             "/api/v1/banners"
