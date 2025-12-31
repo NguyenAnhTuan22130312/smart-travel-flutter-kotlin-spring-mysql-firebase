@@ -123,9 +123,17 @@ class _ProvinceFormModalState extends State<ProvinceFormModal> {
     if (_nameController.text.isEmpty ||
         _codeController.text.isEmpty ||
         _selectedRegion == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Vui lòng điền đủ Tên, Mã và Miền'),
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Lỗi"),
+          content: Text("Vui lòng điển đẩy đủ tên, mã và miền tỉnh thành"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            ),
+          ],
         ),
       );
       return;

@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_event.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_state.dart';
+import 'package:smart_travel/presentation/blocs/banner/banner_bloc.dart';
+import 'package:smart_travel/presentation/blocs/banner/banner_event.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
@@ -40,6 +42,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       context.read<DestinationBloc>().add(LoadAllDestinations());
       context.read<ProvinceBloc>().add(LoadProvince());
       context.read<ProfileBloc>().add(LoadProfile());
+      context.read<BannerBloc>().add(LoadAllBanner());
     });
   }
 
@@ -85,7 +88,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               Navigator.pushReplacementNamed(context, '/home');
             }
            else if (state is Unauthenticated) {
-            Navigator.pushReplacementNamed(context, '/login');
+            Navigator.pushReplacementNamed(context, '/home');
           }
         },
         child: Scaffold(
@@ -173,7 +176,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(30),
                                   child: Image.asset(
-                                    'assets/images/img_4.png',
+                                    'assets/icons/logo.png',
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
                                       return const Icon(

@@ -16,17 +16,18 @@ class Hotel {
   final int? reviewCount;
   final int? totalRooms;
   final int? availableRooms;
-  final Map<String, dynamic>? amenities; // JSON → Map
+  final List<String>? amenities;
   final bool? isActive;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final List<String>? imageUrls; // Danh sách ảnh
-  final String? thumbnail; // Ảnh chính (tính từ BE)
-  final double? minPrice; // Giá rẻ nhất (tính từ BE)
+  final String? thumbnail; // Ảnh chính
+  final double? minPrice; // Giá rẻ nhất
   final String? images;
   final String? destinationName;
   final String? provinceName;
   final List<RoomType>? rooms;
+
 
   Hotel({
     required this.id,

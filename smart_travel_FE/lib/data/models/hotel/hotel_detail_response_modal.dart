@@ -12,11 +12,17 @@ class HotelDetailResponseModel {
   final String? description;
   final String? thumbnail;
   final List<String>? images;
+  final String? phone;
+  final String? email;
+  final int? destinationId;
+  final List<String>? amenities;
   final String? destinationName;
   final String? provinceName;
   final double? latitude;
   final double? longitude;
   final List<RoomTypeResponseModel>? rooms;
+  final double? pricePerNight; // giá mặc định / hiển thị
+
 
   HotelDetailResponseModel({
     required this.id,
@@ -28,46 +34,37 @@ class HotelDetailResponseModel {
     this.description,
     this.thumbnail,
     this.images,
+    this.phone,
+    this.email,
+    this.destinationId,
+    this.amenities,
     this.destinationName,
     this.provinceName,
     this.rooms,
     this.latitude,
     this.longitude,
+    this.pricePerNight,
   });
 
   factory HotelDetailResponseModel.fromJson(Map<String, dynamic> json) {
-    // Xử lý ID an toàn vì đôi khi BE trả string
+    // Xử lý ID an toàn
     final rawId = json['id'];
     final safeId = rawId is int ? rawId : int.tryParse(rawId.toString()) ?? 0;
 
-    // Xử lý rating an toàn
+    // Xử lý rating
     double? safeRating;
     if (json['rating'] != null) {
       safeRating = double.tryParse(json['rating'].toString());
     }
 
-    // Xử lý images
-    List<String>? safeImages;
-    if (json['images'] != null) {
-      if (json['images'] is List) {
-        safeImages = json['images'].map<String>((e) => e.toString()).toList();
-      } else if (json['images'] is String) {
-        // trường hợp BE trả chuỗi JSON
-        safeImages = List<String>.from(jsonDecode(json['images']));
-      }
-    }
-
-    // Xử lý rooms
-    List<RoomTypeResponseModel>? safeRooms;
-    if (json['rooms'] != null) {
-      if (json['rooms'] is List) {
-        safeRooms =
-            json['rooms']
-                .where((e) => e != null)
-                .map<RoomTypeResponseModel>(
-                  (e) => RoomTypeResponseModel.fromJson(e),
-                )
-                .toList();
+    // Xử lý amenities (vì json có thể trả về List hoặc String)
+    List<String>? safeAmenities;
+    if (json['amenities'] != null) {
+      if (json['amenities'] is List) {
+        safeAmenities = List<String>.from(json['amenities']);
+      } else if (json['amenities'] is String) {
+        // Phòng hờ BE trả chuỗi kiểu "wifi, tv"
+        safeAmenities = json['amenities'].toString().split(',').map((e)=>e.trim()).toList();
       }
     }
 
@@ -80,20 +77,26 @@ class HotelDetailResponseModel {
       rating: safeRating,
       description: json['description']?.toString(),
       thumbnail: json['thumbnail']?.toString(),
-      images: safeImages,
+      phone: json['phone']?.toString(),
+      email: json['email']?.toString(),
+      destinationId: json['destinationId'] is int ? json['destinationId'] : int.tryParse(json['destinationId'].toString() ?? ""),
+      amenities: safeAmenities,
+      images: json['images'] != null
+          ? (json['images'] is List ? List<String>.from(json['images']) : [])
+          : [],
       destinationName: json['destinationName']?.toString(),
       provinceName: json['provinceName']?.toString(),
-      latitude: json['latitude'] != null
-          ? double.tryParse(json['latitude'].toString())
+      latitude: json['latitude'] != null ? double.tryParse(json['latitude'].toString()) : null,
+      longitude: json['longitude'] != null ? double.tryParse(json['longitude'].toString()) : null,
+      rooms: json['rooms'] != null
+          ? (json['rooms'] as List).where((e) => e != null).map((e) => RoomTypeResponseModel.fromJson(e)).toList()
           : null,
+      pricePerNight: json['pricePerNight'] != null ? double.tryParse(json['pricePerNight'].toString()) : null,
 
-      longitude: json['longitude'] != null
-          ? double.tryParse(json['longitude'].toString())
-          : null,
-      rooms: safeRooms,
     );
   }
 
+  // --- HÀM NÀY ĐẨY DỮ LIỆU VÀO HOTEL ENTITY ---
   Hotel toEntity() {
     return Hotel(
       id: id,
@@ -105,11 +108,17 @@ class HotelDetailResponseModel {
       reviewCount: numOfReviews,
       imageUrls: images,
       thumbnail: thumbnail,
+      phone: phone,
+      email: email,
+      destinationId: destinationId,
+      amenities: amenities,
+
       destinationName: destinationName,
       provinceName: provinceName,
       latitude: latitude,
       longitude: longitude,
       rooms: rooms?.map((roomModel) => roomModel.toEntity()).toList(),
+      pricePerNight:  pricePerNight,
     );
   }
 }

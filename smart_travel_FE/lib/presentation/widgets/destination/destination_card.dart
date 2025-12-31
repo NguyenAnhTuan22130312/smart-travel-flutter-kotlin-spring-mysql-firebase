@@ -1,5 +1,7 @@
 // Destination Card Widget
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_travel/presentation/blocs/favorite/favorite_bloc.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
 
 import '../../../domain/entities/destinations.dart';
@@ -27,6 +29,10 @@ class _DestinationFeaturedState extends State<DestinationCart> {
         ? 'Miễn phí'
         : '${entryFee?.toInt().toString().replaceAllMapped(
         RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}đ';
+
+    String imageUrl = (destination.destinationImage != null && destination.destinationImage!.isNotEmpty)
+        ? destination.destinationImage![0].imageUrl ?? ""
+        : (destination.imageUrl ?? ""); // Lấy ảnh từ list hoặc imageUrl dự phòng
 
     return GestureDetector(
       onTap: () {
@@ -77,17 +83,43 @@ class _DestinationFeaturedState extends State<DestinationCart> {
                 Positioned(
                   top: 12,
                   right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.favorite_border,
-                      size: 20,
-                      color: AppColors.primary,
-                    ),
+                  child: BlocBuilder<FavoriteBloc, FavoriteState>(
+                    builder: (context, state) {
+                      // Kiểm tra xem ID này đã có trong danh sách yêu thích chưa
+                      final isFavorite = state.favoriteItems.any((x) => x['id'] == destination.id.toString());
+
+                      return GestureDetector(
+                        onTap: () {
+                          if (isFavorite) {
+                            // Nếu đã thích rồi thì Xóa
+                            context.read<FavoriteBloc>().add(RemoveFromFavorite(destination.id.toString()));
+                          } else {
+                            // Nếu chưa thích thì Thêm vào
+                            context.read<FavoriteBloc>().add(AddToFavorite({
+                              'id': destination.id.toString(),
+                              'name': destination.name,
+                              'category': destination.category ?? 'Địa điểm',
+                              'location': destination.province?.name ?? 'Việt Nam',
+                              'image': imageUrl,
+                              'rating': destination.averageRating,
+                              'price': priceText, // Lưu luôn chuỗi giá đã format
+                            }));
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            size: 20,
+                            color: isFavorite ? Colors.red : AppColors.primary,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 // Rating badge

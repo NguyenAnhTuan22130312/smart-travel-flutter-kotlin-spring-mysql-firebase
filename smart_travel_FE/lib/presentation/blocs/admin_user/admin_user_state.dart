@@ -15,6 +15,7 @@ class AdminUserLoading extends AdminUserState {}
 class AdminUserLoaded extends AdminUserState {
   final AdminUserResponse userResponse;
   final String? currentSearchKeyword;
+  final String? currentRoleFilter;
   final String? currentSortBy;
   final String? currentSortDirection;
   final bool isRefreshing; // For showing loading only in list area
@@ -22,6 +23,7 @@ class AdminUserLoaded extends AdminUserState {
   const AdminUserLoaded({
     required this.userResponse,
     this.currentSearchKeyword,
+    this.currentRoleFilter,
     this.currentSortBy,
     this.currentSortDirection,
     this.isRefreshing = false,
@@ -31,6 +33,7 @@ class AdminUserLoaded extends AdminUserState {
   List<Object?> get props => [
     userResponse,
     currentSearchKeyword,
+    currentRoleFilter,
     currentSortBy,
     currentSortDirection,
     isRefreshing,
@@ -104,6 +107,27 @@ class AdminUserUnlockError extends AdminUserState {
   final String message;
 
   const AdminUserUnlockError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+// Create User States
+class AdminUserCreateLoading extends AdminUserState {}
+
+class AdminUserCreateSuccess extends AdminUserState {
+  final String message;
+
+  const AdminUserCreateSuccess(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class AdminUserCreateError extends AdminUserState {
+  final String message;
+
+  const AdminUserCreateError(this.message);
 
   @override
   List<Object?> get props => [message];

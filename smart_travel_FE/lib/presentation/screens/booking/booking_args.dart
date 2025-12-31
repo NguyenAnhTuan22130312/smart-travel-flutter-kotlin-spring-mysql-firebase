@@ -4,6 +4,7 @@ class BookingArgs {
   final String name;        // Tên tour/hotel để hiển thị
   final double price;       // Giá (người hoặc phòng)
   final String imageUrl;    // Ảnh thumbnail
+  final int? roomTypeId;    //ID của loại phòng được chọn
 
   BookingArgs({
     required this.bookingType,
@@ -11,5 +12,6 @@ class BookingArgs {
     required this.name,
     required this.price,
     required this.imageUrl,
+    this.roomTypeId,
   });
 }

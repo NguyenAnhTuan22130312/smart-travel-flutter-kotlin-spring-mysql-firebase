@@ -7,6 +7,7 @@ import 'package:smart_travel/domain/usecases/user/update_settings_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/get_level_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/delete_account_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/logout_usecase.dart';
+import 'package:smart_travel/domain/entities/user.dart';
 import 'profile_event.dart';
 import 'profile_state.dart';
 
@@ -160,9 +161,14 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
     final result = await logoutUseCase();
 
-    result.fold(
-      (failure) => emit(ProfileError(failure.message)),
-      (_) => emit(LogoutSuccess()),
-    );
+    result.fold((failure) => emit(ProfileError(failure.message)), (_) {
+      // Emit logout success with default settings to reset UI theme
+      const defaultSettings = UserSettings(
+        darkModeEnabled: false,
+        languageSettings: null,
+        notificationSettings: null,
+      );
+      emit(LogoutSuccess(defaultSettings: defaultSettings));
+    });
   }
 }

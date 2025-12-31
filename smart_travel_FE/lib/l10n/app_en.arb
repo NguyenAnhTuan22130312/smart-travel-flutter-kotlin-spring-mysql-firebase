@@ -125,5 +125,11 @@
   "changePasswordButton": "Change password",
   "changingPassword": "Changing password..."
   ,
+  "myInvoices": "My Bookings",
+  "upcoming": "Upcoming",
+  "completed": "Completed",
+  "cancelled": "Cancelled",
+  "noInvoices": "You have no bookings yet",
+
   "errorLoadLevel": "Failed to load level information"
 }

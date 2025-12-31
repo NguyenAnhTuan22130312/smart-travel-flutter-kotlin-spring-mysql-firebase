@@ -197,6 +197,7 @@ class UserRepositoryImpl implements UserRepository {
     int? page,
     int? size,
     String? searchKeyword,
+    String? role,
     String? sortBy,
     String? sortDirection,
   }) async {
@@ -205,6 +206,7 @@ class UserRepositoryImpl implements UserRepository {
         page: page,
         size: size,
         searchKeyword: searchKeyword,
+        role: role,
         sortBy: sortBy,
         sortDirection: sortDirection,
       );
@@ -293,6 +295,55 @@ class UserRepositoryImpl implements UserRepository {
       }
       return Left(
         ServerFailure(e.response?.data['msg'] ?? 'Failed to unlock user'),
+      );
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, User>> createUser({
+    required String fullName,
+    required String email,
+    required String password,
+    String? phone,
+    required String role,
+    String? gender,
+    String? dateOfBirth,
+    String? address,
+    String? city,
+    String? country,
+    String? bio,
+  }) async {
+    try {
+      final data = <String, dynamic>{
+        'fullName': fullName,
+        'email': email,
+        'password': password,
+        'role': role,
+      };
+
+      if (phone != null && phone.isNotEmpty) data['phone'] = phone;
+      if (gender != null && gender.isNotEmpty) data['gender'] = gender;
+      if (dateOfBirth != null && dateOfBirth.isNotEmpty)
+        data['dateOfBirth'] = dateOfBirth;
+      if (address != null && address.isNotEmpty) data['address'] = address;
+      if (city != null && city.isNotEmpty) data['city'] = city;
+      if (country != null && country.isNotEmpty) data['country'] = country;
+      if (bio != null && bio.isNotEmpty) data['bio'] = bio;
+
+      final result = await remoteDataSource.createUser(data);
+      return Right(result);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        return const Left(AuthFailure(message: 'Unauthorized access'));
+      } else if (e.response?.statusCode == 403) {
+        return const Left(
+          AuthFailure(message: 'Forbidden: Admin access required'),
+        );
+      }
+      return Left(
+        ServerFailure(e.response?.data['msg'] ?? 'Failed to create user'),
       );
     } catch (e) {
       return Left(ServerFailure(e.toString()));

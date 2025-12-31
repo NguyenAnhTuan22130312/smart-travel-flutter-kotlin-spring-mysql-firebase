@@ -10,8 +10,13 @@
             android:value="@string/facebook_app_id"/>
 
         <meta-data
+            android:name="com.facebook.sdk.ClientToken"
+            android:value="@string/facebook_client_token"/>
+
+        <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAPA8VNY1Gua5870H7G1jpx3MlKsSqCOCY" />
+
         <!-- Thêm activity cho Facebook -->
         <activity
             android:name="com.facebook.FacebookActivity"
@@ -60,6 +65,7 @@
             android:value="2" />
     </application>
 
+
     <!-- Quyền truy cập internet -->
     <uses-permission android:name="android.permission.INTERNET"/>
     
@@ -74,10 +80,13 @@
 
          In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
     <queries>
+        <package android:name="com.facebook.katana" />
+        <package android:name="com.facebook.orca" />
+        <package android:name="com.facebook.lite" />
+        <package android:name="com.facebook.messenger" />
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
-            <data android:mimeType="text/plain"/>
-        </intent>
 
+        </intent>
     </queries>
 </manifest>

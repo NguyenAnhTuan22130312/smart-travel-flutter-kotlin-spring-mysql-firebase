@@ -8,26 +8,24 @@ abstract class HotelState extends Equatable {
   List<Object?> get props => [];
 }
 
-// Trạng thái khởi tạo
 class HotelInitial extends HotelState {}
 
-// Trạng thái đang tải (Dùng chung cho cả lần đầu và khi chuyển trang)
 class HotelLoading extends HotelState {}
 
-// Trạng thái load thành công
 class HotelLoaded extends HotelState {
   final List<Hotel> hotels;
-  final int currentPage; // Để biết đang ở trang nào (để tô màu nút)
-  final int totalPages;  // Để biết có bao nhiêu nút (để vẽ list 1, 2, 3...)
+  final int currentPage;
+  final int totalPages;
+  final int timestamp;
 
-  const HotelLoaded({
+  HotelLoaded({
     required this.hotels,
     required this.currentPage,
     required this.totalPages,
-  });
+  }) : timestamp = DateTime.now().millisecondsSinceEpoch;
 
   @override
-  List<Object?> get props => [hotels, currentPage, totalPages];
+  List<Object?> get props => [hotels, currentPage, totalPages, timestamp];
 }
 
 // Trạng thái lỗi
@@ -38,4 +36,25 @@ class HotelError extends HotelState {
 
   @override
   List<Object?> get props => [message];
+}
+
+// Xoá khách sạn
+class DeleteHotelLoading extends HotelState {}
+
+class DeleteHotelError extends HotelState {
+  final String message;
+  DeleteHotelError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class HotelOperationSuccess extends HotelState {
+  final String message;
+  final int timestamp;
+
+  HotelOperationSuccess(this.message)
+    : timestamp = DateTime.now().millisecondsSinceEpoch;
+  @override
+  List<Object?> get props => [message, timestamp];
 }

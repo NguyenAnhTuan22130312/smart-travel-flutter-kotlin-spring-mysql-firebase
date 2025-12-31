@@ -14,6 +14,9 @@ class LoadProvinceIsPopular extends ProvinceEvent{
 }
 
 class LoadProvince extends ProvinceEvent{
+  final bool? loadAll;
+  LoadProvince({this.loadAll = false});
+
 }
 
 class AddProvince extends ProvinceEvent {

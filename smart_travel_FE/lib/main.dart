@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
+import 'package:smart_travel/presentation/blocs/banner/banner_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
+import 'package:smart_travel/presentation/blocs/favorite/favorite_bloc.dart';
+import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_bloc.dart';
+import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
@@ -28,10 +32,12 @@ void main() async {
   await Firebase.initializeApp();
   await di.init();
   // Set status bar color to transparent
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light, // For dark background
-  ));
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light, // For dark background
+    ),
+  );
 
   runApp(const MyApp());
 }
@@ -50,102 +56,97 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-        providers: [
-          // Provide AuthBloc globally
-          BlocProvider(
-            create: (_) => di.sl<AuthBloc>(),
-          ),
-          BlocProvider(
-            create: (_) => di.sl<DestinationBloc>(),
-          ),
-          BlocProvider(
-            create: (_) => di.sl<DestinationDetailBloc>(),
-          ),
-          BlocProvider(
-            create: (_) => di.sl<ProvinceBloc>(),
-          ),
-          BlocProvider(
-            create: (_) => di.sl<ProvinceDetailBloc>(),
-          ),
-          BlocProvider(
-            create: (_) => di.sl<TourDetailBloc>(),
-          ),
-          BlocProvider(
-            create: (_) => di.sl<TourBloc>(),
-          ),
-          BlocProvider(
-            create: (_) => di.sl<ProfileBloc>()..add(LoadSettings()),
-          ),
-        ],
-        child: BlocListener<ProfileBloc, ProfileState>(
-          listener: (context, state) {
-            // Update dark mode and language setting whenever any state with this info is emitted
-            if (state is SettingsLoaded) {
-              setState(() {
-                _isDarkMode = state.settings.darkModeEnabled;
-                if (state.settings.languageSettings != null) {
-                  try {
-                    final langMap = json.decode(state.settings.languageSettings!);
-                    _locale = Locale(langMap['lang'] ?? 'vi');
-                  } catch (_) {
-                    _locale = const Locale('vi');
-                  }
+      providers: [
+        // Provide AuthBloc globally
+        BlocProvider(create: (_) => di.sl<AuthBloc>()),
+        BlocProvider(create: (_) => di.sl<DestinationBloc>()),
+        BlocProvider(create: (_) => di.sl<DestinationDetailBloc>()),
+        BlocProvider(create: (_) => di.sl<ProvinceBloc>()),
+        BlocProvider(create: (_) => di.sl<ProvinceDetailBloc>()),
+        BlocProvider(create: (_) => di.sl<TourDetailBloc>()),
+        BlocProvider(create: (_) => di.sl<TourBloc>()),
+        BlocProvider(create: (_) => di.sl<HotelBloc>()),
+        BlocProvider(create: (_) => di.sl<HotelDetailBloc>()),
+        BlocProvider(create: (_) => di.sl<ProfileBloc>()..add(LoadSettings())),
+        BlocProvider(create: (_) => di.sl<BannerBloc>()),
+        BlocProvider(create: (_) => di.sl<FavoriteBloc>()),
+      ],
+      child: BlocListener<ProfileBloc, ProfileState>(
+        listener: (context, state) {
+          // Update dark mode and language setting whenever any state with this info is emitted
+          if (state is SettingsLoaded) {
+            setState(() {
+              _isDarkMode = state.settings.darkModeEnabled;
+              if (state.settings.languageSettings != null) {
+                try {
+                  final langMap = json.decode(state.settings.languageSettings!);
+                  _locale = Locale(langMap['lang'] ?? 'vi');
+                } catch (_) {
+                  _locale = const Locale('vi');
                 }
-              });
-            } else if (state is SettingsUpdateSuccess) {
-              setState(() {
-                _isDarkMode = state.settings.darkModeEnabled;
-                if (state.settings.languageSettings != null) {
-                  try {
-                    final langMap = json.decode(state.settings.languageSettings!);
-                    _locale = Locale(langMap['lang'] ?? 'vi');
-                  } catch (_) {
-                    _locale = const Locale('vi');
-                  }
+              }
+            });
+          } else if (state is SettingsUpdateSuccess) {
+            setState(() {
+              _isDarkMode = state.settings.darkModeEnabled;
+              if (state.settings.languageSettings != null) {
+                try {
+                  final langMap = json.decode(state.settings.languageSettings!);
+                  _locale = Locale(langMap['lang'] ?? 'vi');
+                } catch (_) {
+                  _locale = const Locale('vi');
                 }
-              });
-            } else if (state is ProfileLoaded) {
-              setState(() {
-                _isDarkMode = state.user.darkModeEnabled;
-              });
-            }
-          },
-          child: MaterialApp(
-            debugShowCheckedModeBanner: false,
-            onGenerateRoute: AppRouter.generateRoute,
-            initialRoute: RouteNames.splashScreen,
-            // -----------------------
-            title: 'Smart Travel',
-            theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-              useMaterial3: true,
-            ),
-            darkTheme: ThemeData(
+              }
+            });
+          } else if (state is ProfileLoaded) {
+            setState(() {
+              _isDarkMode = state.user.darkModeEnabled;
+            });
+          } else if (state is LogoutSuccess) {
+            // Reset to default theme (light mode) when user logs out
+            setState(() {
+              if (state.defaultSettings != null) {
+                _isDarkMode = state.defaultSettings!.darkModeEnabled;
+                _locale = const Locale('vi'); // Reset to default language
+              }
+            });
+          }
+        },
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          onGenerateRoute: AppRouter.generateRoute,
+          initialRoute: RouteNames.splashScreen,
+          // -----------------------
+          title: 'Smart Travel',
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+            useMaterial3: true,
+          ),
+          darkTheme: ThemeData(
+            brightness: Brightness.dark,
+            scaffoldBackgroundColor: const Color(
+              0xFF1E1E1E,
+            ), // IntelliJ Darcula background
+            cardColor: const Color(0xFF2B2B2B), // Card/surface color
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.deepPurple,
               brightness: Brightness.dark,
-              scaffoldBackgroundColor: const Color(0xFF1E1E1E), // IntelliJ Darcula background
-              cardColor: const Color(0xFF2B2B2B), // Card/surface color
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: Colors.deepPurple,
-                brightness: Brightness.dark,
-                background: const Color(0xFF1E1E1E),
-                surface: const Color(0xFF2B2B2B),
-              ),
-              useMaterial3: true,
+              background: const Color(0xFF1E1E1E),
+              surface: const Color(0xFF2B2B2B),
             ),
-            themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            locale: _locale,
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [
-              Locale('en'),
-              Locale('vi'),
-            ],
+            useMaterial3: true,
           ),
-        )
+          themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          locale: _locale,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('vi')],
+        ),
+      ),
     );
   }
 }

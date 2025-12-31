@@ -7,6 +7,7 @@ class BookingRequestModel {
   final int numberOfPeople;
   final int numberOfRooms;
   final String? couponCode;
+  final int? roomTypeId;
 
   BookingRequestModel({
     required this.bookingType,
@@ -17,6 +18,7 @@ class BookingRequestModel {
     required this.numberOfPeople,
     required this.numberOfRooms,
     this.couponCode,
+    this.roomTypeId,
   });
 
   // Hàm này dùng để chuyển object thành JSON gửi lên Server
@@ -30,6 +32,7 @@ class BookingRequestModel {
       "numberOfPeople": numberOfPeople,
       "numberOfRooms": numberOfRooms,
       "couponCode": couponCode,
+      'roomTypeId': roomTypeId,
     };
   }
 }

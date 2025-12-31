@@ -152,18 +152,6 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
       pinned: true,
       elevation: 0,
       backgroundColor: Colors.white,
-      leading: GestureDetector(
-        onTap: () => Navigator.pop(context),
-        child: Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 12)],
-          ),
-          child: const Icon(Icons.arrow_back, color: Color(0xFF1F2937), size: 24),
-        ),
-      ),
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(
           fit: StackFit.expand,
@@ -197,7 +185,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
               ),
             ),
             Positioned(
-              bottom: 60,
+              bottom: 10,
               left: 0,
               right: 0,
               child: Row(
@@ -205,14 +193,14 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                 children: images.asMap().entries.map((entry) {
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
-                    width: _currentImageIndex == entry.key ? 24 : 8,
+                    width: _currentImageIndex == entry.key ? 8 : 8,
                     height: 8,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(10),
                       color: _currentImageIndex == entry.key
-                          ? Colors.white
-                          : Colors.white.withOpacity(0.5),
+                          ? Colors.white.withOpacity(0.7)
+                          : Colors.white.withOpacity(0.3),
                     ),
                   );
                 }).toList(),
@@ -381,35 +369,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
           ),
         ),
         const SizedBox(height: 10),
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: _share,
-            borderRadius: BorderRadius.circular(14),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-              decoration: BoxDecoration(
-                border: Border.all(color:  AppColors.primary, width: 2),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.share, size: 18, color: AppColors.primary),
-                  SizedBox(width: 6),
-                  Text(
-                    'Chia sẻ',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+
       ],
     );
   }
@@ -553,11 +513,10 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
               onTap: () {
-                // (Tôi giả sử thuộc tính ID của bạn là 'id')
                 Navigator.pushNamed(
                   context,
                   RouteNames.hotelDetail,
-                  arguments: h.id, // <-- GỬI ID (int)
+                  arguments: h.id,
                 );
               },
               child: Padding(
@@ -595,7 +554,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            '${_formatPrice(h.pricePerNight!)}đ / đêm',
+                            'Từ ${_formatPrice(h.pricePerNight!)}đ / đêm',
                             style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2DBBAA), fontSize: 14),
                           ),
                         ],

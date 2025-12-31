@@ -1,5 +1,6 @@
 package com.example.smart_travel_BE.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -34,5 +35,6 @@ public class Province {
     private Boolean isPopular = false;
 
     @OneToMany(mappedBy = "province", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Destination> destinations = new ArrayList<>();
 }

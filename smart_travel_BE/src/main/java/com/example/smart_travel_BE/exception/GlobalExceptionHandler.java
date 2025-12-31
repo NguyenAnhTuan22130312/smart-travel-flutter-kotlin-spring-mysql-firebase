@@ -48,7 +48,7 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = ErrorCode.INVALID_KEY;
         return ResponseEntity.status(errorCode.getStatusCode()).body(APIResponse.builder()
                 .code(errorCode.getCode())
-                .data(errorCode.getMessage())
+                .msg(errorCode.getMessage())
                 .build());
 
     }
@@ -58,7 +58,7 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
         return ResponseEntity.status(errorCode.getStatusCode()).body(APIResponse.builder()
                 .code(errorCode.getCode())
-                .data(errorCode.getMessage())
+                .msg(errorCode.getMessage())
                 .build());
     }
 

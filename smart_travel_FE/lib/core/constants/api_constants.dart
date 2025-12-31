@@ -13,6 +13,7 @@ class ApiConstants {
   static const String deleteAccount = '/users/account';
   static const String logout = '/auth/logout';
 
+
   //Payment
   static const String createOnlinePayment = '/payment/create-online-payment';
   static const String confirmCashPayment = '/payment/confirm-cash-payment';
@@ -57,11 +58,29 @@ class ApiConstants {
   static const String adminUserLock = '/admin/users/';
   static const String adminUserUnlock = '/admin/users/';
 
-  // ================== ADMIN TOUR ==================
+  // Admin Tour 
   static const String adminTours = '/admin/tours';
   static const String adminTourDetail = '/admin/tours/';
   static const String adminTourImages = '/admin/tours/images/';
   static const String adminTourSchedules = '/admin/tours/schedules/';
+
+  // Invoice
+  static const String invoiceActive = '/invoices/active/';
+  static const String invoiceRefunded = '/invoices/refunded/';
+  static const String invoiceReviewable = '/invoices/reviewable/';
+  static const String invoiceDetail = '/invoices/detail/';
+  static const String invoiceActiveSearch = '/invoices/active/search/';
+  static const String invoiceRefundedSearch = '/invoices/refunded/search/';
+  static const String invoiceHistory = '/invoices/history/';
+  static const String invoiceRefund = '/invoices/refund/';
+
+
+  //Banner
+  static const String getAllBanner = '/banners';
+  static const String updateBanner = '/banners/';
+  static const String createBanner = '/banners/banner';
+  static const String deleteBanner = '/banners/';
+
 
   // Timeout
   static const Duration connectionTimeout = Duration(seconds: 30);

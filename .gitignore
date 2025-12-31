@@ -125,6 +125,8 @@ smart_travel_FE/wrapper/dists/
 smart_travel_FE/android/FakeDependency.jar
 smart_travel_FE/kotlin-profile/
 
+.fvm/
+.fvmrc
 
 # IDE / Editor files
 .idea/

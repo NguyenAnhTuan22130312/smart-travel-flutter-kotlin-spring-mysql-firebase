@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dio/dio.dart'; 
 import 'package:smart_travel/domain/entities/province.dart';
 import 'package:smart_travel/presentation/blocs/booking/booking_bloc.dart';
 import 'package:smart_travel/presentation/blocs/booking/booking_event.dart';
@@ -9,12 +10,10 @@ import 'package:smart_travel/presentation/theme/app_colors.dart';
 import 'package:smart_travel/presentation/widgets/common/custom_button.dart';
 import 'package:smart_travel/presentation/screens/payment/payment_screen.dart';
 import 'package:smart_travel/injection_container.dart' as di;
-// Import file args vừa tạo ở bước trước
 import 'package:smart_travel/presentation/screens/booking/booking_args.dart';
 
 
 class BookingScreen extends StatefulWidget {
-  // Thay DestinationEntity bằng BookingArgs để linh hoạt (nhận cả Tour và Hotel)
   final BookingArgs args;
 
   const BookingScreen({Key? key, required this.args}) : super(key: key);
@@ -33,12 +32,56 @@ class _BookingScreenState extends State<BookingScreen> {
   DateTimeRange? _dateRange;
 
   int _numberOfPeople = 1;
-  int _numberOfRooms = 1; // Thêm state cho phòng khách sạn
+  int _numberOfRooms = 1; // State cho phòng khách sạn
 
-  // --- HÀM CHỌN NGÀY (Logic cũ của bạn + Logic mới cho Hotel) ---
+  // --- STATE CHO VOUCHER (Mới thêm) ---
+  double _discountAmount = 0; // Số tiền được giảm
+  bool _isCheckingVoucher = false; // Loading khi check
+  bool _isVoucherApplied = false; // Đã áp dụng chưa
+
+  // HÀM GỌI API CHECK MÃ
+  Future<void> _checkCoupon() async {
+    final code = _couponController.text.trim();
+    if (code.isEmpty) return;
+
+    setState(() => _isCheckingVoucher = true);
+
+    try {
+      final response = await Dio().get(
+        'http://10.0.2.2:8080/api/v1/vouchers/check',
+        queryParameters: {'code': code},
+      );
+
+      if (response.statusCode == 200) {
+        final double discount = response.data['discountAmount'];
+        setState(() {
+          _discountAmount = discount;
+          _isVoucherApplied = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Áp dụng mã thành công!"), backgroundColor: Colors.green)
+        );
+      }
+    } catch (e) {
+      String msg = "Mã không hợp lệ hoặc đã hết hạn";
+      if (e is DioException && e.response != null) {
+        msg = e.response?.data['message'] ?? msg;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg), backgroundColor: Colors.red)
+      );
+      setState(() {
+        _discountAmount = 0;
+        _isVoucherApplied = false;
+      });
+    } finally {
+      setState(() => _isCheckingVoucher = false);
+    }
+  }
+
+  // --- HÀM CHỌN NGÀY ---
   Future<void> _handleDateSelection(BuildContext context) async {
     if (widget.args.bookingType == 'TOUR') {
-      // Logic chọn 1 ngày cho Tour (Giữ nguyên style của bạn)
       final DateTime? picked = await showDatePicker(
         context: context,
         initialDate: _startDate,
@@ -50,7 +93,6 @@ class _BookingScreenState extends State<BookingScreen> {
         setState(() { _startDate = picked; });
       }
     } else {
-      // Logic chọn khoảng ngày cho Hotel
       final DateTimeRange? picked = await showDateRangePicker(
         context: context,
         firstDate: DateTime.now(),
@@ -63,7 +105,6 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
-  // Theme chung cho DatePicker (Giữ nguyên của bạn)
   Widget _buildThemePicker(BuildContext context, Widget? child) {
     return Theme(
       data: Theme.of(context).copyWith(
@@ -77,7 +118,7 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  // --- LOGIC BOTTOM SHEET CHỌN SỐ LƯỢNG (Tái sử dụng code của bạn) ---
+  // --- MODAL CHỌN SỐ LƯỢNG ---
   void _showQuantityModal(BuildContext context, String title, int currentValue, Function(int) onChanged) {
     showModalBottomSheet(
       context: context,
@@ -115,7 +156,7 @@ class _BookingScreenState extends State<BookingScreen> {
                   PrimaryButton(
                     text: 'Xác nhận',
                     onPressed: () {
-                      onChanged(tempValue); // Cập nhật ra ngoài
+                      onChanged(tempValue);
                       Navigator.pop(ctx);
                     },
                   ),
@@ -163,12 +204,11 @@ class _BookingScreenState extends State<BookingScreen> {
     final bool isTour = widget.args.bookingType == 'TOUR';
     final formatter = NumberFormat('#,###');
 
-    // --- TÍNH TOÁN GIÁ ---
+    // 1. Tính TỔNG TIỀN GỐC
     double totalPrice = 0;
     if (isTour) {
       totalPrice = widget.args.price * _numberOfPeople;
     } else {
-      // Tính số đêm cho Hotel
       int nights = 1;
       if (_dateRange != null) {
         nights = _dateRange!.end.difference(_dateRange!.start).inDays;
@@ -177,6 +217,10 @@ class _BookingScreenState extends State<BookingScreen> {
       totalPrice = widget.args.price * _numberOfRooms * nights;
     }
 
+    // 2. Tính TIỀN SAU KHI GIẢM
+    double finalPrice = totalPrice - _discountAmount;
+    if (finalPrice < 0) finalPrice = 0;
+
     return Stack(
       children: [
         SingleChildScrollView(
@@ -184,7 +228,7 @@ class _BookingScreenState extends State<BookingScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- ẢNH (Dùng Image.network vì dữ liệu thật là URL) ---
+              // --- ẢNH ---
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: Image.network(
@@ -235,7 +279,7 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
               const SizedBox(height: 16),
 
-              // --- SỐ LƯỢNG PHÒNG (Chỉ hiện khi là HOTEL) ---
+              // --- SỐ LƯỢNG PHÒNG (Chỉ Hotel) ---
               if (!isTour) ...[
                 _buildInfoRow(
                   icon: Icons.bedroom_parent_outlined,
@@ -247,25 +291,52 @@ class _BookingScreenState extends State<BookingScreen> {
                 const SizedBox(height: 16),
               ],
 
-              // Coupon Input
-              TextFormField(
-                controller: _couponController,
-                decoration: InputDecoration(
-                  labelText: 'Mã giảm giá (nếu có)',
-                  labelStyle: TextStyle(color: AppColors.textGray),
-                  filled: true,
-                  fillColor: Colors.grey.shade100,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.primary)),
-                ),
+              // --- UI MÃ GIẢM GIÁ (Thêm mới) ---
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _couponController,
+                      enabled: !_isVoucherApplied, // Khóa nếu đã áp dụng
+                      decoration: InputDecoration(
+                        labelText: 'Mã giảm giá',
+                        filled: true,
+                        fillColor: Colors.grey.shade100,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  SizedBox(
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _isVoucherApplied
+                          ? () => setState(() { _isVoucherApplied = false; _discountAmount = 0; _couponController.clear(); })
+                          : (_isCheckingVoucher ? null : _checkCoupon),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _isVoucherApplied ? Colors.red.shade100 : AppColors.primary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: _isCheckingVoucher
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : Text(_isVoucherApplied ? "Hủy" : "Áp dụng", style: TextStyle(color: _isVoucherApplied ? Colors.red : Colors.white)),
+                    ),
+                  )
+                ],
               ),
+              // ---------------------------------
 
               const SizedBox(height: 32),
 
               // --- CHI TIẾT GIÁ ---
               _buildPriceDetailRow('Tạm tính', '${formatter.format(totalPrice)} VND'),
               const SizedBox(height: 8),
-              _buildPriceDetailRow('Giảm giá', '0 VND'),
+
+              // Dòng giảm giá (chỉ hiện khi có giảm)
+              if (_discountAmount > 0)
+                _buildPriceDetailRow('Giảm giá', '- ${formatter.format(_discountAmount)} VND', color: Colors.green),
+
               const SizedBox(height: 16),
               const Divider(),
               const SizedBox(height: 16),
@@ -273,7 +344,8 @@ class _BookingScreenState extends State<BookingScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Tổng cộng:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textGray)),
-                  Text('${formatter.format(totalPrice)} VND', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                  // Hiển thị giá cuối cùng
+                  Text('${formatter.format(finalPrice)} VND', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary)),
                 ],
               ),
               const SizedBox(height: 24),
@@ -296,10 +368,13 @@ class _BookingScreenState extends State<BookingScreen> {
                       endDate: isTour ? null : _dateRange!.end,
                       numberOfPeople: _numberOfPeople,
                       numberOfRooms: isTour ? 0 : _numberOfRooms,
+                      couponCode: _isVoucherApplied ? _couponController.text.trim() : null,
+                      roomTypeId: widget.args.roomTypeId,
                     ),
                   );
                 },
               ),
+              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -314,7 +389,6 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  // --- WIDGET CON (Giữ nguyên style của bạn) ---
   Widget _buildInfoRow({required IconData icon, required String title, required String value, bool isSelectable = false, VoidCallback? onTap}) {
     return InkWell(
       onTap: onTap,
@@ -335,12 +409,12 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  Widget _buildPriceDetailRow(String title, String value) {
+  Widget _buildPriceDetailRow(String title, String value, {Color? color}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(title, style: TextStyle(fontSize: 16, color: Colors.grey.shade700)),
-        Text(value, style: TextStyle(fontSize: 16, color: AppColors.textGray)),
+        Text(value, style: TextStyle(fontSize: 16, color: color ?? AppColors.textGray, fontWeight: color != null ? FontWeight.bold : FontWeight.normal)),
       ],
     );
   }

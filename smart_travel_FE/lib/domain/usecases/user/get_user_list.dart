@@ -12,6 +12,7 @@ class GetUserList {
     int? page,
     int? size,
     String? searchKeyword,
+    String? role,
     String? sortBy,
     String? sortDirection,
   }) async {
@@ -19,6 +20,7 @@ class GetUserList {
       page: page,
       size: size,
       searchKeyword: searchKeyword,
+      role: role,
       sortBy: sortBy,
       sortDirection: sortDirection,
     );

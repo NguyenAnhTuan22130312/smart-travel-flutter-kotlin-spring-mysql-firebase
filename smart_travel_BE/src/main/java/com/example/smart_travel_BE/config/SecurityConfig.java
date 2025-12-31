@@ -1,5 +1,6 @@
 package com.example.smart_travel_BE.config;
 
+import com.google.cloud.storage.HttpMethod;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -8,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,7 +28,6 @@ import java.util.List;
 @EnableWebSecurity
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SecurityConfig {
-
     String[] PUBLIC_ENDPOINTS = new String[]{
 
             // --- AUTH ---
@@ -54,11 +55,10 @@ public class SecurityConfig {
 
             // --- HOTELS ---
             "/api/v1/hotels",
-            "/api/v1/hotels/{id}/detail",
+            "/api/v1/hotels/*/detail",
             "/api/v1/hotels/*/images",
-            "/api/v1/hotels/*/images/upload",
-            "/api/v1/hotels/*/images/upload-multiple",
             "/api/v1/hotels/*/images/*",
+            
 
             // --- PAYMENTS ---
             "/api/v1/payment/vnpay-return",
@@ -73,9 +73,14 @@ public class SecurityConfig {
             "/api/v1/tours/{id}/day/{day}",
 
             // --- CHAT ---
-            "/api/v1/chat"
-    };
+            "/api/v1/chat",
+            "/api/v1/vouchers/**",
+            "/api/v1/ai/search-image",
+            "/api/v1/ai/**",
 
+            // ---BANNER ---
+            "/api/v1/banners"
+    };
     CustomAuthEntryPoint customAuthEntryPoint;
     UserHeaderAuthenticationFilter userHeaderAuthenticationFilter;
     @Bean
@@ -83,7 +88,10 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(String.valueOf(HttpMethod.POST), "/api/v1/ai/search-image").permitAll()
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers("/verify-success.html", "/verify-fail.html","/reset-password.html").permitAll()
                         .anyRequest().authenticated()
