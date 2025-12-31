@@ -58,11 +58,12 @@ class LoadHotelsEvent extends HotelEvent {
 // 1. Tạo mới khách sạn
 class CreateHotelEvent extends HotelEvent {
   final HotelCreateRequest request;
+  final File? imageFile; // Thêm file ảnh vào đây
 
-  const CreateHotelEvent({required this.request});
+  const CreateHotelEvent({required this.request, this.imageFile});
 
   @override
-  List<Object?> get props => [request];
+  List<Object?> get props => [request, imageFile];
 }
 
 // 2. Cập nhật khách sạn

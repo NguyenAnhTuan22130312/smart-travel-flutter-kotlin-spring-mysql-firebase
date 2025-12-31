@@ -309,7 +309,12 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
     );
 
     if (_editingId == null) {
-      context.read<HotelBloc>().add(CreateHotelEvent(request: requestData));
+      context.read<HotelBloc>().add(
+        CreateHotelEvent(
+          request: requestData,
+          imageFile: _selectedImage,
+        ),
+      );
     } else {
       context.read<HotelBloc>().add(
         UpdateHotelEvent(hotelId: _editingId!, request: requestData),
@@ -365,6 +370,15 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
             ),
             BlocListener<HotelBloc, HotelState>(
               listener: (context, state) {
+                if (state is HotelLoading) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Đang xử lý dữ liệu và hình ảnh...'),
+                      backgroundColor: AppColors.success,
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                }
                 if (state is HotelOperationSuccess) {
                   Navigator.of(context).pop(true);
                 } else if (state is HotelError) {

@@ -204,12 +204,9 @@ public class HotelService {
     @Transactional
     public HotelDetailResponse updateHotel(Long hotelId, HotelCreateRequest req) throws JsonProcessingException {
         Hotel hotel = hotelRepository.findById(hotelId).orElseThrow(() -> new RuntimeException("Hotel not found"));
-
         validateOwnership(hotel);
-
+        // 1. Cập nhật thông tin cơ bản
         Destination destination = destinationRepository.findById(req.getDestinationId()).orElseThrow(() -> new RuntimeException("Destination not found"));
-
-        // === 1. Cập nhật thông tin cơ bản (Xóa bỏ gán totalRooms/availableRooms từ req) ===
         hotel.setName(req.getName());
         hotel.setAddress(req.getAddress());
         hotel.setDescription(req.getDescription());
@@ -221,25 +218,46 @@ public class HotelService {
         hotel.setEmail(req.getEmail());
         hotel.setAmenities(mapper.writeValueAsString(req.getAmenities()));
 
-        // === 2. Xử lý hình ảnh (Giữ nguyên) ===
-        hotel.getImages().clear();
-        int order = 0;
-        if (req.getThumbnail() != null && !req.getThumbnail().isBlank()) {
-            HotelImage thumb = new HotelImage();
-            thumb.setHotel(hotel);
-            thumb.setImageUrl(req.getThumbnail());
-            thumb.setIsPrimary(true);
-            thumb.setDisplayOrder(order++);
-            hotel.getImages().add(thumb);
+        // 2. Xử lý hình ảnh
+        String newThumbnailUri = req.getThumbnail();
+        List<String> newGalleryUrls = req.getImages() != null ? req.getImages() : new ArrayList<>();
+
+        // Bước A: Hạ cấp tất cả ảnh hiện tại về isPrimary = false (Reset trạng thái)
+        hotel.getImages().forEach(img -> img.setIsPrimary(false));
+
+        // Bước B: Đồng bộ ảnh Thumbnail (Ảnh bìa)
+        if (newThumbnailUri != null && !newThumbnailUri.isBlank()) {
+            // Tìm xem URL này đã tồn tại trong danh sách ảnh của Hotel chưa
+            HotelImage existingThumb = hotel.getImages().stream()
+                    .filter(img -> img.getImageUrl().equals(newThumbnailUri))
+                    .findFirst()
+                    .orElse(null);
+
+            if (existingThumb != null) {
+                // Nếu có rồi, chỉ việc nâng nó lên làm Primary
+                existingThumb.setIsPrimary(true);
+            } else {
+                // Nếu chưa có (ảnh mới hoàn toàn), tạo mới và add vào list
+                HotelImage thumb = new HotelImage();
+                thumb.setHotel(hotel);
+                thumb.setImageUrl(newThumbnailUri);
+                thumb.setIsPrimary(true);
+                thumb.setDisplayOrder(0);
+                hotel.getImages().add(thumb);
+            }
         }
-        if (req.getImages() != null) {
-            for (String url : req.getImages()) {
-                if (url == null || url.isBlank()) continue;
+
+        // Bước C: Đồng bộ ảnh Gallery (Đảm bảo các ảnh trong req.getImages() đều có trong DB)
+        for (String url : newGalleryUrls) {
+            if (url == null || url.isBlank() || url.equals(newThumbnailUri)) continue;
+
+            boolean exists = hotel.getImages().stream().anyMatch(img -> img.getImageUrl().equals(url));
+            if (!exists) {
                 HotelImage img = new HotelImage();
                 img.setHotel(hotel);
                 img.setImageUrl(url);
                 img.setIsPrimary(false);
-                img.setDisplayOrder(order++);
+                img.setDisplayOrder(hotel.getImages().size());
                 hotel.getImages().add(img);
             }
         }
@@ -258,9 +276,7 @@ public class HotelService {
                 rt.setPrice(rtReq.getPrice());
                 rt.setTotalRooms(rtReq.getTotalRooms());
                 rt.setAmenities(mapper.writeValueAsString(rtReq.getAmenities()));
-
                 hotel.getRoomTypes().add(rt);
-
                 // Cộng dồn tổng số phòng mới
                 totalRoomsCounter += rtReq.getTotalRooms();
 
@@ -274,10 +290,7 @@ public class HotelService {
         // === 4. Gán các giá trị đã tính toán chuẩn xác ===
         hotel.setPricePerNight(minPrice);
         hotel.setTotalRooms(totalRoomsCounter);
-
-        // Nếu chưa có logic Booking phức tạp, gán availableRooms bằng tổng số phòng mới
         hotel.setAvailableRooms(totalRoomsCounter);
-
         hotelRepository.save(hotel);
         return HotelMapper.toDetailResponse(hotel);
     }
