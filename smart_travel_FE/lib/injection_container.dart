@@ -70,6 +70,7 @@ import 'package:smart_travel/presentation/blocs/banner/banner_bloc.dart';
 import 'package:smart_travel/presentation/blocs/chat/chat_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_bloc.dart';
+import 'package:smart_travel/presentation/blocs/favorite/favorite_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
@@ -160,6 +161,7 @@ Future<void> init() async {
   sl.registerLazySingleton<BannerDataSource>(
         () => BannerDataSourceImpl(dioClient: sl()),
   );
+  sl.registerLazySingleton(() => FavoriteBloc());
 
   // Repositories (sau khi data sources sẵn sàng)
   sl.registerLazySingleton<AuthRepository>(
