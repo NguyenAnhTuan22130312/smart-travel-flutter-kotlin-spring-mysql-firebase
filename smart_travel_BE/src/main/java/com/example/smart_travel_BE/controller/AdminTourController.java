@@ -50,6 +50,7 @@ public class AdminTourController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMINTOUR')")
     public TourDetailResponse create(@RequestBody CreateTourRequest request) {
         return adminTourService.createTour(request);
     }
@@ -60,6 +61,7 @@ public class AdminTourController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINTOUR')")
     public TourDetailResponse update(
             @PathVariable Long id,
             @RequestBody UpdateTourRequest request
@@ -68,12 +70,14 @@ public class AdminTourController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINTOUR')")
     public void delete(@PathVariable Long id) {
         adminTourService.deleteTour(id);
     }
 
     // Update STATUS
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMINTOUR')")
     public void updateStatus(
             @PathVariable Long id,
             @RequestBody UpdateTourRequest request
@@ -83,6 +87,7 @@ public class AdminTourController {
 
     // Add 1 ảnh
     @PostMapping("/{tourId}/images")
+    @PreAuthorize("hasRole('ADMINTOUR')")
     public TourImageResponse addImage(
             @PathVariable Long tourId,
             @RequestParam MultipartFile file,
@@ -94,6 +99,7 @@ public class AdminTourController {
 
     // Update 1 ảnh
     @PutMapping("/images/{imageId}")
+    @PreAuthorize("hasRole('ADMINTOUR')")
     public TourImageResponse updateImage(
             @PathVariable Long imageId,
             @RequestParam(required = false) MultipartFile file,
@@ -111,6 +117,7 @@ public class AdminTourController {
 
     // Bulk upload
     @PostMapping("/{tourId}/images/bulk")
+    @PreAuthorize("hasRole('ADMINTOUR')")
     public List<TourImageResponse> addImages(
             @PathVariable Long tourId,
             @RequestParam List<MultipartFile> files
@@ -120,12 +127,14 @@ public class AdminTourController {
 
     // DELETE IMAGE
     @DeleteMapping("/images/{imageId}")
+    @PreAuthorize("hasRole('ADMINTOUR')")
     public void deleteImage(@PathVariable Long imageId) {
         adminTourService.deleteImage(imageId);
     }
 
     // REORDER IMAGES
     @PutMapping("/images/reorder")
+    @PreAuthorize("hasRole('ADMINTOUR')")
     public void reorderImages(
             @RequestBody List<TourImageRequest> requests
     ) {
@@ -134,6 +143,7 @@ public class AdminTourController {
 
     // SET PRIMARY IMAGE
     @PutMapping("/images/{imageId}/primary")
+    @PreAuthorize("hasRole('ADMINTOUR')")
     public ResponseEntity<Void> setPrimary(@PathVariable Long imageId) {
         adminTourService.setPrimaryImage(imageId);
         return ResponseEntity.ok().build();
@@ -141,6 +151,7 @@ public class AdminTourController {
 
     // SCHEDULE
     @PostMapping("/{id}/schedules")
+    @PreAuthorize("hasRole('ADMINTOUR')")
     public TourScheduleResponse addSchedule(
             @PathVariable Long id,
             @RequestBody TourScheduleRequest request) {
@@ -148,6 +159,7 @@ public class AdminTourController {
     }
 
     @PutMapping("/schedules/{scheduleId}")
+    @PreAuthorize("hasRole('ADMINTOUR')")
     public TourScheduleResponse updateSchedule(
             @PathVariable Long scheduleId,
             @RequestBody TourScheduleRequest request) {
@@ -155,6 +167,7 @@ public class AdminTourController {
     }
 
     @DeleteMapping("/schedules/{scheduleId}")
+    @PreAuthorize("hasRole('ADMINTOUR')")
     public void deleteSchedule(@PathVariable Long scheduleId) {
         adminTourService.deleteSchedule(scheduleId);
     }

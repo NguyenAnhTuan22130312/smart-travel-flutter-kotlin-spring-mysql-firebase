@@ -7,7 +7,6 @@ import 'package:smart_travel/presentation/blocs/tour/tour_detail_state.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_args.dart';
 
-
 class TourDetailScreen extends StatefulWidget {
   final int tourId;
 
@@ -27,7 +26,8 @@ class _TourDetailScreenState extends State<TourDetailScreen> {
   }
 
   String _formatPrice(double price) {
-    return price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+    return price.toStringAsFixed(0).replaceAllMapped(
+        RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
   }
 
   @override
@@ -48,7 +48,7 @@ class _TourDetailScreenState extends State<TourDetailScreen> {
           return Stack(
             children: [
               Padding(
-                padding: const EdgeInsets.only(bottom: 80), // chừa chỗ cho nút
+                padding: const EdgeInsets.only(bottom: 80), // chừa chỗ nút
                 child: CustomScrollView(
                   slivers: [
                     SliverAppBar(
@@ -59,7 +59,8 @@ class _TourDetailScreenState extends State<TourDetailScreen> {
                         child: CircleAvatar(
                           backgroundColor: Colors.white,
                           child: IconButton(
-                            icon: const Icon(Icons.arrow_back, color: Colors.black),
+                            icon:
+                            const Icon(Icons.arrow_back, color: Colors.black),
                             onPressed: () {
                               Navigator.pop(context);
                             },
@@ -71,16 +72,16 @@ class _TourDetailScreenState extends State<TourDetailScreen> {
                           t.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.black,
-                          ),
+                          style: const TextStyle(color: Colors.black),
                         ),
-                        background: Image.network(
-                          t.imageUrls.isNotEmpty ? t.imageUrls.first : "",
+                        background: t.imageUrls.isNotEmpty
+                            ? Image.network(
+                          t.imageUrls.first,
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) =>
                               Container(color: Colors.grey),
-                        ),
+                        )
+                            : Container(color: Colors.grey),
                       ),
                     ),
                     SliverToBoxAdapter(
@@ -94,7 +95,8 @@ class _TourDetailScreenState extends State<TourDetailScreen> {
                                     fontSize: 22, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 10),
                             Text("${t.durationDays} ngày ${t.durationNights} đêm",
-                                style: TextStyle(color: Colors.grey.shade700, fontSize: 14)),
+                                style: TextStyle(
+                                    color: Colors.grey.shade700, fontSize: 14)),
                             const SizedBox(height: 10),
                             Text("${_formatPrice(t.pricePerPerson)} đ/người",
                                 style: const TextStyle(
@@ -114,42 +116,44 @@ class _TourDetailScreenState extends State<TourDetailScreen> {
                   ],
                 ),
               ),
-              // Nút đặt tour cố định dưới màn hình
               Positioned(
                 left: 16,
                 right: 16,
                 bottom: 16,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => BookingScreen(
-                          // Truyền dữ liệu tour hiện tại vào BookingArgs
-                          args: BookingArgs(
-                            bookingType: 'TOUR', // Đánh dấu là đặt Tour
-                            id: t.id,
-                            name: t.name ?? "Tour du lịch",
-                            price: t.pricePerPerson ?? 0.0,
-                            imageUrl: (t.imageUrls != null && t.imageUrls!.isNotEmpty)
-                                ? t.imageUrls!.first
-                                : "",
+                child: SafeArea(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => BookingScreen(
+                            args: BookingArgs(
+                              bookingType: 'TOUR',
+                              id: t.id,
+                              name: t.name,
+                              price: t.pricePerPerson,
+                              imageUrl: t.imageUrls.isNotEmpty
+                                  ? t.imageUrls.first
+                                  : "",
+                            ),
                           ),
                         ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    );
-
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      backgroundColor: const Color(0xFF2196F3),
                     ),
-                    backgroundColor: Color(0xFF2196F3),
-                  ),
-                  child: const Text(
-                    "Đặt tour ngay",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFFFFFFF)),
+                    child: const Text(
+                      "Đặt tour ngay",
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
+                    ),
                   ),
                 ),
               ),
@@ -174,7 +178,7 @@ class _TourDetailScreenState extends State<TourDetailScreen> {
 
   Widget _buildExpandableItinerary(detail) {
     return ExpansionPanelList(
-      expansionCallback: (_, isOpen) {
+      expansionCallback: (_, __) {
         setState(() => expand = !expand);
       },
       children: [
@@ -187,20 +191,24 @@ class _TourDetailScreenState extends State<TourDetailScreen> {
           ),
           body: Column(
             children: detail.schedules
-                .map<Widget>((s) => ListTile(
-              title: Text("Ngày ${s.dayNumber}: ${s.title}",
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (s.activities != null) Text("Hoạt động: ${s.activities}"),
-                  if (s.meals != null) Text("Bữa ăn: ${s.meals}"),
-                ],
+                .map<Widget>(
+                  (s) => ListTile(
+                title: Text("Ngày ${s.dayNumber}: ${s.title}",
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (s.activities != null && s.activities.isNotEmpty)
+                      Text("Hoạt động: ${s.activities}"),
+                    if (s.meals != null && s.meals.isNotEmpty)
+                      Text("Bữa ăn: ${s.meals}"),
+                  ],
+                ),
               ),
-            ))
+            )
                 .toList(),
           ),
-        )
+        ),
       ],
     );
   }
@@ -220,15 +228,19 @@ class _TourDetailScreenState extends State<TourDetailScreen> {
             scrollDirection: Axis.horizontal,
             itemCount: images.length,
             separatorBuilder: (_, __) => const SizedBox(width: 8),
-            itemBuilder: (_, i) => ClipRRect(
+            itemBuilder: (_, i) => images[i].isNotEmpty
+                ? ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.network(images[i],
-                  width: 120,
-                  height: 110,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
-                      Container(width: 120, height: 110, color: Colors.grey)),
-            ),
+              child: Image.network(
+                images[i],
+                width: 120,
+                height: 110,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) =>
+                    Container(width: 120, height: 110, color: Colors.grey),
+              ),
+            )
+                : Container(width: 120, height: 110, color: Colors.grey),
           ),
         ),
       ],

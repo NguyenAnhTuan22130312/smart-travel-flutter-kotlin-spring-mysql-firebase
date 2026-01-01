@@ -16,9 +16,9 @@ class TourImageModel {
   factory TourImageModel.fromJson(Map<String, dynamic> json) =>
       TourImageModel(
         id: json["id"] as int,
-        imageUrl: json["imageUrl"] as String,
-        isPrimary: json["isPrimary"] as bool,
-        displayOrder: json["displayOrder"] as int,
+        imageUrl: json["imageUrl"] ?? '',
+        isPrimary: json["isPrimary"] ?? false,
+        displayOrder: json["displayOrder"] ?? 0,
       );
 
   TourImage toEntity() =>
