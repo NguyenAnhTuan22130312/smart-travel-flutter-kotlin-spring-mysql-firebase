@@ -1,6 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../theme/app_colors.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_travel/injection_container.dart' as di;
+import 'package:smart_travel/presentation/blocs/invoice/review_bloc.dart';
+import 'package:smart_travel/presentation/theme/app_colors.dart';
+import 'package:smart_travel/presentation/widgets/invoice/invoice_review_card.dart';
+import 'package:smart_travel/presentation/widgets/invoice/succes_request_review.dart';
+
+import '../../blocs/invoice/refund_bloc.dart';
+import '../../blocs/invoice/refund_event.dart';
+import '../../blocs/invoice/review_event.dart';
+import '../../blocs/invoice/review_state.dart';
 
 class ReviewManagementScreen extends StatelessWidget {
   const ReviewManagementScreen({Key? key}) : super(key: key);
@@ -17,7 +27,7 @@ class ReviewManagementScreen extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // HEADER XANH - Nút back tròn trắng + Tiêu đề
+            // HEADER XANH
             Container(
               color: AppColors.primary,
               padding: EdgeInsets.fromLTRB(
@@ -28,7 +38,6 @@ class ReviewManagementScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  // Nút back tròn trắng, mũi tên xanh
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: Container(
@@ -46,7 +55,6 @@ class ReviewManagementScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  // Tiêu đề
                   const Text(
                     "Đánh giá trải nghiệm gần đây của bạn",
                     style: TextStyle(
@@ -59,53 +67,82 @@ class ReviewManagementScreen extends StatelessWidget {
               ),
             ),
 
-            // KHÔNG CÓ FILTER → BỎ HOÀN TOÀN
-
-            // PHẦN LIST ĐÁNH GIÁ - TẠM TRỐNG
+            // NỘI DUNG + PULL TO REFRESH
             Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Icon check vòng tròn xanh - biểu tượng hoàn thành
-                    Container(
-                      width: 140,
-                      height: 140,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.primary.withOpacity(0.15), // Nền xanh nhạt
-                      ),
-                      child: Icon(
-                        Icons.check_circle_outline,
-                        size: 100,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
+              child: BlocProvider(
+                create: (_) => di.sl<ReviewBloc>()..add( LoadReviewableInvoices()),
+                child: BlocBuilder<ReviewBloc, ReviewState>(
+                  builder: (context, state) {
+                    Widget body;
 
-                    const Text(
-                      "Tất cả yêu cầu đánh giá đã được hoàn thành",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
-                      child: Text(
-                        "Cảm ơn bạn đã dành thời gian đánh giá! Ý kiến của bạn giúp chúng tôi cải thiện dịch vụ tốt hơn mỗi ngày.",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[700],
-                          height: 1.5,
+                    if (state is ReviewLoading) {
+                      body = const Center(child: CircularProgressIndicator(color: AppColors.primary));
+                    } else if (state is ReviewError) {
+                      body = Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.error_outline, size: 60, color: Colors.red),
+                            const SizedBox(height: 16),
+                            const Text("Đã có lỗi xảy ra", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            Text(state.message),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () => context.read<ReviewBloc>().add( LoadReviewableInvoices()),
+                              child: const Text("Thử lại"),
+                            ),
+                          ],
                         ),
-                        textAlign: TextAlign.center,
+                      );
+                    } else if (state is ReviewLoaded) {
+                      final invoices = state.invoices;
+
+                      if (invoices.isEmpty) {
+                        body = const SuccessReviewEmptyWidget(); // ← Widget empty bạn đã có
+                      } else {
+                        body = ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                          itemCount: invoices.length,
+                          itemBuilder: (context, index) {
+                            final invoice = invoices[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: InvoiceReviewCard(
+                                bookingId: invoice.bookingId,
+                                invoiceNumber: invoice.invoiceNumber,
+                                itemName: invoice.itemName,
+                                startDate: invoice.startDate,
+                                endDate: invoice.endDate,
+                                nights: invoice.nights,
+                                status: invoice.status,
+                                reviewed: invoice.reviewed,
+                              ),
+                            );
+                          },
+                        );
+                      }
+                    } else {
+                      body = const Center(child: CircularProgressIndicator(color: AppColors.primary));
+                    }
+
+                    return RefreshIndicator(
+                      onRefresh: () async {
+                        context.read<RefundBloc>().add(LoadRefundedInvoices());
+                      },
+                      color: AppColors.primary,
+                      child: body is ListView
+                          ? body // Nếu là ListView → dùng trực tiếp (đã scrollable)
+                          : SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: MediaQuery.of(context).size.height - 200,
+                          ),
+                          child: Center(child: body),
+                        ),
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
               ),
             ),
