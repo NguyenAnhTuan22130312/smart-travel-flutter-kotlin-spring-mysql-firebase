@@ -98,6 +98,10 @@ import 'package:smart_travel/presentation/blocs/tour/tour_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/tour/tour_bloc.dart';
 import 'package:smart_travel/domain/usecases/tour/get_tour_detail_usecase.dart';
 import 'package:smart_travel/domain/usecases/tour/filter_tour_usecase.dart';
+import 'package:smart_travel/data/data_sources/remote/statistics_data_source.dart';
+import 'package:smart_travel/data/repositories/statistics_repository_impl.dart';
+import 'package:smart_travel/domain/repositories/statistics_repository.dart';
+import 'package:smart_travel/presentation/blocs/statistics/statistics_bloc.dart';
 
 import 'data/repositories/chat_repository_impl.dart';
 
@@ -145,7 +149,6 @@ Future<void> init() async {
   sl.registerLazySingleton<HotelDataSource>(
     () => HotelDataSourceImpl(client: sl()),
   );
-  
 
   sl.registerLazySingleton<TourRemoteDataSource>(
     () => TourRemoteDataSourceImpl(client: sl()),
@@ -159,8 +162,13 @@ Future<void> init() async {
     () => BookingDataSourceImpl(client: sl()),
   );
   sl.registerLazySingleton<BannerDataSource>(
-        () => BannerDataSourceImpl(dioClient: sl()),
+    () => BannerDataSourceImpl(dioClient: sl()),
   );
+
+  sl.registerLazySingleton<StatisticsRemoteDataSource>(
+    () => StatisticsRemoteDataSourceImpl(dioClient: sl()),
+  );
+
   sl.registerLazySingleton(() => FavoriteBloc());
 
   // Repositories (sau khi data sources sẵn sàng)
@@ -201,9 +209,12 @@ Future<void> init() async {
   );
 
   sl.registerLazySingleton<BannerRepository>(
-        () => BannerRepositoryImpl(bannerDataSource: sl(), networkInfo: sl()),
+    () => BannerRepositoryImpl(bannerDataSource: sl(), networkInfo: sl()),
   );
 
+  sl.registerLazySingleton<StatisticsRepository>(
+    () => StatisticsRepositoryImpl(remoteDataSource: sl()),
+  );
 
   sl.registerLazySingleton(() => FilterToursUseCase(sl()));
   // auth
@@ -237,7 +248,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => AddProvinceUseCase(sl()));
   sl.registerLazySingleton(() => UpdateProvinceUseCase(sl()));
   sl.registerLazySingleton(() => DeleteProvinceUseCase(sl()));
-    
+
   // --- THÊM USE CASE HOTEL ---
   sl.registerLazySingleton(() => HotelDetailUseCase(sl()));
   sl.registerLazySingleton(() => GetHotelsUseCase(sl()));
@@ -249,7 +260,7 @@ Future<void> init() async {
   sl.registerLazySingleton<GetTourDetailUseCase>(
     () => GetTourDetailUseCase(sl()),
   );
-    
+
   sl.registerLazySingleton(() => GetProfileUseCase(sl()));
   sl.registerLazySingleton(() => UpdateProfileUseCase(sl()));
   sl.registerLazySingleton(() => ChangePasswordUseCase(sl()));
@@ -317,7 +328,7 @@ Future<void> init() async {
 
   sl.registerFactory(() => ProvinceDetailBloc(provinceDetailUseCase: sl()));
 
-   // HotelBloc phải tiêm đủ 4 tham số
+  // HotelBloc phải tiêm đủ 4 tham số
   sl.registerFactory(
     () => HotelBloc(
       getHotelsUseCase: sl(),
@@ -327,14 +338,19 @@ Future<void> init() async {
       uploadHotelImagesUseCase: sl(),
     ),
   );
-    
+
   // ---  BLOC HOTEL ---
   sl.registerFactory(() => HotelDetailBloc(hotelDetailUseCase: sl()));
 
   // ---  BLOC BANNER ---
-  sl.registerFactory(() => BannerBloc(allBannerUseCase: sl(), createBannerUseCase: sl(),
-  deleteBannerUseCase: sl(),
-  updateBannerUseCase: sl()));
+  sl.registerFactory(
+    () => BannerBloc(
+      allBannerUseCase: sl(),
+      createBannerUseCase: sl(),
+      deleteBannerUseCase: sl(),
+      updateBannerUseCase: sl(),
+    ),
+  );
 
   sl.registerFactory(
     () => ProfileBloc(
@@ -348,13 +364,11 @@ Future<void> init() async {
       logoutUseCase: sl(),
     ),
   );
-    
+
   //Bloc tour
   sl.registerFactory(() => TourBloc(sl()));
-  sl.registerFactory(
-        () => TourDetailBloc(sl()),
-  );
-    
+  sl.registerFactory(() => TourDetailBloc(sl()));
+
   sl.registerFactory(
     () => AdminUserBloc(
       getUserList: sl(),
@@ -373,4 +387,6 @@ Future<void> init() async {
       confirmCashBookingUseCase: sl(),
     ),
   );
+
+  sl.registerFactory(() => StatisticsBloc(repository: sl()));
 }
