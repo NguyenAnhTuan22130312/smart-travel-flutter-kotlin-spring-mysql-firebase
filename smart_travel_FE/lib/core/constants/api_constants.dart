@@ -13,7 +13,6 @@ class ApiConstants {
   static const String deleteAccount = '/users/account';
   static const String logout = '/auth/logout';
 
-
   //Payment
   static const String createOnlinePayment = '/payment/create-online-payment';
   static const String confirmCashPayment = '/payment/confirm-cash-payment';
@@ -58,6 +57,9 @@ class ApiConstants {
   static const String adminUserLock = '/admin/users/';
   static const String adminUserUnlock = '/admin/users/';
 
+  //Admin Statistics
+  static const String adminStatistics = '/admin/statistics/dashboard';
+  
   // Admin Tour 
   static const String adminTours = '/admin/tours';
   static const String adminTourDetail = '/admin/tours/';
@@ -73,7 +75,6 @@ class ApiConstants {
   static const String invoiceRefundedSearch = '/invoices/refunded/search/';
   static const String invoiceHistory = '/invoices/history/';
   static const String invoiceRefund = '/invoices/refund/';
-
 
   //Banner
   static const String getAllBanner = '/banners';

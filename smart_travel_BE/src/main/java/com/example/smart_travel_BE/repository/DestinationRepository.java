@@ -17,4 +17,7 @@ public interface DestinationRepository extends JpaRepository<Destination, Long> 
     boolean existsByNameAndProvinceIdAndIdNot (String name, Long provinceId, Long id);
     @Query(value = "SELECT * FROM destinations WHERE category = :type ORDER BY RAND() LIMIT 5", nativeQuery = true)
     List<Destination> findSuggestDestinations(@Param("type") String type);
+    
+    // Query top destinations by view count
+    List<Destination> findTop5ByIsActiveTrueOrderByViewCountDesc();
 }
