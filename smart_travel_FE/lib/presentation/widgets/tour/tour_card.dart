@@ -11,6 +11,10 @@ class TourCard extends StatelessWidget {
     required this.onTap,
   });
 
+  String _formatPrice(double price) {
+    return price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+  }
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -141,7 +145,7 @@ class TourCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            "${tour.pricePerPerson?.toStringAsFixed(0)} đ",
+                            "${_formatPrice(tour.pricePerPerson!)} đ",
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w900,

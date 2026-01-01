@@ -339,10 +339,15 @@ public class TourService {
     }
 
     // ================= DELETE =================
+    @Transactional
     public void deleteTour(Long id) {
-        tourImageRepository.deleteByTourId(id);
-        tourScheduleRepository.deleteByTourId(id);
-        tourRepository.deleteById(id);
+        try {
+            tourImageRepository.deleteByTourId(id);
+            tourScheduleRepository.deleteByTourId(id);
+            tourRepository.deleteById(id);
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
     // ================= IMAGE =================

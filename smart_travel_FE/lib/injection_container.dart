@@ -51,6 +51,9 @@ import 'package:smart_travel/domain/usecases/province/delete_province_use_case.d
 import 'package:smart_travel/domain/usecases/province/get_all_province_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/province_detail_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/update_province_use_case.dart';
+import 'package:smart_travel/domain/usecases/tour/delete_image_usecase.dart';
+import 'package:smart_travel/domain/usecases/tour/set_primary_tour_image_usecase.dart';
+import 'package:smart_travel/domain/usecases/tour/upload_image_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/get_profile_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/update_profile_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/change_password_usecase.dart';
@@ -96,8 +99,15 @@ import 'package:smart_travel/data/repositories/tour_repository_impl.dart';
 import 'package:smart_travel/domain/repositories/tour_repository.dart';
 import 'package:smart_travel/presentation/blocs/tour/tour_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/tour/tour_bloc.dart';
+import 'package:smart_travel/presentation/blocs/adminTour/tour_bloc.dart';
+import 'package:smart_travel/presentation/blocs/adminTour/tour_detail_bloc.dart';
 import 'package:smart_travel/domain/usecases/tour/get_tour_detail_usecase.dart';
 import 'package:smart_travel/domain/usecases/tour/filter_tour_usecase.dart';
+import 'package:smart_travel/domain/usecases/tour/get_admin_tour_usecase.dart';
+import 'package:smart_travel/domain/usecases/tour/get_admin_detail_usecase.dart';
+import 'package:smart_travel/domain/usecases/tour/create_tour_usecase.dart';
+import 'package:smart_travel/domain/usecases/tour/delete_tour_usecase.dart';
+import 'package:smart_travel/domain/usecases/tour/update_tour_usecase.dart';
 
 import 'data/repositories/chat_repository_impl.dart';
 
@@ -351,6 +361,33 @@ Future<void> init() async {
     
   //Bloc tour
   sl.registerFactory(() => TourBloc(sl()));
+  // --- Usecases
+  sl.registerLazySingleton(() => GetAdminTours(sl()));
+  sl.registerLazySingleton(() => GetAdminTourDetailUseCase(sl()));
+  sl.registerLazySingleton(() => CreateAdminTourUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateAdminTourUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteAdminTourUseCase(sl()));
+  sl.registerLazySingleton(() => SetPrimaryTourImageUseCase(sl()));
+  sl.registerLazySingleton(() => UploadTourImageUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteTourImageUseCase(sl()));
+
+  // --- Blocs
+  sl.registerFactory(() => AdminTourBloc(
+    getAdminTours: sl(),
+    createAdminTour: sl(),
+    deleteAdminTour: sl(),
+    uploadTourImage: sl(),
+    deleteTourImage: sl(),
+    setPrimaryTourImage: sl(),
+  ));
+
+  sl.registerFactory(
+        () => AdminTourDetailBloc(sl<GetAdminTourDetailUseCase>(),
+          sl<UpdateAdminTourUseCase>(),
+          sl<SetPrimaryTourImageUseCase>(),
+          sl<DeleteTourImageUseCase>()),
+  );
+
   sl.registerFactory(
         () => TourDetailBloc(sl()),
   );
