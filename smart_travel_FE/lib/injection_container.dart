@@ -410,7 +410,6 @@ Future<void> init() async {
     ),
   );
 
-  sl.registerFactory(() => TourDetailBloc(sl()));
 
   sl.registerFactory(
     () => AdminUserBloc(
