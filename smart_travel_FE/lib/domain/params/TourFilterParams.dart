@@ -23,6 +23,23 @@ class TourFilterParams {
     this.size = 10,
   });
 
+  Map<String, String> toQueryParameters() {
+    final params = <String, String>{
+      'page': page.toString(),
+      'size': size.toString(),
+    };
+
+    if (keyword != null && keyword!.isNotEmpty) params['keyword'] = keyword!;
+    if (minPrice != null) params['minPrice'] = minPrice.toString();
+    if (maxPrice != null) params['maxPrice'] = maxPrice.toString();
+    if (minDays != null) params['minDays'] = minDays.toString();
+    if (maxDays != null) params['maxDays'] = maxDays.toString();
+    if (minRating != null) params['minRating'] = minRating.toString();
+    if (sort != null) params['sort'] = sort!;
+
+    return params;
+  }
+
   factory TourFilterParams.fromMap(Map<String, dynamic> map) {
     return TourFilterParams(
       keyword: map["keyword"],
