@@ -26,6 +26,10 @@ class _TourDetailScreenState extends State<TourDetailScreen> {
     context.read<TourDetailBloc>().add(LoadTourDetail(widget.tourId));
   }
 
+  String _formatPrice(double price) {
+    return price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,7 +96,7 @@ class _TourDetailScreenState extends State<TourDetailScreen> {
                             Text("${t.durationDays} ngày ${t.durationNights} đêm",
                                 style: TextStyle(color: Colors.grey.shade700, fontSize: 14)),
                             const SizedBox(height: 10),
-                            Text("${t.pricePerPerson.toStringAsFixed(0)} đ/người",
+                            Text("${_formatPrice(t.pricePerPerson)} đ/người",
                                 style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
