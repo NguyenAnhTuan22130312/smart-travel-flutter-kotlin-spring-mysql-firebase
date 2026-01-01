@@ -12,3 +12,10 @@ class CacheException implements Exception {
   final String message;
   const CacheException(this.message);
 }
+
+class TokenExpiredException implements Exception {
+  final String message;
+  const TokenExpiredException([
+    this.message = 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.',
+  ]);
+}

@@ -12,13 +12,9 @@ import 'package:smart_travel/presentation/screens/profile/favorite_places_screen
 import 'package:smart_travel/presentation/screens/tour/tour_list_screen.dart';
 import 'package:smart_travel/presentation/widgets/profile/profile_menu_item_widget.dart';
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
-import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import 'package:smart_travel/router/route_names.dart';
 import '../../theme/app_colors.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:smart_travel/presentation/screens/booking/booking_args.dart';
-
-import '../invoice/my_invoices_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -70,7 +66,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         break;
 
       case 2: // Tour (Push màn hình mới)
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const TourListScreen()));
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const TourListScreen()),
+        );
         break;
 
       case 3: // Khách sạn (Push màn hình mới - Dùng RouteNames chuẩn)
@@ -78,7 +77,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         break;
 
       case 4: // AI Chat (Push màn hình mới)
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatScreen()));
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AIChatScreen()),
+        );
         break;
 
       case 5: // Profile
@@ -95,9 +97,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: BlocConsumer<ProfileBloc, ProfileState>(
         listener: (context, state) {
           if (state is ProfileError) {
-            // Check if error is Unauthorized (401) - redirect to login
+            // Check if error is related to token expiration
             if (state.message.toLowerCase().contains('unauthorized') ||
-                state.message.toLowerCase().contains('401')) {
+                state.message.toLowerCase().contains('401') ||
+                state.message.toLowerCase().contains(
+                  'phiên đăng nhập hết hạn',
+                ) ||
+                state.message.toLowerCase().contains('token')) {
+              // Redirect to login immediately without showing error
               Navigator.pushReplacementNamed(context, '/login');
               return;
             }
@@ -250,10 +257,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                          // NEW SECTION: Danh sách yêu thích
+                        // NEW SECTION: Danh sách yêu thích
                         _buildSection(
                           context,
-                          title: "Hoạt động của tôi", // Hoặc AppLocalizations.of(context)!.myActivity
+                          title:
+                              "Hoạt động của tôi", // Hoặc AppLocalizations.of(context)!.myActivity
                           items: [
                             // Trong profile_screen.dart
                             ProfileMenuItemWidget(
@@ -264,7 +272,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const FavoritePlacesScreen(),
+                                    builder:
+                                        (context) =>
+                                            const FavoritePlacesScreen(),
                                   ),
                                 );
                               },
