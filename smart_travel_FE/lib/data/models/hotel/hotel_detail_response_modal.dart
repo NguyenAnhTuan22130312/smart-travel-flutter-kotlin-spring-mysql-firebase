@@ -21,6 +21,8 @@ class HotelDetailResponseModel {
   final double? latitude;
   final double? longitude;
   final List<RoomTypeResponseModel>? rooms;
+  final double? pricePerNight; // giá mặc định / hiển thị
+
 
   HotelDetailResponseModel({
     required this.id,
@@ -41,6 +43,7 @@ class HotelDetailResponseModel {
     this.rooms,
     this.latitude,
     this.longitude,
+    this.pricePerNight,
   });
 
   factory HotelDetailResponseModel.fromJson(Map<String, dynamic> json) {
@@ -78,8 +81,6 @@ class HotelDetailResponseModel {
       email: json['email']?.toString(),
       destinationId: json['destinationId'] is int ? json['destinationId'] : int.tryParse(json['destinationId'].toString() ?? ""),
       amenities: safeAmenities,
-      // ------------------------------------
-
       images: json['images'] != null
           ? (json['images'] is List ? List<String>.from(json['images']) : [])
           : [],
@@ -90,6 +91,8 @@ class HotelDetailResponseModel {
       rooms: json['rooms'] != null
           ? (json['rooms'] as List).where((e) => e != null).map((e) => RoomTypeResponseModel.fromJson(e)).toList()
           : null,
+      pricePerNight: json['pricePerNight'] != null ? double.tryParse(json['pricePerNight'].toString()) : null,
+
     );
   }
 
@@ -115,6 +118,7 @@ class HotelDetailResponseModel {
       latitude: latitude,
       longitude: longitude,
       rooms: rooms?.map((roomModel) => roomModel.toEntity()).toList(),
+      pricePerNight:  pricePerNight,
     );
   }
 }

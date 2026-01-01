@@ -34,7 +34,8 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
 
       numberOfPeople: event.numberOfPeople,
       numberOfRooms: event.numberOfRooms,
-        couponCode: event.couponCode // Xử lý sau nếu cần
+        couponCode: event.couponCode,
+      roomTypeId: event.roomTypeId,
     );
 
     final result = await createBookingUseCase(request);

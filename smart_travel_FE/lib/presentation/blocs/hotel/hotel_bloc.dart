@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/domain/usecases/hotel/create_hotel_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/delete_hotel_use_case.dart';
@@ -67,25 +69,39 @@ class HotelBloc extends Bloc<HotelEvent, HotelState> {
     });
   }
 
-  // --- 1. TẠO MỚI ---
+// --- 1. TẠO MỚI ---
   Future<void> _onCreateHotelEvent(
-    CreateHotelEvent event,
-    Emitter<HotelState> emit,
-  ) async {
+      CreateHotelEvent event,
+      Emitter<HotelState> emit,
+      ) async {
+    emit(HotelLoading());
+
     final result = await createHotelUseCase(event.request);
 
-    await result.fold((failure) async => emit(HotelError(failure.message)), (
-      success,
-    ) async {
-      emit(HotelOperationSuccess("Tạo khách sạn thành công"));
+    await result.fold(
+          (failure) async => emit(HotelError(failure.message)),
+          (hotelCreated) async {
+        // 1. Nếu có ảnh, phải ĐỢI upload xong hoàn toàn
+        if (event.imageFile != null) {
+          developer.log(">>> Đang upload ảnh bìa cho Hotel mới ID: ${hotelCreated.id}");
 
-      // Đợi UI xử lý (đóng modal, hiện snackbar)
-      await Future.delayed(const Duration(milliseconds: 800));
+          await uploadHotelImagesUseCase(
+            UploadHotelImagesParams(
+              hotelId: hotelCreated.id,
+              images: [event.imageFile!],
+            ),
+          );
+          await Future.delayed(const Duration(milliseconds: 500));
+        }
 
-      // Reload data
-      emit(HotelLoading());
-      add(_lastLoadEvent);
-    });
+        // 2. CHỈ KHI XONG TẤT CẢ MỚI BÁO THÀNH CÔNG
+        emit(HotelOperationSuccess("Tạo khách sạn và tải ảnh thành công!"));
+
+        // 3. Reload data (Có thể để delay ngắn trước khi add event load)
+        await Future.delayed(const Duration(milliseconds: 500));
+        add(_lastLoadEvent);
+      },
+    );
   }
 
   // --- 2. CẬP NHẬT ---

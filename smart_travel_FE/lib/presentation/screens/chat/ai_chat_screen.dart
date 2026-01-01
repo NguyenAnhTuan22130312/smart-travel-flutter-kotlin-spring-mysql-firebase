@@ -1,5 +1,7 @@
+import 'dart:io'; // Import File
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart'; // Import Image Picker
 import 'package:intl/intl.dart';
 import 'package:smart_travel/presentation/blocs/chat/chat_bloc.dart';
 import 'package:smart_travel/presentation/blocs/chat/chat_event.dart';
@@ -29,20 +31,43 @@ class ChatView extends StatefulWidget {
 
 class _ChatViewState extends State<ChatView> {
   final TextEditingController _controller = TextEditingController();
+  final ImagePicker _picker = ImagePicker(); // 1. Khởi tạo Picker
 
+  // Hàm gửi tin nhắn text
   void _sendMessage() {
     if (_controller.text.trim().isEmpty) return;
     context.read<ChatBloc>().add(SendMessageEvent(_controller.text.trim()));
     _controller.clear();
   }
 
+  // 2. Hàm chọn ảnh và gửi Event
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+
+      if (image != null) {
+        // Gửi Event kèm file ảnh sang Bloc
+        context.read<ChatBloc>().add(SendImageEvent(File(image.path)));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Lỗi chọn ảnh: $e")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text("Trợ lý ảo Smart Travel"),
-        backgroundColor: AppColors.background,
+        title: const Text("Trợ lý ảo Smart Travel", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),),
         elevation: 1,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.mainGradient,
+          ),
+        ),
       ),
       body: Column(
         children: [
@@ -59,17 +84,24 @@ class _ChatViewState extends State<ChatView> {
                 }
 
                 if (messages.isEmpty && !isTyping) {
-                  return const Center(
-                    child: Text("Hãy hỏi tôi về các Tour hoặc Khách sạn!"),
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.mark_chat_unread_outlined, size: 50, color: Colors.grey),
+                        SizedBox(height: 10),
+                        Text("Hỏi tôi về du lịch hoặc gửi ảnh để tìm kiếm!",
+                            style: TextStyle(color: Colors.grey)),
+                      ],
+                    ),
                   );
                 }
 
                 return ListView.builder(
-                  reverse: true, // Tin nhắn mới nhất ở dưới cùng
+                  reverse: true,
                   padding: const EdgeInsets.all(16),
                   itemCount: messages.length + (isTyping ? 1 : 0),
                   itemBuilder: (context, index) {
-                    // Hiển thị loading bubble nếu đang typing
                     if (isTyping && index == 0) {
                       return const Align(
                         alignment: Alignment.centerLeft,
@@ -79,7 +111,6 @@ class _ChatViewState extends State<ChatView> {
                         ),
                       );
                     }
-
                     final msg = messages[isTyping ? index - 1 : index];
                     return _buildMessageBubble(msg);
                   },
@@ -90,7 +121,7 @@ class _ChatViewState extends State<ChatView> {
 
           // Ô nhập liệu
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
@@ -103,6 +134,14 @@ class _ChatViewState extends State<ChatView> {
             ),
             child: Row(
               children: [
+                // 3. NÚT CHỌN ẢNH
+                IconButton(
+                  onPressed: _pickImage,
+                  icon: const Icon(Icons.image, color: AppColors.primary),
+                  tooltip: "Gửi ảnh",
+                ),
+
+                // Ô nhập text
                 Expanded(
                   child: TextField(
                     controller: _controller,

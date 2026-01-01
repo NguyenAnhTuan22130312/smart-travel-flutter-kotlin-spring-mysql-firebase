@@ -52,8 +52,8 @@ class DestinationResponseModal {
           ? ProvinceModal.formJson(json['province'])
           : null,
       category: json['category'] ?? '',
-      latitude: json['latitude'] ?? '',
-      longitude: json['longitude'] ?? '',
+      latitude: json['latitude'] != null ? double.tryParse(json['latitude'].toString()) : null,
+      longitude: json['longitude'] != null ? double.tryParse(json['longitude'].toString()) : null,
       address: json['address'] ?? '',
       averageRating: (json['averageRating'] ?? 0).toDouble(),
       reviewCount: json['reviewCount'] ?? 0,

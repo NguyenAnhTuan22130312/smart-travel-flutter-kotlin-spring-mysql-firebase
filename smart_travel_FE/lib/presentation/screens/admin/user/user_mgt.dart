@@ -174,30 +174,53 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   Widget _buildRoleFilterChips(AdminUserLoaded state) {
     final currentRole = state.currentRoleFilter;
 
-    return Row(
-      children: [
-        _buildFilterChip(
-          label: 'Tất cả',
-          isSelected: currentRole == null,
-          onTap:
-              () => context.read<AdminUserBloc>().add(const FilterRole(null)),
-        ),
-        const SizedBox(width: 8),
-        _buildFilterChip(
-          label: 'User',
-          isSelected: currentRole == 'USER',
-          onTap:
-              () => context.read<AdminUserBloc>().add(const FilterRole('USER')),
-        ),
-        const SizedBox(width: 8),
-        _buildFilterChip(
-          label: 'Admin',
-          isSelected: currentRole == 'ADMIN',
-          onTap:
-              () =>
-                  context.read<AdminUserBloc>().add(const FilterRole('ADMIN')),
-        ),
-      ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _buildFilterChip(
+            label: 'Tất cả',
+            isSelected: currentRole == null,
+            onTap:
+                () => context.read<AdminUserBloc>().add(const FilterRole(null)),
+          ),
+          const SizedBox(width: 8),
+          _buildFilterChip(
+            label: 'User',
+            isSelected: currentRole == 'USER',
+            onTap:
+                () =>
+                    context.read<AdminUserBloc>().add(const FilterRole('USER')),
+          ),
+          const SizedBox(width: 8),
+          _buildFilterChip(
+            label: 'Admin',
+            isSelected: currentRole == 'ADMIN',
+            onTap:
+                () => context.read<AdminUserBloc>().add(
+                  const FilterRole('ADMIN'),
+                ),
+          ),
+          const SizedBox(width: 8),
+          _buildFilterChip(
+            label: 'Admin Tour',
+            isSelected: currentRole == 'ADMINTOUR',
+            onTap:
+                () => context.read<AdminUserBloc>().add(
+                  const FilterRole('ADMINTOUR'),
+                ),
+          ),
+          const SizedBox(width: 8),
+          _buildFilterChip(
+            label: 'Admin Hotel',
+            isSelected: currentRole == 'ADMINHOTEL',
+            onTap:
+                () => context.read<AdminUserBloc>().add(
+                  const FilterRole('ADMINHOTEL'),
+                ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -409,7 +432,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
   Widget _buildUserCard(dynamic user) {
     final isActive = user.isActive ?? true;
-    final isAdmin = user.role.toUpperCase() == 'ADMIN';
 
     return Card(
       elevation: 2,
@@ -480,7 +502,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        _buildRoleBadge(isAdmin),
+                        _buildRoleBadgeByRole(user.role),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -572,22 +594,52 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  Widget _buildRoleBadge(bool isAdmin) {
+  Widget _buildRoleBadgeByRole(String role) {
+    final roleUpper = role.toUpperCase();
+    Color bgColor;
+    Color borderColor;
+    Color textColor;
+    String displayText;
+
+    switch (roleUpper) {
+      case 'ADMIN':
+        bgColor = Colors.red[50]!;
+        borderColor = Colors.red[200]!;
+        textColor = Colors.red[700]!;
+        displayText = 'ADMIN';
+        break;
+      case 'ADMINTOUR':
+        bgColor = Colors.green[50]!;
+        borderColor = Colors.green[200]!;
+        textColor = Colors.green[700]!;
+        displayText = 'ADMIN TOUR';
+        break;
+      case 'ADMINHOTEL':
+        bgColor = Colors.purple[50]!;
+        borderColor = Colors.purple[200]!;
+        textColor = Colors.purple[700]!;
+        displayText = 'ADMIN HOTEL';
+        break;
+      default:
+        bgColor = Colors.blue[50]!;
+        borderColor = Colors.blue[200]!;
+        textColor = Colors.blue[700]!;
+        displayText = 'USER';
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: isAdmin ? Colors.red[50] : Colors.blue[50],
+        color: bgColor,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(
-          color: isAdmin ? Colors.red[200]! : Colors.blue[200]!,
-        ),
+        border: Border.all(color: borderColor),
       ),
       child: Text(
-        isAdmin ? 'ADMIN' : 'USER',
+        displayText,
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.bold,
-          color: isAdmin ? Colors.red[700] : Colors.blue[700],
+          color: textColor,
         ),
       ),
     );

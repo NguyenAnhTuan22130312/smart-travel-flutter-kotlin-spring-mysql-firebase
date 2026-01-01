@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_travel/presentation/blocs/adminTour/tour_bloc.dart';
+import 'package:smart_travel/presentation/blocs/adminTour/tour_detail_bloc.dart';
+import 'package:smart_travel/presentation/blocs/adminTour/tour_event.dart';
 import 'package:smart_travel/presentation/blocs/admin_user/admin_user_bloc.dart';
-import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
+import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/screens/admin/admin_dashboard.dart';
+import 'package:smart_travel/presentation/screens/admin/banner/banner_management_screen.dart';
 import 'package:smart_travel/presentation/screens/admin/hotel/hotel_management_screen.dart';
 import 'package:smart_travel/presentation/screens/admin/destination/destination_management_screen.dart';
 import 'package:smart_travel/presentation/screens/admin/province/province_mgt.dart';
 import 'package:smart_travel/presentation/screens/admin/user/user_mgt.dart';
+import 'package:smart_travel/presentation/screens/admin/tour/tour_mgt.dart';
 import 'package:smart_travel/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:smart_travel/presentation/screens/auth/login_screen.dart';
 import 'package:smart_travel/presentation/screens/auth/register_screen.dart';
@@ -39,6 +44,10 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => const ProvinceManagementScreen(),
         );
+      case RouteNames.adminHotels:
+        return MaterialPageRoute(
+          builder: (_) => const HotelManagementScreen(),
+        );
       case RouteNames.adminUsers:
         return MaterialPageRoute(
           builder:
@@ -46,6 +55,22 @@ class AppRouter {
                 create: (_) => di.sl<AdminUserBloc>(),
                 child: const UserManagementScreen(),
               ),
+        );
+        /// Tour
+      case RouteNames.adminTours:
+        return MaterialPageRoute(
+          builder: (_) => MultiBlocProvider(
+            providers: [
+              BlocProvider(create: (_) => di.sl<AdminTourBloc>()),
+              BlocProvider(create: (_) => di.sl<AdminTourDetailBloc>()),
+            ],
+            child: const AdminTourManagementScreen(),
+          ),
+        );
+    /// USER
+      case RouteNames.adminBanner:
+        return MaterialPageRoute(
+          builder: (_) => const BannerManagementScreen(),
         );
 
       /// USER
@@ -96,11 +121,6 @@ class AppRouter {
               ),
           settings: settings,
         );
-      case RouteNames.adminHotels:
-        return MaterialPageRoute(
-          builder: (_) => const HotelManagementScreen(),
-        );
-
       // Profile routes
       case RouteNames.profile:
         return MaterialPageRoute(builder: (context) => const ProfileScreen());

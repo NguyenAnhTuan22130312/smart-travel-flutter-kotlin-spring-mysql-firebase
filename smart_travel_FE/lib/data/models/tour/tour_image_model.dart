@@ -28,4 +28,12 @@ class TourImageModel {
         isPrimary: isPrimary,
         displayOrder: displayOrder,
       );
+
+  Map<String, dynamic> toJson() {
+    return {
+      "id": id,
+      "imageUrl": imageUrl,
+      "isPrimary": isPrimary,
+    };
+  }
 }

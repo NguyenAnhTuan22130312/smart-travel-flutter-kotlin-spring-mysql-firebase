@@ -7,16 +7,19 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:smart_travel/core/services/image_upload_service.dart';
 import 'package:smart_travel/data/data_sources/local/auth_local_data_source.dart';
+import 'package:smart_travel/data/data_sources/remote/banner_data_source.dart';
 import 'package:smart_travel/data/data_sources/remote/destination_data_source.dart';
 import 'package:smart_travel/data/data_sources/remote/hotel_data_source.dart';
 import 'package:smart_travel/data/data_sources/remote/province_data_source.dart';
 import 'package:smart_travel/data/data_sources/remote/user_remote_datasource.dart';
 import 'package:smart_travel/data/repositories/auth_repository_impl.dart';
+import 'package:smart_travel/data/repositories/banner_repository_impl.dart';
 import 'package:smart_travel/data/repositories/destination_repository_impl.dart';
 import 'package:smart_travel/data/repositories/hotel_repository_impl.dart';
 import 'package:smart_travel/data/repositories/province_repository_impl.dart';
 import 'package:smart_travel/data/repositories/user_repository_impl.dart';
 import 'package:smart_travel/domain/repositories/auth_repository.dart';
+import 'package:smart_travel/domain/repositories/banner_repository.dart';
 import 'package:smart_travel/domain/repositories/destination_repository.dart';
 import 'package:smart_travel/domain/repositories/hotel_repository.dart';
 import 'package:smart_travel/domain/repositories/province_repository.dart';
@@ -26,6 +29,10 @@ import 'package:smart_travel/domain/usecases/auth/forgot_password_use_case.dart'
 import 'package:smart_travel/domain/usecases/auth/google_login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/register_use_case.dart';
+import 'package:smart_travel/domain/usecases/banner/create_banner_uc.dart';
+import 'package:smart_travel/domain/usecases/banner/delete_banner_uc.dart';
+import 'package:smart_travel/domain/usecases/banner/get_all_banner_use_case.dart';
+import 'package:smart_travel/domain/usecases/banner/update_banner_uc.dart';
 import 'package:smart_travel/domain/usecases/destination/add_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/delete_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/filter_destinations_by_category_use_case.dart';
@@ -44,6 +51,9 @@ import 'package:smart_travel/domain/usecases/province/delete_province_use_case.d
 import 'package:smart_travel/domain/usecases/province/get_all_province_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/province_detail_use_case.dart';
 import 'package:smart_travel/domain/usecases/province/update_province_use_case.dart';
+import 'package:smart_travel/domain/usecases/tour/delete_image_usecase.dart';
+import 'package:smart_travel/domain/usecases/tour/set_primary_tour_image_usecase.dart';
+import 'package:smart_travel/domain/usecases/tour/upload_image_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/get_profile_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/update_profile_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/change_password_usecase.dart';
@@ -59,10 +69,12 @@ import 'package:smart_travel/domain/usecases/user/lock_user_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/unlock_user_usecase.dart';
 import 'package:smart_travel/presentation/blocs/admin_user/admin_user_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
+import 'package:smart_travel/presentation/blocs/banner/banner_bloc.dart';
 import 'package:smart_travel/presentation/blocs/chat/chat_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_bloc.dart';
-import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
+import 'package:smart_travel/presentation/blocs/favorite/favorite_bloc.dart';
+import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/blocs/invoice/cancel_bloc.dart';
 import 'package:smart_travel/presentation/blocs/invoice/detail_bloc.dart';
@@ -94,8 +106,19 @@ import 'package:smart_travel/data/repositories/tour_repository_impl.dart';
 import 'package:smart_travel/domain/repositories/tour_repository.dart';
 import 'package:smart_travel/presentation/blocs/tour/tour_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/tour/tour_bloc.dart';
+import 'package:smart_travel/presentation/blocs/adminTour/tour_bloc.dart';
+import 'package:smart_travel/presentation/blocs/adminTour/tour_detail_bloc.dart';
 import 'package:smart_travel/domain/usecases/tour/get_tour_detail_usecase.dart';
 import 'package:smart_travel/domain/usecases/tour/filter_tour_usecase.dart';
+import 'package:smart_travel/data/data_sources/remote/statistics_data_source.dart';
+import 'package:smart_travel/data/repositories/statistics_repository_impl.dart';
+import 'package:smart_travel/domain/repositories/statistics_repository.dart';
+import 'package:smart_travel/presentation/blocs/statistics/statistics_bloc.dart';
+import 'package:smart_travel/domain/usecases/tour/get_admin_tour_usecase.dart';
+import 'package:smart_travel/domain/usecases/tour/get_admin_detail_usecase.dart';
+import 'package:smart_travel/domain/usecases/tour/create_tour_usecase.dart';
+import 'package:smart_travel/domain/usecases/tour/delete_tour_usecase.dart';
+import 'package:smart_travel/domain/usecases/tour/update_tour_usecase.dart';
 
 import 'data/data_sources/remote/invoice_remote_data_source.dart';
 import 'data/repositories/chat_repository_impl.dart';
@@ -153,7 +176,6 @@ Future<void> init() async {
   sl.registerLazySingleton<HotelDataSource>(
     () => HotelDataSourceImpl(client: sl()),
   );
-  
 
   sl.registerLazySingleton<TourRemoteDataSource>(
     () => TourRemoteDataSourceImpl(client: sl()),
@@ -166,6 +188,15 @@ Future<void> init() async {
   sl.registerLazySingleton<BookingDataSource>(
     () => BookingDataSourceImpl(client: sl()),
   );
+  sl.registerLazySingleton<BannerDataSource>(
+    () => BannerDataSourceImpl(dioClient: sl()),
+  );
+
+  sl.registerLazySingleton<StatisticsRemoteDataSource>(
+    () => StatisticsRemoteDataSourceImpl(dioClient: sl()),
+  );
+
+  sl.registerLazySingleton(() => FavoriteBloc());
 
   // Repositories (sau khi data sources sẵn sàng)
   sl.registerLazySingleton<AuthRepository>(
@@ -204,6 +235,13 @@ Future<void> init() async {
     () => BookingRepositoryImpl(bookingDataSource: sl(), networkInfo: sl()),
   );
 
+  sl.registerLazySingleton<BannerRepository>(
+    () => BannerRepositoryImpl(bannerDataSource: sl(), networkInfo: sl()),
+  );
+
+  sl.registerLazySingleton<StatisticsRepository>(
+    () => StatisticsRepositoryImpl(remoteDataSource: sl()),
+  );
 
   sl.registerLazySingleton(() => FilterToursUseCase(sl()));
   // auth
@@ -237,7 +275,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => AddProvinceUseCase(sl()));
   sl.registerLazySingleton(() => UpdateProvinceUseCase(sl()));
   sl.registerLazySingleton(() => DeleteProvinceUseCase(sl()));
-    
+
   // --- THÊM USE CASE HOTEL ---
   sl.registerLazySingleton(() => HotelDetailUseCase(sl()));
   sl.registerLazySingleton(() => GetHotelsUseCase(sl()));
@@ -249,7 +287,7 @@ Future<void> init() async {
   sl.registerLazySingleton<GetTourDetailUseCase>(
     () => GetTourDetailUseCase(sl()),
   );
-    
+
   sl.registerLazySingleton(() => GetProfileUseCase(sl()));
   sl.registerLazySingleton(() => UpdateProfileUseCase(sl()));
   sl.registerLazySingleton(() => ChangePasswordUseCase(sl()));
@@ -267,6 +305,12 @@ Future<void> init() async {
   sl.registerLazySingleton(() => CreateBookingUseCase(sl()));
   sl.registerLazySingleton(() => ProcessPaymentUseCase(sl()));
   sl.registerLazySingleton(() => ConfirmCashBookingUseCase(sl()));
+
+  //uc banner
+  sl.registerLazySingleton(() => GetAllBannerUseCase(sl()));
+  sl.registerLazySingleton(() => CreateBannerUc(sl()));
+  sl.registerLazySingleton(() => UpdateBannerUc(sl()));
+  sl.registerLazySingleton(() => DeleteBannerUc(sl()));
 
   sl.registerLazySingleton<ImageUploadService>(() => ImageUploadService(sl()));
 
@@ -311,7 +355,7 @@ Future<void> init() async {
 
   sl.registerFactory(() => ProvinceDetailBloc(provinceDetailUseCase: sl()));
 
-   // HotelBloc phải tiêm đủ 4 tham số
+  // HotelBloc phải tiêm đủ 4 tham số
   sl.registerFactory(
     () => HotelBloc(
       getHotelsUseCase: sl(),
@@ -321,10 +365,19 @@ Future<void> init() async {
       uploadHotelImagesUseCase: sl(),
     ),
   );
-    
+
   // ---  BLOC HOTEL ---
   sl.registerFactory(() => HotelDetailBloc(hotelDetailUseCase: sl()));
 
+  // ---  BLOC BANNER ---
+  sl.registerFactory(
+    () => BannerBloc(
+      allBannerUseCase: sl(),
+      createBannerUseCase: sl(),
+      deleteBannerUseCase: sl(),
+      updateBannerUseCase: sl(),
+    ),
+  );
 
   sl.registerFactory(
     () => ProfileBloc(
@@ -338,13 +391,44 @@ Future<void> init() async {
       logoutUseCase: sl(),
     ),
   );
-    
+
   //Bloc tour
   sl.registerFactory(() => TourBloc(sl()));
+  sl.registerFactory(() => TourDetailBloc(sl()));
+
+  // --- Usecases
+  sl.registerLazySingleton(() => GetAdminTours(sl()));
+  sl.registerLazySingleton(() => GetAdminTourDetailUseCase(sl()));
+  sl.registerLazySingleton(() => CreateAdminTourUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateAdminTourUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteAdminTourUseCase(sl()));
+  sl.registerLazySingleton(() => SetPrimaryTourImageUseCase(sl()));
+  sl.registerLazySingleton(() => UploadTourImageUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteTourImageUseCase(sl()));
+
+  // --- Blocs
   sl.registerFactory(
-        () => TourDetailBloc(sl()),
+    () => AdminTourBloc(
+      getAdminTours: sl(),
+      createAdminTour: sl(),
+      deleteAdminTour: sl(),
+      uploadTourImage: sl(),
+      deleteTourImage: sl(),
+      setPrimaryTourImage: sl(),
+    ),
   );
-    
+
+  sl.registerFactory(
+    () => AdminTourDetailBloc(
+      sl<GetAdminTourDetailUseCase>(),
+      sl<UpdateAdminTourUseCase>(),
+      sl<SetPrimaryTourImageUseCase>(),
+      sl<DeleteTourImageUseCase>(),
+    ),
+  );
+
+  sl.registerFactory(() => TourDetailBloc(sl()));
+
   sl.registerFactory(
     () => AdminUserBloc(
       getUserList: sl(),
@@ -363,6 +447,7 @@ Future<void> init() async {
       confirmCashBookingUseCase: sl(),
     ),
   );
+
 
   // ==================== INVOICE ====================
   sl.registerLazySingleton<InvoiceRemoteDataSource>(
@@ -441,4 +526,6 @@ Future<void> init() async {
   sl.registerFactory<DetailBloc>(
         () => DetailBloc(sl<GetInvoiceDetailUseCase>()),
   );
+   sl.registerFactory(() => StatisticsBloc(repository: sl()));
+
 }

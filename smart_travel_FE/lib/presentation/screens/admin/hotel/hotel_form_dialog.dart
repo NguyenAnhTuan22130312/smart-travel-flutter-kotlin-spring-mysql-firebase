@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:smart_travel/domain/entities/hotel.dart';
 import 'package:smart_travel/domain/entities/room_type.dart';
 import 'package:smart_travel/data/models/hotel/hotel_create_request.dart';
-import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
+import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_event.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_state.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
@@ -38,6 +38,7 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
   final TextEditingController _lngController = TextEditingController(
     text: "0.0",
   );
+  final _formKey = GlobalKey<FormState>();
 
   // --- CONTROLLERS ROOM ---
   final TextEditingController _roomNameController = TextEditingController();
@@ -227,11 +228,20 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
   }
 
   void _onSubmit() {
-    if (_nameController.text.isEmpty ||
-        _addressController.text.isEmpty ||
-        _destIdController.text.isEmpty) {
+    // 1. Kiểm tra định dạng & Trường bắt buộc (Tên, Địa chỉ, Email, SĐT...)
+    // Chữ đỏ sẽ tự hiện ở từng ô nếu có lỗi, không cần check thủ công nữa
+    if (!_formKey.currentState!.validate()) {
+      return; // Dừng lại để người dùng sửa các ô báo đỏ
+    }
+
+    // 2. Kiểm tra logic Nghiệp vụ riêng (Danh sách phòng)
+    if (_fetchedRooms.isEmpty && _roomPriceController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập các trường bắt buộc (*)')),
+        const SnackBar(
+          content: Text('Vui lòng thêm ít nhất một loại phòng!'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -299,7 +309,12 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
     );
 
     if (_editingId == null) {
-      context.read<HotelBloc>().add(CreateHotelEvent(request: requestData));
+      context.read<HotelBloc>().add(
+        CreateHotelEvent(
+          request: requestData,
+          imageFile: _selectedImage,
+        ),
+      );
     } else {
       context.read<HotelBloc>().add(
         UpdateHotelEvent(hotelId: _editingId!, request: requestData),
@@ -317,88 +332,111 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<HotelDetailBloc, HotelDetailState>(
-      listener: (context, state) {
-        if (state is HotelDetailLoaded) {
-          setState(() {
-            _isLoadingDetail = false;
-            _fillDataFromEntity(state.hotel);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Đã tải xong chi tiết (${state.hotel.rooms?.length ?? 0} phòng)',
-                ),
-                backgroundColor: AppColors.green,
-                duration: const Duration(seconds: 1),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          });
-        } else if (state is HotelDetailError) {
-          setState(() => _isLoadingDetail = false);
-        }
-      },
-      child: BlocListener<HotelBloc, HotelState>(
-        listener: (context, state) {
-          if (state is HotelOperationSuccess) {
-            Navigator.of(context).pop(true);
-          } else if (state is HotelError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Có lỗi: ${state.message}'),
-                backgroundColor: Colors.redAccent,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          }
-        },
-        child: Dialog(
-          backgroundColor: AppColors.background,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          insetPadding: const EdgeInsets.all(16),
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 600, maxHeight: 900),
-            child: Column(
-              children: [
-                _buildHeader(context),
-                if (_isLoadingDetail)
-                  const LinearProgressIndicator(
-                    color: AppColors.secondary,
-                    backgroundColor: AppColors.dividerGray,
-                  ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle(
-                          "1. Thông tin Khách sạn",
-                          Icons.hotel,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildHotelInfoSection(),
-                        const SizedBox(height: 30),
-                        Divider(
-                          color: AppColors.dividerGray.withOpacity(0.5),
-                          thickness: 1,
-                        ),
-                        const SizedBox(height: 20),
+    // 1. Giữ Dialog ở ngoài cùng để tạo khung
+    return Dialog(
+      backgroundColor: AppColors.background,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      insetPadding: const EdgeInsets.all(16),
 
-                        // Phần quản lý phòng
-                        _buildRoomListSection(),
-                        const SizedBox(height: 10),
-                        _buildRoomFormSection(),
-                      ],
+      // 2. Cho Scaffold vào ĐÂY để làm nền cho các thông báo
+      child: Scaffold(
+        backgroundColor: Colors.transparent, // Trong suốt để thấy màu Dialog
+        resizeToAvoidBottomInset: false,
+
+        // 3. Cho Listeners vào bên TRONG Scaffold
+        body: MultiBlocListener(
+          listeners: [
+            BlocListener<HotelDetailBloc, HotelDetailState>(
+              listener: (context, state) {
+                if (state is HotelDetailLoaded) {
+                  setState(() {
+                    _isLoadingDetail = false;
+                    _fillDataFromEntity(state.hotel);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Đã tải xong chi tiết (${state.hotel.rooms?.length ?? 0} phòng)'),
+                        backgroundColor: AppColors.green,
+                        duration: const Duration(seconds: 1),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  });
+                } else if (state is HotelDetailError) {
+                  setState(() => _isLoadingDetail = false);
+                }
+              },
+            ),
+            BlocListener<HotelBloc, HotelState>(
+              listener: (context, state) {
+                if (state is HotelLoading) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Đang xử lý dữ liệu và hình ảnh...'),
+                      backgroundColor: AppColors.success,
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                }
+                if (state is HotelOperationSuccess) {
+                  Navigator.of(context).pop(true);
+                } else if (state is HotelError) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Có lỗi: ${state.message}'),
+                      backgroundColor: Colors.redAccent,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+          child: Form(
+            key: _formKey,
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 600, maxHeight: 900),
+              child: Column(
+                children: [
+                  _buildHeader(context),
+                  if (_isLoadingDetail)
+                    const LinearProgressIndicator(
+                      color: AppColors.secondary,
+                      backgroundColor: AppColors.dividerGray,
+                    ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionTitle(
+                            "1. Thông tin Khách sạn",
+                            Icons.hotel,
+                          ),
+                          const SizedBox(height: 12),
+                          _buildHotelInfoSection(),
+                          const SizedBox(height: 30),
+                          Divider(
+                            color: AppColors.dividerGray.withOpacity(0.5),
+                            thickness: 1,
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Phần quản lý phòng
+                          _buildRoomListSection(),
+                          const SizedBox(height: 10),
+                          _buildRoomFormSection(),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                _buildFooter(context),
-              ],
+                  _buildFooter(context),
+                ],
+              ),
             ),
-          ),
+          )
         ),
       ),
     );
@@ -454,13 +492,15 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
     TextInputType type = TextInputType.text,
     int maxLines = 1,
     bool isRequired = false,
+    String? Function(String?)? validator,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
-      child: TextField(
+      child: TextFormField(
         controller: controller,
         keyboardType: type,
         maxLines: maxLines,
+        validator: validator,
         style: const TextStyle(color: AppColors.textGray, fontSize: 14),
         decoration: InputDecoration(
           labelText: isRequired ? '$label *' : label,
@@ -495,7 +535,8 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
       ),
     );
   }
-// --- WIDGET : TẠO TIÊU ĐỀ CHO TỪNG PHẦN ---
+
+  // --- WIDGET : TẠO TIÊU ĐỀ CHO TỪNG PHẦN ---
   Widget _buildSectionTitle(String title, IconData icon) => Row(
     children: [
       Icon(icon, color: AppColors.button, size: 22),
@@ -526,12 +567,14 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
             label: 'Tên khách sạn',
             icon: Icons.title,
             isRequired: true,
+            validator: (value) => (value == null || value.isEmpty) ? 'Vui lòng nhập tên khách sạn' : null,
           ),
           _buildTextField(
             controller: _addressController,
             label: 'Địa chỉ',
             icon: Icons.location_on,
             isRequired: true,
+            validator: (value) => (value == null || value.isEmpty) ? 'Vui lòng nhập địa chỉ' : null,
           ),
           _buildTextField(
             controller: _descController,
@@ -540,53 +583,67 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
             maxLines: 3,
           ),
 
-          Row(
-            children: [
-              Expanded(
-                child: _buildTextField(
-                  controller: _phoneController,
-                  label: 'Số điện thoại',
-                  icon: Icons.phone,
-                  type: TextInputType.phone,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildTextField(
-                  controller: _emailController,
-                  label: 'Email',
-                  icon: Icons.email,
-                  type: TextInputType.emailAddress,
-                ),
-              ),
-            ],
+          _buildTextField(
+            controller: _phoneController,
+            label: 'Số điện thoại',
+            icon: Icons.phone,
+            type: TextInputType.phone,
+            validator: (value) {
+              if (value != null && value.isNotEmpty) {
+                if (!RegExp(r'^[0-9]+$').hasMatch(value)) return 'Số điện thoại chỉ được chứa số';
+                if (value.length < 10 || value.length > 11) return 'Số điện thoại phải từ 10-11 số';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 12),
+          _buildTextField(
+            controller: _emailController,
+            label: 'Email',
+            icon: Icons.email,
+            type: TextInputType.emailAddress,
+            validator: (value) {
+              if (value != null && value.isNotEmpty) {
+                final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                if (!emailRegex.hasMatch(value)) return 'Định dạng email không hợp lệ';
+              }
+              return null;
+            },
           ),
 
+          _buildTextField(
+            controller: _destIdController,
+            label: 'Destination ID',
+            icon: Icons.map,
+            type: TextInputType.number,
+            isRequired: true,
+            validator: (value) {
+              if (value == null || value.isEmpty) return 'Bắt buộc nhập Destination ID';
+              if (int.tryParse(value) == null) return 'ID phải là số nguyên';
+              return null;
+            },
+          ),
+
+          const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(
-                child: _buildTextField(
-                  controller: _destIdController,
-                  label: 'Dest ID',
-                  icon: Icons.map,
-                  type: TextInputType.number,
-                  isRequired: true,
-                ),
-              ),
-              const SizedBox(width: 12),
               Expanded(
                 child: _buildTextField(
                   controller: _latController,
-                  label: 'Lat',
+                  label: 'Vĩ độ (Lat)',
+                  icon: Icons.location_searching,
                   type: TextInputType.number,
+                  validator: (value) => (value != null && value.isNotEmpty && double.tryParse(value) == null) ? 'Phải là số' : null,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildTextField(
                   controller: _lngController,
-                  label: 'Lng',
+                  label: 'Kinh độ (Lng)',
+                  icon: Icons.explore,
                   type: TextInputType.number,
+                  validator: (value) => (value != null && value.isNotEmpty && double.tryParse(value) == null) ? 'Phải là số' : null,
                 ),
               ),
             ],
@@ -598,7 +655,7 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
                 flex: 2,
                 child: _buildTextField(
                   controller: _hotelAmenitiesController,
-                  label: 'Tiện ích (phân cách dấu phẩy)',
+                  label: 'Tiện ích',
                   icon: Icons.pool,
                 ),
               ),
@@ -893,7 +950,7 @@ class _HotelFormDialogState extends State<HotelFormDialog> {
     );
   }
 
-// --- WIDGET: CHỌN ẢNH BÌA ---
+  // --- WIDGET: CHỌN ẢNH BÌA ---
   Widget _buildImagePicker() {
     return Container(
       padding: const EdgeInsets.all(12),

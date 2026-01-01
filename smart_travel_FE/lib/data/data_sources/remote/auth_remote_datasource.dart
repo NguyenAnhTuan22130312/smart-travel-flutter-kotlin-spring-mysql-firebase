@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 import 'package:smart_travel/core/constants/api_constants.dart';
 import 'package:smart_travel/core/error/exceptions.dart';
@@ -87,28 +88,19 @@ class AuthRemoteDataSourceImpl implements AuthDataSource{
         data: request.toJson(),
       );
 
-      if (response.statusCode == 200) {
-        print("LOGIN RESPONSE = ${response.data}");
-
-        final apiResponse = ApiResponseModel<Map<String, dynamic>>.fromJson(
-          response.data,
-              (data) => data as Map<String, dynamic>,
-        );
-        final data = apiResponse.data!;
-        return LoginResponseModal.fromJson(data);
+      final apiResponse = ApiResponseModel<Map<String, dynamic>>.fromJson(
+        response.data,
+            (data) => data as Map<String, dynamic>,
+      );
+      return LoginResponseModal.fromJson(apiResponse.data!);
+    } on DioException catch (e) {
+      if (e.error is ServerException) {
+        throw e.error as ServerException;
       }
-
-      if (response.statusCode == 400) {
-        final apiResponse =
-        ApiResponseModel.fromJson(response.data, null);
-        throw ServerException(apiResponse.msg);
-      }
-
-      throw ServerException("Đăng nhập thất bại: ${response.statusCode}");
-    }
-    catch (e) {
+      throw NetworkException('Lỗi kết nối tới server');
+    } catch (e) {
       if (e is ServerException || e is NetworkException) rethrow;
-      throw ServerException("Lỗi không mong muốn: $e");
+      throw ServerException('Lỗi không mong muốn: ${e.toString()}');
     }
   }
 
@@ -122,19 +114,15 @@ class AuthRemoteDataSourceImpl implements AuthDataSource{
 
       final apiResponse = response.data;
       final msg = apiResponse['msg'] ?? 'Không có thông báo từ server';
-
-      if (response.statusCode == 200) {
-        return msg; // Trả message thành công
-      } else {
-        throw ServerException(msg);
+      return msg; // Trả message thành công
+    } on DioException catch (e) {
+      if (e.error is ServerException) {
+        throw e.error as ServerException;
       }
-    } on http.ClientException catch (e) {
-      throw NetworkException('Lỗi kết nối: ${e.message}');
+      throw NetworkException('Lỗi kết nối tới server');
     } catch (e) {
-      if (e is ServerException || e is NetworkException) {
-        rethrow;
-      }
-      throw ServerException('Đã xảy ra lỗi không mong muốn: ${e.toString()}');
+      if (e is ServerException || e is NetworkException) rethrow;
+      throw ServerException('Lỗi không mong muốn: ${e.toString()}');
     }
   }
   @override
@@ -145,35 +133,19 @@ class AuthRemoteDataSourceImpl implements AuthDataSource{
           .post('${ApiConstants.baseUrl}${ApiConstants.googleLogin}',
           data: request.toJson(),
     ).timeout(ApiConstants.connectionTimeout);
-      if (response.statusCode == 201 || response.statusCode == 200) {
         final responseBody = response.data;
-        print('API Response Body: $responseBody');
         final apiResponse = ApiResponseModel<Map<String, dynamic>>.fromJson(
           responseBody,
               (data) => data as Map<String, dynamic>);
-
-        if (apiResponse.data == null) {
-          throw const ServerException('Không nhận được dữ liệu từ server');
-        }
         return LoginResponseModal.fromJson(apiResponse.data!);
-      } else if (response.statusCode == 400) {
-        final apiResponse = ApiResponseModel.fromJson(
-          response.data,
-          null,
-        );
-        throw ServerException(apiResponse.msg);
-      } else {
-        throw ServerException(
-            'Đăng ký thất bại với mã lỗi: ${response.statusCode}');
+    } on DioException catch (e) {
+      if (e.error is ServerException) {
+        throw e.error as ServerException;
       }
-    } on http.ClientException catch (e) {
-      throw NetworkException('Lỗi kết nối: ${e.message}');
+      throw NetworkException('Lỗi kết nối tới server');
     } catch (e) {
-      print('Error details: $e'); // Thêm log
-      if (e is ServerException || e is NetworkException) {
-        rethrow;
-      }
-      throw ServerException('Đã xảy ra lỗi không mong muốn: ${e.toString()}');
+      if (e is ServerException || e is NetworkException) rethrow;
+      throw ServerException('Lỗi không mong muốn: ${e.toString()}');
     }
   }
 
@@ -185,35 +157,19 @@ class AuthRemoteDataSourceImpl implements AuthDataSource{
           .post('${ApiConstants.baseUrl}${ApiConstants.facebookLogin}',
         data: request.toJson(),
       ).timeout(ApiConstants.connectionTimeout);
-      if (response.statusCode == 201 || response.statusCode == 200) {
         final responseBody =  response.data;
-        print('API Response Body: $responseBody');
         final apiResponse = ApiResponseModel<Map<String, dynamic>>.fromJson(
             responseBody,
                 (data) => data as Map<String, dynamic>);
-
-        if (apiResponse.data == null) {
-          throw const ServerException('Không nhận được dữ liệu từ server');
-        }
         return LoginResponseModal.fromJson(apiResponse.data!);
-      } else if (response.statusCode == 400) {
-        final apiResponse = ApiResponseModel.fromJson(
-          response.data,
-          null,
-        );
-        throw ServerException(apiResponse.msg);
-      } else {
-        throw ServerException(
-            'Đăng ký thất bại với mã lỗi: ${response.statusCode}');
+    } on DioException catch (e) {
+      if (e.error is ServerException) {
+        throw e.error as ServerException;
       }
-    } on http.ClientException catch (e) {
-      throw NetworkException('Lỗi kết nối: ${e.message}');
+      throw NetworkException('Lỗi kết nối tới server');
     } catch (e) {
-      print('Error details: $e'); // Thêm log
-      if (e is ServerException || e is NetworkException) {
-        rethrow;
-      }
-      throw ServerException('Đã xảy ra lỗi không mong muốn: ${e.toString()}');
+      if (e is ServerException || e is NetworkException) rethrow;
+      throw ServerException('Lỗi không mong muốn: ${e.toString()}');
     }
   }
 
@@ -224,17 +180,10 @@ class AuthRemoteDataSourceImpl implements AuthDataSource{
         ApiConstants.refreshToken,
         data: refreshToken.toJson(),
       );
-
-      if (response.statusCode == 200) {
-        final json = response.data as Map<String, dynamic>;
-        return LoginResponseModal.fromJson(json['data'] as Map<String, dynamic>);
-        }
-      throw ServerException("Refresh token thất bại");
+      final json = response.data as Map<String, dynamic>;
+      return LoginResponseModal.fromJson(json['data'] as Map<String, dynamic>);
     } catch (e) {
       throw ServerException("Lỗi không mong muốn: $e");
     }
   }
-
-
-
 }

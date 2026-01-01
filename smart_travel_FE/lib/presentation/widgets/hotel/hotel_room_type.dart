@@ -3,10 +3,13 @@ import 'package:smart_travel/domain/entities/room_type.dart';
 
 class HotelRoomTypeWidget extends StatelessWidget {
   final List<RoomType> rooms;
+  // Callback để báo cho màn hình cha biết phòng nào được chọn
+  final Function(RoomType) onBook;
 
   const HotelRoomTypeWidget({
     super.key,
     required this.rooms,
+    required this.onBook,
   });
 
   // --- KHAI BÁO MÀU SẮC ---
@@ -324,32 +327,20 @@ class HotelRoomTypeWidget extends StatelessWidget {
 
                               const SizedBox(width: 12),
 
-                              // BUTTON
+                              // BUTTON CHỌN PHÒNG (ĐÃ CẬP NHẬT LOGIC)
                               SizedBox(
                                 height: 48,
                                 child: ElevatedButton(
                                   onPressed: isAvailable
                                       ? () {
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                            'Đã chọn: ${room.name}'),
-                                        behavior:
-                                        SnackBarBehavior.floating,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                          BorderRadius.circular(10),
-                                        ),
-                                      ),
-                                    );
+                                    // GỌI CALLBACK ĐỂ CHUYỂN MÀN HÌNH
+                                    onBook(room);
                                   }
                                       : null,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: primaryColor,
                                     foregroundColor: Colors.white,
-                                    disabledBackgroundColor:
-                                    Colors.grey[300],
+                                    disabledBackgroundColor: Colors.grey[300],
                                     elevation: 0,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
@@ -406,8 +397,7 @@ class HotelRoomTypeWidget extends StatelessWidget {
     } else if (amenityLower.contains('view') ||
         amenityLower.contains('cửa sổ')) {
       return Icons.window_rounded;
-    } else if (amenityLower.contains('tắm') ||
-        amenityLower.contains('vòi')) {
+    } else if (amenityLower.contains('tắm') || amenityLower.contains('vòi')) {
       return Icons.bathroom_rounded;
     } else if (amenityLower.contains('ăn')) {
       return Icons.restaurant_rounded;

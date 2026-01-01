@@ -38,4 +38,14 @@ class TourScheduleModel {
       meals: meals,
     );
   }
+  Map<String, dynamic> toJson() {
+    return {
+      "id": id,
+      "dayNumber": dayNumber,
+      "title": title,
+      "accommodation": accommodation,
+      "activities": activities,
+    };
+  }
+
 }

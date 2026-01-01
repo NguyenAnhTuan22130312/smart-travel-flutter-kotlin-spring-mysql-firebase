@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_travel/presentation/blocs/banner/banner_bloc.dart';
+import 'package:smart_travel/presentation/blocs/banner/banner_event.dart';
+import 'package:smart_travel/presentation/blocs/banner/banner_state.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
@@ -10,14 +13,16 @@ import 'package:smart_travel/presentation/widgets/category/custom_category.dart'
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
 import 'package:smart_travel/presentation/widgets/common/refreshable_scroll_view.dart';
 import 'package:smart_travel/presentation/widgets/destination/destination_card.dart';
+import 'package:smart_travel/presentation/widgets/home/home_banner_slider.dart';
 import 'package:smart_travel/presentation/widgets/province/province_is_popular_card.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import 'package:smart_travel/presentation/screens/tour/tour_list_screen.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_args.dart';
+import 'package:smart_travel/router/route_names.dart';
 import '../../theme/app_colors.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:smart_travel/presentation/screens/chat/ai_chat_screen.dart';
-
+import 'package:smart_travel/router/route_names.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
@@ -34,59 +39,51 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0; // Index cho thanh điều hướng dưới
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    context.read<ProfileBloc>().add(LoadProfile());
+  }
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
 
+void _onNavItemTapped(int index) {
+    // Nếu ấn vào tab đang đứng thì không làm gì
+    if (index == _selectedIndex) return;
 
-  void _onNavItemTapped(int index) {
-    // Dãy routes tương ứng với các tab
-    final List<String> routes = ['/home', '/explore', '/tours', '/hotel-list', '/ai_chat', '/profile'];
-    final String routeName = routes[index];
+    switch (index) {
+      case 0: // Home
+        setState(() => _selectedIndex = index);
+        Navigator.pushReplacementNamed(context, RouteNames.home);
+        break;
 
-    // 1. Trường hợp đặc biệt: Đặt tour (index 2)
-    if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const TourListScreen()),
-      );
-      // KHÔNG CẦN return, vì logic tiếp theo cũng có thể đúng (nếu bạn muốn highlight tab)
-    }
+      case 1: // Khám phá
+        setState(() => _selectedIndex = index);
+        Navigator.pushReplacementNamed(context, RouteNames.explore);
+        break;
 
-    // 2. Trường hợp màn hình Phụ cần nút Back: Khách sạn (index 3)
-    else if (index == 3) {
-      // SỬ DỤNG pushNamed để GIỮ HomeScreen lại trong Stack.
-      Navigator.pushNamed(context, routeName);
+      case 2: // Tour 
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const TourListScreen()));
+        break;
 
-      // KHÔNG thay đổi _selectedIndex, giữ tab Home (hoặc tab hiện tại) được highlight
-      return;
-    // 3. Trường hợp chuyển đổi giữa các tab chính (0, 1, 4, 5)
-    } else if (index == 4) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AIChatScreen()),
-        );
-        // Không cần return nếu bạn muốn tab bar ở dưới sáng lên icon chat
-        // Nhưng thường Chat sẽ mở ra màn hình riêng, nên return để giữ tab cũ cũng được.
-        return;
-      }
+      case 3: // Khách sạn 
+        Navigator.pushNamed(context, RouteNames.hotelList);
+        break;
 
-      // 4. Profile (Index 5) - SỬA LẠI INDEX CHO ĐÚNG
-      else if (index == 5) {
-        Navigator.pushNamed(context, '/profile');
-        return;
-      } else {
-      if (index == _selectedIndex) {
-        return; // Tránh điều hướng lại nếu chọn lại tab đang active
-      }
-      setState(() {
-        _selectedIndex = index;
-      });
-      // Dùng pushReplacementNamed để thay thế màn hình chính hiện tại.
-      Navigator.pushReplacementNamed(context, routeName);
+      case 4: // AI Chat
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatScreen()));
+        break;
+
+      case 5: // Profile
+        setState(() => _selectedIndex = index);
+        Navigator.pushReplacementNamed(context, RouteNames.profile);
+        break;
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,6 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
             slivers: [
               _buildAppBar(),
               _buildSearchBar(),
+              const HomeBannerSlider(),
               _buildAIChatBanner(),
               const CustomCategory(),
               _buildDestinationsListByCategory(),
@@ -259,6 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
 
   // AI Chat Banner - liên quan đến tính năng AI chatbot
   Widget _buildAIChatBanner() {
@@ -566,7 +565,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         TextButton(
                           onPressed: () {
-                            // TODO: Navigate to all provinces
+                           context.read<ProvinceBloc>().add(LoadProvince(loadAll: true));
                           },
                           child: Text(
                             AppLocalizations.of(context)!.seeAll,

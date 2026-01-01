@@ -1,5 +1,6 @@
 package com.example.smart_travel_BE.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -15,10 +16,10 @@ import java.util.List;
 @Table(name = "hotels",
         indexes = {
                 @Index(name = "idx_destination_id", columnList = "destination_id"),
-                @Index(name = "idx_star_rating", columnList = "star_rating DESC")
+                @Index(name = "idx_star_rating", columnList = "star_rating DESC"),
+                @Index(name = "idx_owner_id", columnList = "owner_id")
         })
 public class Hotel {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,6 +29,7 @@ public class Hotel {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "destination_id", nullable = false)
+    @JsonIgnore
     private Destination destination;
 
     @Column(name = "description", columnDefinition = "TEXT")
@@ -79,6 +81,10 @@ public class Hotel {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
 
     @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<HotelImage> images = new ArrayList<>();

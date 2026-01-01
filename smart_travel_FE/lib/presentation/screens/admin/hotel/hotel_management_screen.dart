@@ -1,7 +1,10 @@
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/domain/entities/hotel.dart';
-import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
+import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
+import 'package:smart_travel/presentation/blocs/auth/auth_state.dart';
+import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_event.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_state.dart';
@@ -39,6 +42,7 @@ class _HotelManagementScreenState extends State<HotelManagementScreen> {
   }
 
   void _showModal({Hotel? hotel}) {
+    if (!_isStrictHotelAdmin()) return;
     final hotelBloc = context.read<HotelBloc>();
     final hotelDetailBloc = context.read<HotelDetailBloc>();
 
@@ -58,6 +62,7 @@ class _HotelManagementScreenState extends State<HotelManagementScreen> {
   }
 
   void _confirmDelete(Hotel hotel) {
+    if (!_isStrictHotelAdmin()) return;
     final hotelBloc = context.read<HotelBloc>();
     showDialog(
       context: context,
@@ -179,6 +184,42 @@ class _HotelManagementScreenState extends State<HotelManagementScreen> {
               ),
             ],
           ),
+    );
+  }
+
+  bool _isStrictHotelAdmin() {
+    final authState = context.read<AuthBloc>().state;
+    String? role;
+
+    if (authState is LoginSuccess) {
+      role = authState.response.role;
+    } else if (authState is AdminAuthenticated) {
+      role = authState.role;
+    }
+    return role == "ADMINHOTEL";
+  }
+
+  void _handleStrictAction(VoidCallback action) {
+    if (_isStrictHotelAdmin()) {
+      action(); // Nếu là ADMINHOTEL thì cho phép làm tiếp
+    } else {
+      // Nếu là ADMIN tổng hoặc USER thường, dừng lại và báo lỗi
+      _showForbiddenSnackBar();
+    }
+  }
+
+  void _showForbiddenSnackBar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        elevation: 0,
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        content: AwesomeSnackbarContent(
+          title: 'Quyền hạn hạn chế',
+          message: 'Chỉ Quản lý khách sạn mới có quyền thực hiện thao tác này!',
+          contentType: ContentType.help, // Hoặc .failure
+        ),
+      ),
     );
   }
 
@@ -336,7 +377,7 @@ class _HotelManagementScreenState extends State<HotelManagementScreen> {
           ),
           const SizedBox(width: 16),
           ElevatedButton.icon(
-            onPressed: () => _showModal(hotel: null),
+            onPressed: () => _handleStrictAction(() => _showModal(hotel: null)),
             icon: const Icon(Icons.add, color: Colors.white),
             label: const Text(
               "Thêm Mới",
@@ -491,13 +532,13 @@ class _HotelManagementScreenState extends State<HotelManagementScreen> {
                                 _buildActionButton(
                                   icon: Icons.edit_outlined,
                                   color: AppColors.secondary,
-                                  onPressed: () => _showModal(hotel: hotel),
+                                  onPressed: () => _handleStrictAction(() => _showModal(hotel: hotel)),
                                 ),
                                 const SizedBox(width: 8),
                                 _buildActionButton(
                                   icon: Icons.delete_outline,
                                   color: Colors.redAccent,
-                                  onPressed: () => _confirmDelete(hotel),
+                                  onPressed: () => _handleStrictAction(() => _confirmDelete(hotel)),
                                 ),
                               ],
                             ),

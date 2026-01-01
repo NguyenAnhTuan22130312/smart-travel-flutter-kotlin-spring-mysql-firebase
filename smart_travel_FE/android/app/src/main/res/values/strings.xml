@@ -2,5 +2,6 @@
 <resources>
     <string name="app_name">smart_travel_FE</string>
     <string name="facebook_app_id">812219241727333</string>
+    <string name="facebook_client_token">b1661aa3dcc47c7965bc4e073e337fdf</string>
     <string name="facebook_login_protocol_scheme">fb812219241727333</string>
 </resources>

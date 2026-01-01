@@ -2,6 +2,7 @@
 
   import 'package:flutter_bloc/flutter_bloc.dart';
   import 'package:smart_travel/core/usecases/usecase.dart';
+import 'package:smart_travel/domain/entities/province.dart';
   import 'package:smart_travel/domain/usecases/province/add_province_use_case.dart';
   import 'package:smart_travel/domain/usecases/province/delete_province_use_case.dart';
   import 'package:smart_travel/domain/usecases/province/get_all_province_use_case.dart';
@@ -37,7 +38,13 @@ import 'package:smart_travel/domain/usecases/province/update_province_use_case.d
 
       result.fold(
             (failure) => emit(ProvinceError(failure.message)),
-            (province) => emit(ProvinceLoaded(province)),
+            (province) {
+              List<ProvinceEntity> list = province;
+              if(event.loadAll == false){
+                list = province.take(6).toList();
+              }
+              emit(ProvinceLoaded(list));
+            }
       );
     }
 
@@ -58,27 +65,34 @@ import 'package:smart_travel/domain/usecases/province/update_province_use_case.d
         Emitter<ProvinceState> emit) async {
       final result = await deleteProvinceUseCase(event.provinceId);
       result.fold(
-            (failure) => emit(ProvinceDeleteError(failure.message)),
+            (failure) async{
+              emit(ProvinceDeleteError(failure.message));
+              add(LoadProvince());
+            },
             (success) {
           emit(ProvinceDeleteSuccess());
-          // Reload the province list immediately after successful deletion
           add(LoadProvince());
         },
       );
     }
 
-  FutureOr<void> _onUpdateProvince(
-      UpdateProvince event,
-      Emitter<ProvinceState> emit)
-  async {
-    emit(ProvinceUpdateLoading());
-    final result = await updateProvinceUseCase(event.params);
-    result.fold((failure)=>emit(ProvinceUpdateError(failure.message)),
-        (success) async{
-        emit(ProvinceUpdateSuccess(),
-        );
-        add(LoadProvince());
-        });
+    FutureOr<void> _onUpdateProvince(
+        UpdateProvince event,
+        Emitter<ProvinceState> emit) async {
 
-  }
+      emit(ProvinceUpdateLoading());
+
+      final result = await updateProvinceUseCase(event.params);
+
+      await result.fold(
+            (failure) async {
+          emit(ProvinceUpdateError(failure.message));
+          add(LoadProvince());
+        },
+            (success) async {
+          emit(ProvinceUpdateSuccess());
+          add(LoadProvince());
+        },
+      );
+    }
 }

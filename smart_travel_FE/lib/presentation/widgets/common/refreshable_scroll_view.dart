@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_travel/presentation/blocs/banner/banner_bloc.dart';
+import 'package:smart_travel/presentation/blocs/banner/banner_event.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
 import 'package:smart_travel/presentation/blocs/province/province_bloc.dart';
@@ -22,11 +24,15 @@ class RefreshableScrollView extends StatelessWidget {
     final destinationBloc = context.read<DestinationBloc>();
     final provinceBloc = context.read<ProvinceBloc>();
     final profileBloc = context.read<ProfileBloc>();
+    final bannerBloc = context.read<BannerBloc>();
+
 
     // Bắt đồng thời tất cả event
     destinationBloc.add(LoadAllDestinations());
     provinceBloc.add(LoadProvince());
     profileBloc.add(LoadProfile());
+    bannerBloc.add(LoadAllBanner());
+
 
     // Đợi một chút để UX load
     await Future.delayed(const Duration(milliseconds: 600));

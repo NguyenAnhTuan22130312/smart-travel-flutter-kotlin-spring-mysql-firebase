@@ -525,6 +525,26 @@ class _UserCreateModalState extends State<UserCreateModal> {
             ],
           ),
         ),
+        DropdownMenuItem(
+          value: 'ADMINTOUR',
+          child: Row(
+            children: [
+              Icon(Icons.tour, size: 18, color: Colors.green),
+              SizedBox(width: 8),
+              Text('Admin Tour'),
+            ],
+          ),
+        ),
+        DropdownMenuItem(
+          value: 'ADMINHOTEL',
+          child: Row(
+            children: [
+              Icon(Icons.hotel, size: 18, color: Colors.purple),
+              SizedBox(width: 8),
+              Text('Admin Hotel'),
+            ],
+          ),
+        ),
       ],
       onChanged: (v) => setState(() => _selectedRole = v!),
     );

@@ -5,6 +5,9 @@ import 'package:smart_travel/domain/entities/hotel.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_event.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_state.dart';
+import 'package:smart_travel/presentation/screens/chat/ai_chat_screen.dart';
+import 'package:smart_travel/presentation/screens/tour/tour_list_screen.dart';
+import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
 import 'package:smart_travel/router/route_names.dart';
 import '../../theme/app_colors.dart';
 
@@ -18,13 +21,12 @@ class HotelListScreen extends StatefulWidget {
 class _HotelListScreenState extends State<HotelListScreen> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-
+  int _selectedIndex = 3;
   String _selectedFilter = "popular";
 
   // --- KHAI BÁO MÀU SẮC (CẤU HÌNH UI) ---
   static const Color textDark = Color(0xFF1F2937);
-  static const Color primary = Color(0xFF2196F3);
-  static const Color button = Color(0xFF23A39B);
+  static const Color primary = Color(0xFF51CCD1);
 
   @override
   void initState() {
@@ -40,6 +42,40 @@ class _HotelListScreenState extends State<HotelListScreen> {
     _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onNavItemTapped(int index) {
+    // Nếu ấn vào tab đang đứng thì không làm gì
+    if (index == _selectedIndex) return;
+
+    switch (index) {
+      case 0: // Home
+        setState(() => _selectedIndex = index);
+        Navigator.pushReplacementNamed(context, RouteNames.home);
+        break;
+
+      case 1: // Khám phá
+        setState(() => _selectedIndex = index);
+        Navigator.pushReplacementNamed(context, RouteNames.explore);
+        break;
+
+      case 2: // Tour (Push màn hình mới)
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const TourListScreen()));
+        break;
+
+      case 3: // Khách sạn (Push màn hình mới - Dùng RouteNames chuẩn)
+        Navigator.pushNamed(context, RouteNames.hotelList);
+        break;
+
+      case 4: // AI Chat (Push màn hình mới)
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatScreen()));
+        break;
+
+      case 5: // Profile
+        setState(() => _selectedIndex = index);
+        Navigator.pushReplacementNamed(context, RouteNames.profile);
+        break;
+    }
   }
 
   // HÀM HỖ TRỢ: Lấy sortBy/sortDir
@@ -79,7 +115,7 @@ class _HotelListScreenState extends State<HotelListScreen> {
     );
   }
 
-  // --- HÀM MỚI: UI THANH PHÂN TRANG (1 2 3...) ---
+  // --- HÀM : UI THANH PHÂN TRANG (1 2 3...) ---
   Widget _buildPaginationControls(int currentPage, int totalPages) {
     // Nếu chỉ có 1 trang hoặc không có trang nào thì không hiện
     if (totalPages <= 1) return const SizedBox.shrink();
@@ -183,17 +219,12 @@ class _HotelListScreenState extends State<HotelListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
         elevation: 0,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [primary, button],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            gradient: AppColors.mainGradient,
           ),
         ),
         foregroundColor: Colors.white,
@@ -201,28 +232,10 @@ class _HotelListScreenState extends State<HotelListScreen> {
           "Danh sách khách sạn",
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 20,
             color: Colors.white,
           ),
         ),
         centerTitle: true,
-        leading: GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: Container(
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  blurRadius: 12,
-                ),
-              ],
-            ),
-            child: const Icon(Icons.arrow_back, color: textDark, size: 24),
-          ),
-        ),
       ),
       body: Column(
         children: [
@@ -284,6 +297,10 @@ class _HotelListScreenState extends State<HotelListScreen> {
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: AppBottomNavigationWithIndicator(
+        currentIndex: _selectedIndex,
+        onTap: _onNavItemTapped,
       ),
     );
   }
