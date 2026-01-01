@@ -5,7 +5,7 @@ import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
 import 'package:smart_travel/presentation/blocs/statistics/statistics_bloc.dart';
 import 'package:smart_travel/presentation/blocs/statistics/statistics_event.dart';
 import 'package:smart_travel/presentation/blocs/statistics/statistics_state.dart';
-import 'package:smart_travel/presentation/widgets/statistics_overview_widget.dart';
+import 'package:smart_travel/presentation/widgets/statistic/statistics_overview_widget.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
 import 'package:smart_travel/injection_container.dart' as di;
 
@@ -14,12 +14,6 @@ class AdminDashboardScreen extends StatelessWidget {
 
   // Danh sách menu
   final List<Map<String, dynamic>> menuItems = const [
-    {
-      'id': 'dashboard',
-      'icon': Icons.dashboard,
-      'label': 'Dashboard',
-      'color': Colors.blue,
-    },
     {
       'id': 'admin/provinces',
       'icon': Icons.edit_location_alt,

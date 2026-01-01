@@ -25,7 +25,7 @@ class _StatisticsDetailContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Thống Kê Chi Tiết'),
+        title: const Text('Thống Kê'),
         backgroundColor: Colors.blue,
         elevation: 0,
       ),

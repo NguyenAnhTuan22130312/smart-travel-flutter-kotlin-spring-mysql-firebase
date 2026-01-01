@@ -378,7 +378,7 @@ Future<void> init() async {
   //Bloc tour
   sl.registerFactory(() => TourBloc(sl()));
   sl.registerFactory(() => TourDetailBloc(sl()));
-  
+
   // --- Usecases
   sl.registerLazySingleton(() => GetAdminTours(sl()));
   sl.registerLazySingleton(() => GetAdminTourDetailUseCase(sl()));
@@ -390,26 +390,28 @@ Future<void> init() async {
   sl.registerLazySingleton(() => DeleteTourImageUseCase(sl()));
 
   // --- Blocs
-  sl.registerFactory(() => AdminTourBloc(
-    getAdminTours: sl(),
-    createAdminTour: sl(),
-    deleteAdminTour: sl(),
-    uploadTourImage: sl(),
-    deleteTourImage: sl(),
-    setPrimaryTourImage: sl(),
-  ));
-
   sl.registerFactory(
-        () => AdminTourDetailBloc(sl<GetAdminTourDetailUseCase>(),
-          sl<UpdateAdminTourUseCase>(),
-          sl<SetPrimaryTourImageUseCase>(),
-          sl<DeleteTourImageUseCase>()),
+    () => AdminTourBloc(
+      getAdminTours: sl(),
+      createAdminTour: sl(),
+      deleteAdminTour: sl(),
+      uploadTourImage: sl(),
+      deleteTourImage: sl(),
+      setPrimaryTourImage: sl(),
+    ),
   );
 
   sl.registerFactory(
-        () => TourDetailBloc(sl()),
+    () => AdminTourDetailBloc(
+      sl<GetAdminTourDetailUseCase>(),
+      sl<UpdateAdminTourUseCase>(),
+      sl<SetPrimaryTourImageUseCase>(),
+      sl<DeleteTourImageUseCase>(),
+    ),
   );
-    
+
+  sl.registerFactory(() => TourDetailBloc(sl()));
+
   sl.registerFactory(
     () => AdminUserBloc(
       getUserList: sl(),

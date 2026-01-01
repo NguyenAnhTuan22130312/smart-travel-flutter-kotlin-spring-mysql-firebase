@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smart_travel/data/models/statistics/dashboard_stats.dart';
-import 'package:smart_travel/presentation/screens/admin/statistics_detail_screen.dart';
+import 'package:smart_travel/presentation/screens/admin/statistic/statistics_detail_screen.dart';
 
 class StatisticsOverviewWidget extends StatelessWidget {
   final DashboardStats stats;
@@ -44,7 +44,7 @@ class StatisticsOverviewWidget extends StatelessWidget {
                 const SizedBox(width: 12),
                 const Expanded(
                   child: Text(
-                    'Tổng Quan Thống Kê',
+                    'Tổng Quan',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
