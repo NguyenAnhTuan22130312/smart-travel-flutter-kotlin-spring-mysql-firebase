@@ -9,6 +9,7 @@ import 'package:smart_travel/presentation/blocs/admin_user/admin_user_state.dart
 import 'package:smart_travel/presentation/screens/admin/user/user_create_modal.dart';
 import 'package:smart_travel/presentation/screens/admin/user/user_detail_modal.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
+import 'package:smart_travel/core/utils/admin_permission_helper.dart';
 
 class UserManagementScreen extends StatefulWidget {
   const UserManagementScreen({Key? key}) : super(key: key);
@@ -22,11 +23,24 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   String _currentSortBy = 'createdAt';
   String _currentSortDirection = 'DESC';
   Timer? _debounceTimer;
+  bool _hasWritePermission = false;
+  bool _isCheckingPermission = true;
 
   @override
   void initState() {
     super.initState();
     context.read<AdminUserBloc>().add(const LoadUsers());
+    _checkWritePermission();
+  }
+
+  Future<void> _checkWritePermission() async {
+    final hasPermission = await AdminPermissionHelper.hasWritePermission();
+    if (mounted) {
+      setState(() {
+        _hasWritePermission = hasPermission;
+        _isCheckingPermission = false;
+      });
+    }
   }
 
   @override
@@ -103,12 +117,17 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           decoration: BoxDecoration(gradient: AppColors.mainGradient),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showCreateUserModal,
-        icon: const Icon(Icons.person_add),
-        label: const Text('Thêm User'),
-        backgroundColor: Colors.blue,
-      ),
+      floatingActionButton:
+          _isCheckingPermission
+              ? null
+              : _hasWritePermission
+              ? FloatingActionButton.extended(
+                onPressed: _showCreateUserModal,
+                icon: const Icon(Icons.person_add),
+                label: const Text('Thêm User'),
+                backgroundColor: Colors.blue,
+              )
+              : null, // Hide for ADMINTOUR/ADMINHOTEL
       body: BlocBuilder<AdminUserBloc, AdminUserState>(
         builder: (context, state) {
           if (state is AdminUserLoading) {

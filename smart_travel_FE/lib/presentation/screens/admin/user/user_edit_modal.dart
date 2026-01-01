@@ -5,6 +5,7 @@ import 'package:smart_travel/presentation/blocs/admin_user/admin_user_bloc.dart'
 import 'package:smart_travel/presentation/blocs/admin_user/admin_user_event.dart';
 import 'package:smart_travel/presentation/blocs/admin_user/admin_user_state.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
+import 'package:smart_travel/core/utils/admin_permission_helper.dart';
 
 class UserEditModal extends StatefulWidget {
   final dynamic user;
@@ -20,6 +21,8 @@ class _UserEditModalState extends State<UserEditModal> {
   late TextEditingController _fullNameCtrl;
   late TextEditingController _phoneCtrl;
   String? _selectedRole;
+  bool _canChangeRole = false;
+  bool _isCheckingPermission = true;
 
   final List<String> _roles = ['USER', 'ADMIN', 'ADMINTOUR', 'ADMINHOTEL'];
 
@@ -29,6 +32,19 @@ class _UserEditModalState extends State<UserEditModal> {
     _fullNameCtrl = TextEditingController(text: widget.user.fullName);
     _phoneCtrl = TextEditingController(text: widget.user.phone ?? '');
     _selectedRole = widget.user.role.toUpperCase();
+    _checkRolePermission();
+  }
+
+  Future<void> _checkRolePermission() async {
+    final canChange = await AdminPermissionHelper.canChangeRole(
+      widget.user.role,
+    );
+    if (mounted) {
+      setState(() {
+        _canChangeRole = canChange;
+        _isCheckingPermission = false;
+      });
+    }
   }
 
   @override
@@ -233,6 +249,30 @@ class _UserEditModalState extends State<UserEditModal> {
   }
 
   Widget _buildRoleDropdown() {
+    // Show read-only field if cannot change role
+    if (!_canChangeRole && !_isCheckingPermission) {
+      return TextFormField(
+        initialValue: _getRoleDisplayName(_selectedRole ?? 'USER'),
+        enabled: false,
+        decoration: InputDecoration(
+          labelText: 'Vai trò (Không thể thay đổi)',
+          prefixIcon: Icon(Icons.admin_panel_settings, color: Colors.grey[400]),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey[300]!),
+          ),
+          disabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey[300]!),
+          ),
+          filled: true,
+          fillColor: Colors.grey[200],
+          helperText: 'ADMIN không được đổi role của ADMINTOUR/ADMINHOTEL',
+          helperMaxLines: 2,
+        ),
+      );
+    }
+
     return DropdownButtonFormField<String>(
       value: _selectedRole,
       decoration: InputDecoration(
@@ -294,6 +334,19 @@ class _UserEditModalState extends State<UserEditModal> {
           }).toList(),
       onChanged: (v) => setState(() => _selectedRole = v),
     );
+  }
+
+  String _getRoleDisplayName(String role) {
+    switch (role.toUpperCase()) {
+      case 'ADMIN':
+        return 'Admin';
+      case 'ADMINTOUR':
+        return 'Admin Tour';
+      case 'ADMINHOTEL':
+        return 'Admin Hotel';
+      default:
+        return 'User';
+    }
   }
 
   Widget _buildFooter() {

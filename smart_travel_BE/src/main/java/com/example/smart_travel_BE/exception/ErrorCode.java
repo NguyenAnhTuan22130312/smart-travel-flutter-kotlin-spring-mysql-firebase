@@ -113,6 +113,12 @@ public enum ErrorCode {
     IMAGE_URL_BLANK(1081, "Đường dẫn hình ảnh không được để trống", HttpStatus.BAD_REQUEST),
     BANNER_NOT_EXISTED(1082, "Banner không tồn tại", HttpStatus.NOT_FOUND),
 
+    // ADMIN PERMISSIONS
+    CANNOT_MODIFY_ADMIN_USER(1090, "Không thể sửa thông tin admin khác cùng cấp", HttpStatus.FORBIDDEN),
+    CANNOT_CHANGE_ADMIN_ROLE(1091, "Không thể thay đổi role của ADMINTOUR/ADMINHOTEL", HttpStatus.FORBIDDEN),
+    NO_WRITE_PERMISSION(1092, "Bạn chỉ có quyền xem, không có quyền chỉnh sửa", HttpStatus.FORBIDDEN),
+    CANNOT_MODIFY_HIGHER_ROLE(1093, "Không thể chỉnh sửa tài khoản có role cao hơn hoặc bằng bạn", HttpStatus.FORBIDDEN),
+
     ;
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
