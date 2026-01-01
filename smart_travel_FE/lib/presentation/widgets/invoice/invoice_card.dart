@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../screens/invoice/cancel_booking_screen.dart';
 import '../../screens/invoice/invoice_detail_screen.dart';
 import '../../theme/app_colors.dart';
 
@@ -32,8 +33,22 @@ class InvoiceCard extends StatelessWidget {
   void _onMenuSelected(BuildContext context, String value) {
     switch (value) {
       case 'cancel':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Mở màn hình hủy đặt chỗ")),
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CancelBookingScreen(
+              bookingData: {
+                "bookingId": bookingId,
+                "invoiceNumber": invoiceNumber,
+                "itemName": itemName,
+                "startDate": startDate,
+                "endDate": endDate,
+                "nights": nights,
+                "status": status,
+                "reviewed": reviewed,
+              },
+            ),
+          ),
         );
         break;
       case 'export':
@@ -76,39 +91,7 @@ class InvoiceCard extends StatelessWidget {
             context,
             MaterialPageRoute(
               builder: (context) => InvoiceDetailScreen(
-                invoiceData: {
-                  "code": 1000,
-                  "msg": "Lấy chi tiết đơn hàng thành công",
-                  "data": {
-                    "bookingId": bookingId,
-                    "invoiceNumber": invoiceNumber,
-                    "bookingType": isHotel ? "HOTEL" : "TOUR",
-                    "status": status,
-                    "itemName": itemName,
-                    "thumbnailUrl": isHotel
-                        ? "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/29/c8/85/fe/mercure-danang-french.jpg?w=900&h=500&s=1"
-                        : "https://res.klook.com/image/upload/q_85/c_fill,w_750/v1677426777/blog/thlnttcqlnfvixs13kwd.jpg",
-                    "startDate": startDate,
-                    "endDate": endDate,
-                    "nights": nights,
-                    "numberOfPeople": 4,
-                    "totalPrice": 16800000.0,
-                    "discountAmount": 0.0,
-                    "finalPrice": 16800000.0,
-                    "paymentStatus": "SUCCESS",
-                    "taxAmount": 0.0,
-                    "itemDetailsJson": isHotel
-                        ? "[{\"name\": \"Phòng Deluxe\", \"rooms\": 2, \"nights\": $nights, \"subtotal\": 16800000.0, \"unit_price\": 2800000.0}]"
-                        : "[{\"name\": \"Tour trọn gói\", \"rooms\": 1, \"nights\": $nights, \"subtotal\": 16800000.0, \"unit_price\": 16800000.0}]",
-                    "issueDate": startDate,
-                    "customerName": "Nguyễn Văn A",
-                    "customerPhone": "0123456789",
-                    "customerEmail": "example@gmail.com",
-                    "amenitiesSummary": isHotel ? "Hồ bơi · Spa · Wifi miễn phí" : "Xe đưa đón · Hướng dẫn viên",
-                    "specialRequests": "Phòng view biển",
-                    "reviewed": reviewed,
-                  }
-                },
+                bookingId: bookingId, // ← Chỉ truyền bookingId
               ),
             ),
           );

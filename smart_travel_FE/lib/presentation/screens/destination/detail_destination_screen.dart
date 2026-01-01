@@ -553,7 +553,6 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
               onTap: () {
-                // (Tôi giả sử thuộc tính ID của bạn là 'id')
                 Navigator.pushNamed(
                   context,
                   RouteNames.hotelDetail,

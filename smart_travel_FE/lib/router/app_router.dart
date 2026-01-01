@@ -27,6 +27,7 @@ import 'package:smart_travel/presentation/screens/splash/splash_screen.dart';
 import 'package:smart_travel/router/route_names.dart';
 import 'package:smart_travel/presentation/screens/tour/tour_detail_screen.dart';
 import '../injection_container.dart' as di;
+import '../presentation/screens/invoice/my_invoices_screen.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -124,6 +125,10 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => TourDetailScreen(tourId: id),
           settings: settings,
+        );
+      case RouteNames.myInvoices:
+        return MaterialPageRoute(
+          builder: (_) => const MyInvoicesScreen(),
         );
       default:
         return MaterialPageRoute(

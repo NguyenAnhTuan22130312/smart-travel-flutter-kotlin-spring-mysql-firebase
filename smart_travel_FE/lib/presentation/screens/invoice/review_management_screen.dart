@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_travel/injection_container.dart' as di;
+import 'package:smart_travel/presentation/blocs/invoice/review_bloc.dart';
+import 'package:smart_travel/presentation/theme/app_colors.dart';
 import 'package:smart_travel/presentation/widgets/invoice/invoice_review_card.dart';
-import '../../theme/app_colors.dart';
-import '../../widgets/invoice/succes_request_review.dart';
+import 'package:smart_travel/presentation/widgets/invoice/succes_request_review.dart';
+
+import '../../blocs/invoice/refund_bloc.dart';
+import '../../blocs/invoice/refund_event.dart';
+import '../../blocs/invoice/review_event.dart';
+import '../../blocs/invoice/review_state.dart';
 
 class ReviewManagementScreen extends StatelessWidget {
   const ReviewManagementScreen({Key? key}) : super(key: key);
@@ -19,7 +27,7 @@ class ReviewManagementScreen extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // HEADER XANH - Nút back tròn trắng + Tiêu đề
+            // HEADER XANH
             Container(
               color: AppColors.primary,
               padding: EdgeInsets.fromLTRB(
@@ -30,7 +38,6 @@ class ReviewManagementScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  // Nút back tròn trắng, mũi tên xanh
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: Container(
@@ -48,7 +55,6 @@ class ReviewManagementScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  // Tiêu đề
                   const Text(
                     "Đánh giá trải nghiệm gần đây của bạn",
                     style: TextStyle(
@@ -61,78 +67,85 @@ class ReviewManagementScreen extends StatelessWidget {
               ),
             ),
 
-            // PHẦN LIST ĐƠN HÀNG - TEST GIẢ LẬP VỚI InvoiceStatusCard
+            // NỘI DUNG + PULL TO REFRESH
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                children: [
-                  // ==== DỮ LIỆU GIẢ LẬP - COPY ĐOẠN NÀY SANG CÁC TRANG KHÁC NẾU CẦN ====
-                  InvoiceReviewCard(
-                    bookingId: 1,
-                    invoiceNumber: "INV20251026-000",
-                    itemName: "Mercure Ba Na Hills French Village",
-                    startDate: "2025-10-26",
-                    endDate: "2025-10-27",
-                    nights: 1,
-                    status: "ACTIVE", // → Hiển thị "Đang hoạt động" màu xanh
-                    reviewed: false,
-                  ),
-                  const SizedBox(height: 12),
+              child: BlocProvider(
+                create: (_) => di.sl<ReviewBloc>()..add( LoadReviewableInvoices()),
+                child: BlocBuilder<ReviewBloc, ReviewState>(
+                  builder: (context, state) {
+                    Widget body;
 
-                  InvoiceReviewCard(
-                    bookingId: 2,
-                    invoiceNumber: "INV20251209-001",
-                    itemName: "Tour Bà Nà Hills 1 Ngày",
-                    startDate: "2025-12-09",
-                    endDate: "2025-12-10",
-                    nights: 0,
-                    status: "COMPLETED", // → "Đã hoàn thành" màu xanh lá
-                    reviewed: true,
-                  ),
-                  const SizedBox(height: 12),
+                    if (state is ReviewLoading) {
+                      body = const Center(child: CircularProgressIndicator(color: AppColors.primary));
+                    } else if (state is ReviewError) {
+                      body = Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.error_outline, size: 60, color: Colors.red),
+                            const SizedBox(height: 16),
+                            const Text("Đã có lỗi xảy ra", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            Text(state.message),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () => context.read<ReviewBloc>().add( LoadReviewableInvoices()),
+                              child: const Text("Thử lại"),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else if (state is ReviewLoaded) {
+                      final invoices = state.invoices;
 
-                  InvoiceReviewCard(
-                    bookingId: 3,
-                    invoiceNumber: "INV20251225-002",
-                    itemName: "Tour Bà Nà Hills - Hội An 2N1Đ",
-                    startDate: "2025-12-25",
-                    endDate: "2025-12-26",
-                    nights: 1,
-                    status: "CANCELED", // → "Đã hủy" màu đỏ
-                    reviewed: false,
-                  ),
-                  const SizedBox(height: 12),
+                      if (invoices.isEmpty) {
+                        body = const SuccessReviewEmptyWidget(); // ← Widget empty bạn đã có
+                      } else {
+                        body = ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                          itemCount: invoices.length,
+                          itemBuilder: (context, index) {
+                            final invoice = invoices[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: InvoiceReviewCard(
+                                bookingId: invoice.bookingId,
+                                invoiceNumber: invoice.invoiceNumber,
+                                itemName: invoice.itemName,
+                                startDate: invoice.startDate,
+                                endDate: invoice.endDate,
+                                nights: invoice.nights,
+                                status: invoice.status,
+                                reviewed: invoice.reviewed,
+                              ),
+                            );
+                          },
+                        );
+                      }
+                    } else {
+                      body = const Center(child: CircularProgressIndicator(color: AppColors.primary));
+                    }
 
-                  InvoiceReviewCard(
-                    bookingId: 4,
-                    invoiceNumber: "INV20250115-003",
-                    itemName: "Vinpearl Resort & Spa Hội An",
-                    startDate: "2025-01-15",
-                    endDate: "2025-01-18",
-                    nights: 3,
-                    status: "PENDING_REFUND", // → "Đang chờ hoàn tiền" màu cam
-                    reviewed: false,
-                  ),
-                  const SizedBox(height: 12),
-
-                  InvoiceReviewCard(
-                    bookingId: 5,
-                    invoiceNumber: "INV20250220-004",
-                    itemName: "Tour Phú Quốc 3N2Đ",
-                    startDate: "2025-02-20",
-                    endDate: "2025-02-23",
-                    nights: 2,
-                    status: "REFUNDED", // → "Đã hoàn tiền" màu tím/xám
-                    reviewed: true,
-                  ),
-                  // ==== KẾT THÚC ĐOẠN TEST GIẢ LẬP ====
-
-                  const SizedBox(height: 20),
-                  SuccessReviewEmptyWidget()
-                ],
+                    return RefreshIndicator(
+                      onRefresh: () async {
+                        context.read<RefundBloc>().add(LoadRefundedInvoices());
+                      },
+                      color: AppColors.primary,
+                      child: body is ListView
+                          ? body // Nếu là ListView → dùng trực tiếp (đã scrollable)
+                          : SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: MediaQuery.of(context).size.height - 200,
+                          ),
+                          child: Center(child: body),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
-
           ],
         ),
       ),

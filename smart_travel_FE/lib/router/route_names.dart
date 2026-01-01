@@ -35,4 +35,6 @@ class RouteNames {
   static const String settings = '/profile/settings';
   static const String accountManagement = '/profile/account-management';
   static const String userLevel = '/profile/level';
+
+  static const String myInvoices = '/my-invoices';
 }

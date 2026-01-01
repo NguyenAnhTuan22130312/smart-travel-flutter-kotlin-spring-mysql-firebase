@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @Repository
 public interface InvoiceRepository extends JpaRepository<Booking, Long> {
-    // ← extends Booking nhưng tên vẫn là InvoiceRepository như bạn yêu cầu
+
 
     // 1. Giữ nguyên tên method cũ (dùng cho chi tiết đơn)
     @Query("""
@@ -77,7 +77,7 @@ public interface InvoiceRepository extends JpaRepository<Booking, Long> {
             LEFT JOIN Tour t ON b.tourId = t.id AND b.bookingType = 'TOUR'
             LEFT JOIN Hotel h ON b.hotelId = h.id AND b.bookingType = 'HOTEL'
             WHERE b.user.id = :userId
-              AND b.status IN ('ACTIVE')
+              AND b.status IN ('ACTIVE','CHECKED')
               AND (:keyword IS NULL OR :keyword = '' OR :keyword = 'null'
                    OR LOWER(t.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
                    OR LOWER(h.name) LIKE LOWER(CONCAT('%', :keyword, '%')))

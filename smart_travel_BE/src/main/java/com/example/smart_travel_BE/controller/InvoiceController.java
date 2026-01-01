@@ -21,11 +21,22 @@ public class InvoiceController {
     private final InvoiceService invoiceService;
 
     // 1. Lấy danh sách đơn hàng đang hoạt động của user
-    @GetMapping("/active/{userId}")
-    public APIResponse<List<ActiveInvoiceResponse>> getActiveInvoices(
-            @PathVariable("userId") Long userId) {
-        System.out.println(userId);
-        List<ActiveInvoiceResponse> result = invoiceService.getActiveInvoices(userId);
+//    @GetMapping("/active/{userId}")
+//    public APIResponse<List<ActiveInvoiceResponse>> getActiveInvoices(
+//            @PathVariable("userId") Long userId) {
+//        System.out.println(userId);
+//        List<ActiveInvoiceResponse> result = invoiceService.getActiveInvoices();
+//
+//        return APIResponse.<List<ActiveInvoiceResponse>>builder()
+//                .code(1000)
+//                .msg("Lấy danh sách đơn hàng thành công")
+//                .data(result)
+//                .build();
+//    }
+
+    @GetMapping("/active")
+    public APIResponse<List<ActiveInvoiceResponse>> getActiveInvoices() {
+        List<ActiveInvoiceResponse> result = invoiceService.getActiveInvoices();
 
         return APIResponse.<List<ActiveInvoiceResponse>>builder()
                 .code(1000)
@@ -35,11 +46,9 @@ public class InvoiceController {
     }
 
     // 2. Lấy danh sách đơn đã hoàn tiền
-    @GetMapping("/refunded/{userId}")
-    public APIResponse<List<ActiveInvoiceResponse>> getRefundedInvoices(
-            @PathVariable("userId") Long userId) {
-        System.out.println(userId);
-        List<ActiveInvoiceResponse> result = invoiceService.getRefundedInvoices(userId);
+    @GetMapping("/refunded")
+    public APIResponse<List<ActiveInvoiceResponse>> getRefundedInvoices() {
+        List<ActiveInvoiceResponse> result = invoiceService.getRefundedInvoices();
 
         return APIResponse.<List<ActiveInvoiceResponse>>builder()
                 .code(1000)
@@ -49,11 +58,9 @@ public class InvoiceController {
     }
 
     // 3. Lấy danh sách đơn có thể đánh giá
-    @GetMapping("/reviewable/{userId}")
-    public APIResponse<List<ActiveInvoiceResponse>> getReviewableInvoices(
-            @PathVariable("userId") Long userId) {
-        System.out.println(userId);
-        List<ActiveInvoiceResponse> result = invoiceService.getReviewableInvoices(userId);
+    @GetMapping("/reviewable")
+    public APIResponse<List<ActiveInvoiceResponse>> getReviewableInvoices() {
+        List<ActiveInvoiceResponse> result = invoiceService.getReviewableInvoices();
 
         return APIResponse.<List<ActiveInvoiceResponse>>builder()
                 .code(1000)
@@ -63,12 +70,10 @@ public class InvoiceController {
     }
 
     // 4. Tìm kiếm đơn đang hoạt động
-    @GetMapping("/active/search/{userId}")
+    @GetMapping("/active/search")
     public APIResponse<List<ActiveInvoiceResponse>> searchActiveInvoices(
-            @PathVariable("userId") Long userId,
             @RequestParam(required = false, defaultValue = "") String keyword) {
-
-        List<ActiveInvoiceResponse> result = invoiceService.searchActiveInvoices(userId, keyword);
+        List<ActiveInvoiceResponse> result = invoiceService.searchActiveInvoices(keyword);
 
         return APIResponse.<List<ActiveInvoiceResponse>>builder()
                 .code(1000)
@@ -78,12 +83,11 @@ public class InvoiceController {
     }
 
     // 5. Tìm kiếm đơn đã hoàn tiền
-    @GetMapping("/refunded/search/{userId}")
+    @GetMapping("/refunded/search")
     public APIResponse<List<ActiveInvoiceResponse>> searchRefundedInvoices(
-            @PathVariable("userId") Long userId,
             @RequestParam(required = false, defaultValue = "") String keyword) {
 
-        List<ActiveInvoiceResponse> result = invoiceService.searchRefundedInvoices(userId, keyword);
+        List<ActiveInvoiceResponse> result = invoiceService.searchRefundedInvoices(keyword);
 
         return APIResponse.<List<ActiveInvoiceResponse>>builder()
                 .code(1000)
@@ -107,20 +111,12 @@ public class InvoiceController {
     }
 
     // 7. Yêu cầu hoàn tiền (dùng bookingId thay vì invoiceNumber cho dễ)
-    @PostMapping("/refund/{userId}")
+    @PostMapping("/refund")
     public APIResponse<Void> requestRefund(
-            @PathVariable("userId") long userId,
             @RequestBody @Valid RefundRequest request) {
 
-        // Không cần token → chỉ kiểm tra userId có hợp lệ không (đơn giản cho đồ án)
-        if (userId <= 0) {
-            return APIResponse.<Void>builder()
-                    .code(1007)
-                    .msg("User ID không hợp lệ")
-                    .build();
-        }
 
-        invoiceService.requestRefund(userId, request.getBookingId(), request.getReason());
+        invoiceService.requestRefund(request.getBookingId(), request.getReason());
 
         return APIResponse.<Void>builder()
                 .code(1000)
@@ -128,14 +124,12 @@ public class InvoiceController {
                 .build();
     }
 
-    @GetMapping("/history/{userId}")
+    @GetMapping("/history")
     public APIResponse<List<ActiveInvoiceResponse>> getTransactionHistory(
-            @PathVariable("userId") long userId,
             @RequestParam(required = false, defaultValue = "ALL") String type,     // ALL, TOUR, HOTEL
             @RequestParam(required = false) String status) {                       // PENDING, ACTIVE, ...
 
         List<ActiveInvoiceResponse> result = invoiceService.getTransactionHistory(
-                userId,
                 "ALL".equalsIgnoreCase(type) ? null : type,
                 status
         );

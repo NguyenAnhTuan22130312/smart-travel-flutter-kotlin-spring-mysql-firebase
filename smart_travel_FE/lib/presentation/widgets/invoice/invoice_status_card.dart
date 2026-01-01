@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../screens/invoice/cancel_booking_screen.dart';
+import '../../screens/invoice/invoice_detail_screen.dart';
 import '../../theme/app_colors.dart';
 
 class InvoiceStatusCard extends StatelessWidget {
@@ -8,7 +10,7 @@ class InvoiceStatusCard extends StatelessWidget {
   final String startDate;
   final String endDate;
   final int nights;
-  final String status; // "ACTIVE", "COMPLETED", "CANCELED", "PENDING_REFUND", "REFUNDED"
+  final String status;
   final bool reviewed;
 
   const InvoiceStatusCard({
@@ -36,6 +38,12 @@ class InvoiceStatusCard extends StatelessWidget {
         text: "Đang hoạt động",
         backgroundColor: AppColors.primary.withOpacity(0.15),
         textColor: AppColors.primary,
+        );
+      case 'CHECKED':
+        return (
+        text: "Đã nhận đơn",
+        backgroundColor: Colors.green.withOpacity(0.15),
+        textColor: Colors.green[700]!,
         );
       case 'COMPLETED':
         return (
@@ -73,8 +81,22 @@ class InvoiceStatusCard extends StatelessWidget {
   void _onMenuSelected(BuildContext context, String value) {
     switch (value) {
       case 'cancel':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Mở màn hình hủy đặt chỗ")),
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CancelBookingScreen(
+              bookingData: {
+                "bookingId": bookingId,
+                "invoiceNumber": invoiceNumber,
+                "itemName": itemName,
+                "startDate": startDate,
+                "endDate": endDate,
+                "nights": nights,
+                "status": status,
+                "reviewed": reviewed,
+              },
+            ),
+          ),
         );
         break;
       case 'export':
@@ -93,7 +115,6 @@ class InvoiceStatusCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -112,122 +133,136 @@ class InvoiceStatusCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header: Mã đặt chỗ + Tùy chọn (menu động)
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  "Mã đặt chỗ: $invoiceNumber",
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => InvoiceDetailScreen(
+                bookingId: bookingId,
               ),
-              PopupMenuButton<String>(
-                onSelected: (value) => _onMenuSelected(context, value),
-                child: const Text(
-                  "Tùy chọn",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
-                  ),
-                ),
-                offset: const Offset(0, 36),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                color: Colors.white,
-                elevation: 6,
-                itemBuilder: (context) => [
-                  // Chỉ hiện "Hủy đặt chỗ" nếu status là ACTIVE
-                  if (canCancel)
-                    const PopupMenuItem(
-                      value: 'cancel',
-                      child: Text("Hủy đặt chỗ"),
+            ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header: Mã đặt chỗ + Tùy chọn (menu động)
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      "Mã đặt chỗ: $invoiceNumber",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
                     ),
-                  // Luôn hiện "Xuất phiếu thanh toán"
-                  const PopupMenuItem(
-                    value: 'export',
-                    child: Text("Xuất phiếu thanh toán"),
+                  ),
+                  PopupMenuButton<String>(
+                    onSelected: (value) => _onMenuSelected(context, value),
+                    child: const Text(
+                      "Tùy chọn",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    offset: const Offset(0, 36),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    color: Colors.white,
+                    elevation: 6,
+                    itemBuilder: (context) => [
+                      if (canCancel)
+                        const PopupMenuItem(
+                          value: 'cancel',
+                          child: Text("Hủy đặt chỗ"),
+                        ),
+                      const PopupMenuItem(
+                        value: 'export',
+                        child: Text("Xuất phiếu thanh toán"),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-          const SizedBox(height: 6),
+              const SizedBox(height: 6),
 
-          // Tên tour/khách sạn
-          Row(
-            children: [
-              Icon(
-                isHotel ? Icons.hotel_outlined : Icons.tour_outlined,
-                color: AppColors.primary,
-                size: 22,
+              // Tên tour/khách sạn
+              Row(
+                children: [
+                  Icon(
+                    isHotel ? Icons.hotel_outlined : Icons.tour_outlined,
+                    color: AppColors.primary,
+                    size: 22,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      itemName,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 10),
-              Expanded(
+              const SizedBox(height: 6),
+
+              // Ngày + số đêm
+              Row(
+                children: [
+                  Icon(Icons.calendar_today_outlined, size: 18, color: Colors.grey),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: RichText(
+                      text: TextSpan(
+                        style: const TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w600),
+                        children: [
+                          TextSpan(text: "${_formatDate(startDate)} - ${_formatDate(endDate)}"),
+                          if (isHotel) ...[
+                            const TextSpan(text: " · "),
+                            TextSpan(
+                              text: "$nights đêm",
+                              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              // Trạng thái động
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: statusInfo.backgroundColor,
+                  borderRadius: BorderRadius.circular(4),
+                ),
                 child: Text(
-                  itemName,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-
-          // Ngày + số đêm
-          Row(
-            children: [
-              Icon(Icons.calendar_today_outlined, size: 18, color: Colors.grey),
-              const SizedBox(width: 8),
-              Expanded(
-                child: RichText(
-                  text: TextSpan(
-                    style: const TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w600),
-                    children: [
-                      TextSpan(text: "${_formatDate(startDate)} - ${_formatDate(endDate)}"),
-                      if (isHotel) ...[
-                        const TextSpan(text: " · "),
-                        TextSpan(
-                          text: "$nights đêm",
-                          style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    ],
+                  statusInfo.text,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: statusInfo.textColor,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-
-          // Trạng thái động
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: statusInfo.backgroundColor,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              statusInfo.text,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: statusInfo.textColor,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

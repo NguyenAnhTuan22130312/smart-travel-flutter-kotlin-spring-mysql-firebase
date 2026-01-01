@@ -64,6 +64,13 @@ import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dar
 import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotail_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
+import 'package:smart_travel/presentation/blocs/invoice/cancel_bloc.dart';
+import 'package:smart_travel/presentation/blocs/invoice/detail_bloc.dart';
+import 'package:smart_travel/presentation/blocs/invoice/invoice_bloc.dart';
+import 'package:smart_travel/presentation/blocs/invoice/refund_bloc.dart';
+import 'package:smart_travel/presentation/blocs/invoice/review_bloc.dart';
+import 'package:smart_travel/presentation/blocs/invoice/search_bloc.dart';
+import 'package:smart_travel/presentation/blocs/invoice/transaction_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/provicne_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/province_bloc.dart';
@@ -90,7 +97,17 @@ import 'package:smart_travel/presentation/blocs/tour/tour_bloc.dart';
 import 'package:smart_travel/domain/usecases/tour/get_tour_detail_usecase.dart';
 import 'package:smart_travel/domain/usecases/tour/filter_tour_usecase.dart';
 
+import 'data/data_sources/remote/invoice_remote_data_source.dart';
 import 'data/repositories/chat_repository_impl.dart';
+import 'data/repositories/invoice_repository_impl.dart';
+import 'domain/usecases/invoice/cancel_booking_usecase.dart';
+import 'domain/usecases/invoice/get_active_invoices_usecase.dart';
+import 'domain/repositories/invoice_repository.dart';
+import 'domain/usecases/invoice/get_invoice_detail_usecase.dart';
+import 'domain/usecases/invoice/get_refunded_invoices_usecase.dart';
+import 'domain/usecases/invoice/get_reviewable_invoices_usecase.dart';
+import 'domain/usecases/invoice/get_transaction_history_usecase.dart';
+import 'domain/usecases/invoice/search_active_invoices_usecase.dart';
 
 final sl = GetIt.instance;
 
@@ -345,5 +362,83 @@ Future<void> init() async {
       processPaymentUseCase: sl(),
       confirmCashBookingUseCase: sl(),
     ),
+  );
+
+  // ==================== INVOICE ====================
+  sl.registerLazySingleton<InvoiceRemoteDataSource>(
+        () => InvoiceRemoteDataSourceImpl(dioClient: sl<DioClient>()),
+  );
+
+  // Repository
+  sl.registerLazySingleton<InvoiceRepository>(
+        () => InvoiceRepositoryImpl(sl<InvoiceRemoteDataSource>()),
+  );
+
+  // UseCase
+  sl.registerFactory<GetActiveInvoicesUseCase>(
+        () => GetActiveInvoicesUseCase(sl<InvoiceRepository>()),
+  );
+
+  // Bloc vẫn factory
+  sl.registerFactory<InvoiceBloc>(
+        () => InvoiceBloc(sl<GetActiveInvoicesUseCase>()),
+  );
+
+  // Transaction History UseCase
+  sl.registerLazySingleton<GetTransactionHistoryUseCase>(
+        () => GetTransactionHistoryUseCase(sl<InvoiceRepository>()),
+  );
+
+  // Transaction Bloc
+  sl.registerFactory<TransactionBloc>(
+        () => TransactionBloc(sl<GetTransactionHistoryUseCase>()),
+  );
+
+  // Refund UseCase
+  sl.registerLazySingleton<GetRefundedInvoicesUseCase>(
+        () => GetRefundedInvoicesUseCase(sl<InvoiceRepository>()),
+  );
+
+  // Refund Bloc
+  sl.registerFactory<RefundBloc>(
+        () => RefundBloc(sl<GetRefundedInvoicesUseCase>()),
+  );
+
+  // Review UseCase
+  sl.registerLazySingleton<GetReviewableInvoicesUseCase>(
+        () => GetReviewableInvoicesUseCase(sl<InvoiceRepository>()),
+  );
+
+  // Review Bloc
+  sl.registerFactory<ReviewBloc>(
+        () => ReviewBloc(sl<GetReviewableInvoicesUseCase>()),
+  );
+
+  // Search UseCase
+  sl.registerLazySingleton<SearchActiveInvoicesUseCase>(
+        () => SearchActiveInvoicesUseCase(sl<InvoiceRepository>()),
+  );
+
+  // Search Bloc
+  sl.registerFactory<SearchBloc>(
+        () => SearchBloc(sl<SearchActiveInvoicesUseCase>()),
+  );
+
+  // Cancel UseCase
+  sl.registerLazySingleton<CancelBookingUseCase>(
+        () => CancelBookingUseCase(sl<InvoiceRepository>()),
+  );
+
+  // Cancel Bloc
+  sl.registerFactory<CancelBloc>(
+        () => CancelBloc(sl<CancelBookingUseCase>()),
+  );
+
+  sl.registerLazySingleton<GetInvoiceDetailUseCase>(
+        () => GetInvoiceDetailUseCase(sl<InvoiceRepository>()),
+  );
+
+  sl.registerFactory<DetailBloc>(
+        () => DetailBloc(sl<GetInvoiceDetailUseCase>()),
   );
 }
