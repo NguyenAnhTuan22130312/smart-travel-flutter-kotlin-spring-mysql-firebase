@@ -98,10 +98,9 @@ import 'package:smart_travel/presentation/screens/admin/tour/tour_create_model.d
             Expanded(child: _buildTourList()),
           ],
         ),
-        floatingActionButton: FloatingActionButton.extended(
+        floatingActionButton: FloatingActionButton(
           backgroundColor: AppColors.green,
-          icon: const Icon(Icons.add),
-          label: const Text('Thêm'),
+          elevation: 4,
           onPressed: () {
             showDialog(
               context: context,
@@ -111,6 +110,7 @@ import 'package:smart_travel/presentation/screens/admin/tour/tour_create_model.d
               ),
             );
           },
+          child: const Icon(Icons.add, color: Colors.white, size: 28),
         ),
       );
     }
@@ -203,24 +203,32 @@ import 'package:smart_travel/presentation/screens/admin/tour/tour_create_model.d
               final matchSearch = t.name
                   .toLowerCase()
                   .contains(_searchController.text.toLowerCase());
-
               final matchStatus =
                   _statusFilter == 'all' ||
                       (_statusFilter == 'active' && t.isActive) ||
                       (_statusFilter == 'inactive' && !t.isActive);
-
               return matchSearch && matchStatus;
             }).toList();
 
-            if (tours.isEmpty) {
+            if (tours.isEmpty && state.currentPage == 0) {
               return const Center(child: Text('Không có tour'));
             }
 
-            return ListView.separated(
-              padding: const EdgeInsets.all(12),
-              itemCount: tours.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (_, i) => _buildTourCard(tours[i]),
+            return Column(
+              children: [
+                // Phần danh sách chiếm hết không gian còn lại
+                Expanded(
+                  child: tours.isEmpty
+                      ? const Center(child: Text('Không tìm thấy tour nào'))
+                      : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    itemCount: tours.length,
+                    itemBuilder: (context, index) => _buildTourCard(tours[index]),
+                  ),
+                ),
+                // Phần thanh phân trang cố định ở dưới cùng danh sách
+                _buildPagination(state.currentPage, state.totalPages),
+              ],
             );
           }
 
@@ -230,110 +238,122 @@ import 'package:smart_travel/presentation/screens/admin/tour/tour_create_model.d
     }
   
     // ============================ CARD ============================
-  
+
     Widget _buildTourCard(AdminTourModel tourModel) {
-      return Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 2,
-        child: ListTile(
-          leading: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: tourModel.image != null && tourModel.image!.isNotEmpty
-                ? Image.network(
-              tourModel.image!,
-              width: 55,
-              height: 55,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _defaultImage(55),
-            )
-                : _defaultImage(55),
-          ),
-          title: Text(
-            tourModel.name,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Điểm đến: ${tourModel.destinationName}'),
-              Text(
-                'Giá: ${tourModel.pricePerPerson} đ',
-                style: const TextStyle(color: Colors.orange),
-              ),
-              Text(
-                tourModel.isActive ? 'Hoạt động' : 'Ngưng hoạt động',
-                style: TextStyle(
-                  color: tourModel.isActive ? Colors.green : Colors.red,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-          trailing: PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'edit') {
-                _openEditTourModal(tourModel.id);
-              }
-              if (value == 'delete') {
-                _confirmDeleteTour(
-                  context: context,
-                  tourId: tourModel.id,
-                  tourName: tourModel.name,
-                );
-              }
-            },
-            itemBuilder: (_) => const [
-              PopupMenuItem(
-                value: 'edit',
-                child: Row(
-                  children: [
-                    Icon(Icons.edit, size: 18),
-                    SizedBox(width: 8),
-                    Text('Sửa'),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete, color: Colors.red, size: 18),
-                    SizedBox(width: 8),
-                    Text('Xoá'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-  
-          // ===== TAP TO DETAIL =====
+      return Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
           onTap: () {
-            context
-                .read<AdminTourDetailBloc>()
-                .add(LoadAdminTourDetail(tourModel.id));
-  
+            context.read<AdminTourDetailBloc>().add(LoadAdminTourDetail(tourModel.id));
             _openTourDetail();
           },
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              children: [
+                // Ảnh Tour với hiệu ứng bo góc mượt
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: tourModel.image != null && tourModel.image!.isNotEmpty
+                      ? Image.network(
+                    tourModel.image!,
+                    width: 85,
+                    height: 85,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => _defaultImage(85),
+                  )
+                      : _defaultImage(85),
+                ),
+                const SizedBox(width: 16),
+                // Thông tin chi tiết
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        tourModel.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              tourModel.destinationName,
+                              style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${tourModel.pricePerPerson} đ',
+                            style: const TextStyle(
+                              color: Colors.orangeAccent,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 15,
+                            ),
+                          ),
+                          _statusBadge(tourModel.isActive), // Badge trạng thái tinh tế
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                // Menu thao tác
+                _buildActionMenu(tourModel),
+              ],
+            ),
+          ),
         ),
       );
     }
-  
+
     Widget _statusBadge(bool isActive) {
+      final color = isActive ? Colors.green : Colors.red;
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: isActive
-              ? Colors.green.withOpacity(0.15)
-              : Colors.red.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(20),
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(10),
         ),
-        child: Text(
-          isActive ? 'Hoạt động' : 'Ngưng',
-          style: TextStyle(
-            fontSize: 12,
-            color: isActive ? Colors.green : Colors.red,
-            fontWeight: FontWeight.w600,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              isActive ? 'Hoạt động' : 'Tạm ngưng',
+              style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.bold),
+            ),
+          ],
         ),
       );
     }
@@ -692,7 +712,112 @@ import 'package:smart_travel/presentation/screens/admin/tour/tour_create_model.d
       );
     }
 
-  
+    Widget _buildPagination(int currentPage, int totalPages) {
+      if (totalPages <= 1) return const SizedBox.shrink();
+
+      return Container(
+        margin: const EdgeInsets.only(bottom: 24, top: 12),
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 20,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _pageNavButton(
+              icon: Icons.chevron_left_rounded,
+              isEnabled: currentPage > 0,
+              onTap: () => context.read<AdminTourBloc>().add(LoadAdminTours(page: currentPage - 1)),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text.rich(
+                TextSpan(
+                  style: const TextStyle(color: Color(0xFF2D3E50), fontSize: 14),
+                  children: [
+                    const TextSpan(text: "Trang "),
+                    TextSpan(
+                      text: "${currentPage + 1}",
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent),
+                    ),
+                    TextSpan(text: " / $totalPages"),
+                  ],
+                ),
+              ),
+            ),
+            _pageNavButton(
+              icon: Icons.chevron_right_rounded,
+              isEnabled: currentPage < totalPages - 1,
+              onTap: () => context.read<AdminTourBloc>().add(LoadAdminTours(page: currentPage + 1)),
+            ),
+          ],
+        ),
+      );
+    }
+
+    Widget _pageNavButton({required IconData icon, required bool isEnabled, required VoidCallback onTap}) {
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: isEnabled ? onTap : null,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Icon(icon, size: 24, color: isEnabled ? Colors.blueAccent : Colors.grey.shade300),
+          ),
+        ),
+      );
+    }
+
+    Widget _buildActionMenu(AdminTourModel tourModel) {
+      return PopupMenuButton<String>(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        icon: const Icon(Icons.more_vert, color: Colors.grey),
+        onSelected: (value) {
+          if (value == 'edit') {
+            _openEditTourModal(tourModel.id);
+          } else if (value == 'delete') {
+            _confirmDeleteTour(
+              context: context,
+              tourId: tourModel.id,
+              tourName: tourModel.name,
+            );
+          }
+        },
+        itemBuilder: (context) => [
+          const PopupMenuItem(
+            value: 'edit',
+            child: Row(
+              children: [
+                Icon(Icons.edit_outlined, size: 20, color: Colors.blue),
+                SizedBox(width: 10),
+                Text("Chỉnh sửa"),
+              ],
+            ),
+          ),
+          const PopupMenuItem(
+            value: 'delete',
+            child: Row(
+              children: [
+                Icon(Icons.delete_outline, size: 20, color: Colors.red),
+                SizedBox(width: 10),
+                Text("Xoá", style: TextStyle(color: Colors.red)),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
     Widget _defaultImage(double size) {
       return Image.asset(
         'assets/images/img_4.png',
