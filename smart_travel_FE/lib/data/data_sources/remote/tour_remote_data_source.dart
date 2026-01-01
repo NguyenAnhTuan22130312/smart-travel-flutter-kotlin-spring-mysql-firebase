@@ -14,7 +14,7 @@ import 'package:dio/dio.dart';
 abstract class TourRemoteDataSource {
   Future<TourDetailModel> getTourDetail(int id);
   Future<List<TourImageModel>> getTourImages(int id);
-  Future<List<TourSummaryResponse>> filterTours(TourFilterParams params);
+  Future<dynamic> filterTours(TourFilterParams params);
   Future<List<AdminTourModel>> getTours();
   Future<AdminTourModel> getToursDetail(int id);
   Future<AdminTourModel> createTour(Map<String, dynamic> body);
@@ -82,7 +82,7 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
   }
 
   @override
-  Future<List<TourSummaryResponse>> filterTours(TourFilterParams p) async {
+  Future<dynamic> filterTours(TourFilterParams p) async {
     final base = "${ApiConstants.tour}/filter";
 
     final query = <String, dynamic>{
@@ -106,18 +106,9 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
     try {
       final res = await client.get(uri);
 
-      List list = [];
       final data = res.data;
 
-      if (data is Map && data.containsKey("content")) {
-        list = data["content"];
-      } else if (data is List) {
-        list = data;
-      }
-
-      return list
-          .map((e) => TourSummaryResponse.fromJson(e))
-          .toList();
+      return data;
     } catch (e) {
       throw ServerException("Lỗi khi gọi filterTours: $e");
     }

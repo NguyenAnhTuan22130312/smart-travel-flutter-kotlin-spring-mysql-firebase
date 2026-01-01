@@ -7,7 +7,7 @@ class FilterToursUseCase {
 
   FilterToursUseCase(this.repository);
 
-  Future<List<Tour>> call(TourFilterParams params) async {
+  Future<dynamic> call(TourFilterParams params) async {
     return await repository.filterTours(params);
   }
 }

@@ -604,6 +604,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
               onTap: () {
+                print('Nhấn tour: ${t.id}');
                 Navigator.pushNamed(
                   context,
                   RouteNames.tourDetail,
@@ -617,7 +618,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.network(
-                        t.image ?? "Đang cập nhật",
+                        t.image ?? '',
                         width: 80,
                         height: 80,
                         fit: BoxFit.cover,

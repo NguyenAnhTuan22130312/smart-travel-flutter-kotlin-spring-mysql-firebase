@@ -11,8 +11,8 @@ class TourDetail {
   final double averageRating;
   final List<TourImage> images;
   final List<TourSchedule> schedules;
-  final Map<String, dynamic> included;
-  final Map<String, dynamic> excluded;
+  final List<String> included;
+  final List<String> excluded;
 
   List<String> get imageUrls => images.map((e) => e.imageUrl).toList();
 

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:smart_travel/domain/entities/tour_detail.dart';
 import 'tour_image_model.dart';
 import 'tour_schedule_model.dart';
@@ -12,11 +14,14 @@ class TourDetailModel {
   final double averageRating;
   final List<TourImageModel> images;
   final List<TourScheduleModel> schedules;
-  final Map<String, dynamic> included;
-  final Map<String, dynamic> excluded;
+  final List<String> included;
+  final List<String> excluded;
 
   List<String> get imageUrls =>
-      images.map((e) => e.imageUrl).toList();
+      images
+          .map((e) => e.imageUrl)
+          .where((url) => url.isNotEmpty) // <<< Lọc rỗng
+          .toList();
 
   TourDetailModel({
     required this.id,
@@ -32,6 +37,21 @@ class TourDetailModel {
     required this.excluded,
   });
 
+  // Hàm helper để parse chuỗi JSON sang List<String> an toàn
+  static List<String> _parseJsonList(dynamic jsonValue) {
+    if (jsonValue == null) return [];
+    if (jsonValue is List) return jsonValue.map((e) => e.toString()).toList();
+    if (jsonValue is String) {
+      try {
+        final decoded = jsonDecode(jsonValue);
+        if (decoded is List) return decoded.map((e) => e.toString()).toList();
+      } catch (_) {
+        return [jsonValue];
+      }
+    }
+    return [];
+  }
+
   factory TourDetailModel.fromJson(Map<String, dynamic> json) =>
       TourDetailModel(
         id: json["id"] ?? 0,
@@ -41,13 +61,12 @@ class TourDetailModel {
         durationNights: json["durationNights"] ?? 0,
         pricePerPerson: (json["pricePerPerson"] ?? 0).toDouble(),
         averageRating: (json["averageRating"] ?? 0).toDouble(),
-        included: json["included"] ?? {},
-        excluded: json["excluded"] ?? {},
-
+        included: _parseJsonList(json["included"]),
+        excluded: _parseJsonList(json["excluded"]),
         images: (json["images"] as List? ?? [])
             .map((e) => TourImageModel.fromJson(e))
+            .where((img) => img.imageUrl.isNotEmpty) // <<< Lọc rỗng/null
             .toList(),
-
         schedules: (json["schedules"] as List? ?? [])
             .map((e) => TourScheduleModel.fromJson(e))
             .toList(),
@@ -56,8 +75,8 @@ class TourDetailModel {
   TourDetailModel copyWith({
     List<TourImageModel>? images,
     List<TourScheduleModel>? schedules,
-    Map<String, dynamic>? included,
-    Map<String, dynamic>? excluded,
+    List<String>? included,
+    List<String>? excluded,
   }) {
     return TourDetailModel(
       id: id,
