@@ -427,7 +427,7 @@ Future<void> init() async {
     ),
   );
 
-  sl.registerFactory(() => TourDetailBloc(sl()));
+
 
   sl.registerFactory(
     () => AdminUserBloc(
@@ -526,6 +526,6 @@ Future<void> init() async {
   sl.registerFactory<DetailBloc>(
         () => DetailBloc(sl<GetInvoiceDetailUseCase>()),
   );
-   sl.registerFactory(() => StatisticsBloc(repository: sl()));
+  sl.registerFactory(() => StatisticsBloc(repository: sl()));
 
 }
