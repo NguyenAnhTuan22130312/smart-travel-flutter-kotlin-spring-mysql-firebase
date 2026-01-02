@@ -4,6 +4,7 @@ package com.example.smart_travel_BE.repository;
 
 import com.example.smart_travel_BE.entity.Booking;
 import com.example.smart_travel_BE.entity.Hotel;
+import com.example.smart_travel_BE.entity.Invoice;
 import com.example.smart_travel_BE.entity.Tour;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,8 +15,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface InvoiceRepository extends JpaRepository<Booking, Long> {
-
+public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
+    Optional<Invoice> findByBooking_Id(Long bookingId);
 
     // 1. Giữ nguyên tên method cũ (dùng cho chi tiết đơn)
     @Query("""

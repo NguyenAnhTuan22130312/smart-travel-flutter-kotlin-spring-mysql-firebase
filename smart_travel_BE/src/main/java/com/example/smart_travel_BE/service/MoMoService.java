@@ -2,10 +2,12 @@ package com.example.smart_travel_BE.service;
 
 import com.example.smart_travel_BE.config.MoMoConfig;
 import com.example.smart_travel_BE.entity.Booking;
+import com.example.smart_travel_BE.entity.Invoice;
 import com.example.smart_travel_BE.entity.Payment;
 import com.example.smart_travel_BE.exception.AppException;
 import com.example.smart_travel_BE.exception.ErrorCode;
 import com.example.smart_travel_BE.repository.BookingRepository;
+import com.example.smart_travel_BE.repository.InvoiceRepository;
 import com.example.smart_travel_BE.repository.PaymentRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,6 +19,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +34,7 @@ public class MoMoService {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final PaymentRepository paymentRepository; // Cần inject để lưu kết quả trả về
     private final BookingRepository bookingRepository;
+    private final InvoiceRepository invoiceRepository;
 
     public String createPaymentUrl(Payment payment, HttpServletRequest httpServletRequest) {
         long amount = payment.getAmount().longValue();
@@ -99,6 +104,7 @@ public class MoMoService {
 
             if ("0".equals(resultCode) && payUrl != null) {
                 return payUrl;
+
             } else {
                 throw new AppException(ErrorCode.MOMO_CREATE_PAYMENT_FAILED);
             }
@@ -120,8 +126,6 @@ public class MoMoService {
             return "Dữ liệu trả về không hợp lệ.";
         }
 
-        // --- XỬ LÝ TÁCH CHUỖI ĐỂ LẤY ID GỐC ---
-        // OrderId có dạng: 15_170123456789 -> Cần lấy số 15
         long paymentId;
         try {
             paymentId = Long.parseLong(orderId.split("_")[0]);
@@ -133,7 +137,6 @@ public class MoMoService {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_FOUND));
 
-        // Kiểm tra nếu đơn hàng đã hoàn thành rồi thì không xử lý lại
         if ("COMPLETED".equals(payment.getStatus())) {
             return "Giao dịch đã được xử lý trước đó.";
         }
@@ -150,6 +153,23 @@ public class MoMoService {
             Booking booking = payment.getBooking();
             booking.setStatus("CONFIRMED");
             bookingRepository.save(booking);
+
+            Invoice invoice = invoiceRepository.findByBooking_Id(booking.getId()).orElse(null);
+            if (invoice != null) {
+                invoice.setReviewed(false);
+                invoiceRepository.save(invoice);
+            } else {
+                // Nếu chưa có (Data cũ): TẠO MỚI BÙ VÀO
+                invoice = new Invoice();
+                invoice.setBooking(booking);
+                invoice.setInvoiceNumber("INV-MOMO-" + booking.getId() + "-" + System.currentTimeMillis());
+                invoice.setTotalAmount(booking.getFinalPrice());
+                invoice.setTaxAmount(BigDecimal.ZERO);
+                invoice.setIssueDate(LocalDate.now());
+                invoice.setItemDetails("{\"note\": \"Invoice created automatically via MoMo\"}");
+                invoice.setReviewed(false);
+                invoiceRepository.save(invoice);
+            }
 
             return "Thanh toán thành công! Bạn có thể quay lại ứng dụng.";
         } else {
