@@ -257,7 +257,8 @@ class _BookingScreenState extends State<BookingScreen> {
               Text('Chi tiết đặt chỗ', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textGray)),
               const SizedBox(height: 16),
 
-              // --- CHỌN NGÀY ---
+
+              // --- SỐ LƯỢNG NGƯỜI ---
               _buildInfoRow(
                 icon: Icons.date_range,
                 title: isTour ? 'Ngày khởi hành' : 'Thời gian lưu trú',
@@ -269,15 +270,16 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
               const SizedBox(height: 16),
 
-              // --- SỐ LƯỢNG NGƯỜI ---
-              _buildInfoRow(
-                icon: Icons.people_outline,
-                title: 'Số lượng người',
-                value: '$_numberOfPeople người',
-                isSelectable: true,
-                onTap: () => _showQuantityModal(context, "Chọn số người", _numberOfPeople, (val) => setState(() => _numberOfPeople = val)),
-              ),
-              const SizedBox(height: 16),
+              if (isTour) ...[
+                _buildInfoRow(
+                  icon: Icons.people_outline,
+                  title: 'Số lượng người',
+                  value: '$_numberOfPeople người',
+                  isSelectable: true,
+                  onTap: () => _showQuantityModal(context, "Chọn số người", _numberOfPeople, (val) => setState(() => _numberOfPeople = val)),
+                ),
+                const SizedBox(height: 16),
+              ],
 
               // --- SỐ LƯỢNG PHÒNG (Chỉ Hotel) ---
               if (!isTour) ...[

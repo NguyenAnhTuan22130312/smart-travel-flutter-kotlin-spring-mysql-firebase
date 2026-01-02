@@ -71,23 +71,6 @@ public class ApplicationInitConfig {
                         return userRepository.save(newUser);
                     });
 
-            if (bookingRepository.findFirstByUser(testUser).isEmpty()) {
-                Booking testBooking = new Booking();
-                testBooking.setUser(testUser);
-                testBooking.setBookingType("DESTINATION");
-                testBooking.setStartDate(LocalDate.now());
-                testBooking.setEndDate(LocalDate.now().plusDays(1));
-                testBooking.setNumberOfPeople(2);
-                testBooking.setNumberOfRooms(1);
-                testBooking.setTotalPrice(new BigDecimal("300000.00"));
-                testBooking.setFinalPrice(new BigDecimal("300000.00"));
-                testBooking.setStatus("PENDING");
-
-                Booking savedBooking = bookingRepository.save(testBooking);
-                log.warn("!!! TEST BOOKING CREATED !!!");
-                log.warn("Test Booking ID: {}", savedBooking.getId());
-                log.warn("Test Booking Price: {}", savedBooking.getFinalPrice());
-            }
 
             log.info("Application initialization completed ...");
         };

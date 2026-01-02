@@ -34,6 +34,9 @@ public class Payment {
     @Column(name = "status", nullable = false, length = 20)
     private String status = "PENDING";
 
+    @Column(name = "payment_status", nullable = false, length = 20)
+    private String payment_status = "PENDING";
+
     @Column(name = "transaction_id", unique = true, length = 100)
     private String transactionId;
 
