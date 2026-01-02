@@ -62,8 +62,8 @@ class TourRepositoryImpl implements TourRepository {
   }
 
   @override
-  Future<List<AdminTourModel>> getTours() {
-    return remote.getTours();
+  Future<dynamic> getTours({int page = 0, int size = 10}) {
+    return remote.getTours(page: page, size: size);
   }
 
   @override

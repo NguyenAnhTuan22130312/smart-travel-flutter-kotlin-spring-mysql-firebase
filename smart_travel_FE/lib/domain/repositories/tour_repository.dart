@@ -9,7 +9,7 @@ import 'package:smart_travel/data/models/tour/admin_tour_model.dart';
 abstract class TourRepository {
   Future<TourDetail> getTourDetail(int id);
   Future<dynamic> filterTours(TourFilterParams params);
-  Future<List<AdminTourModel>> getTours();
+  Future<dynamic> getTours({int page = 0, int size = 10});
   Future<AdminTourModel> getToursDetail(int id);
   Future<AdminTourModel> createTour(Map<String, dynamic> body);
   Future<void> updateTour(int id, Map<String, dynamic> body);

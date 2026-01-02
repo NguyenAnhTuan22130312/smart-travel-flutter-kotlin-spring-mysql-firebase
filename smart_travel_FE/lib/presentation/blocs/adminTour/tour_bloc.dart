@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_travel/data/models/tour/admin_tour_model.dart';
 
 import 'package:smart_travel/domain/usecases/tour/delete_image_usecase.dart';
 import 'package:smart_travel/domain/usecases/tour/set_primary_tour_image_usecase.dart';
@@ -34,15 +35,24 @@ class AdminTourBloc extends Bloc<AdminTourEvent, AdminTourState> {
     on<SetPrimaryTourImage>(_onSetPrimaryTourImage);
   }
 
-  Future<void> _onLoadTours(
-      LoadAdminTours event,
-      Emitter<AdminTourState> emit,
-      ) async {
+  Future<void> _onLoadTours(LoadAdminTours event, Emitter<AdminTourState> emit) async {
     emit(AdminTourLoading());
     try {
-      final tours = await getAdminTours();
-      emit(AdminTourLoaded(tours));
+      final result = await getAdminTours(page: event.page);
+
+      final dynamic rawContent = result['content'] ?? [];
+
+      final List<AdminTourModel> tours = (rawContent as List)
+          .map((e) => AdminTourModel.fromJson(e))
+          .toList();
+
+      emit(AdminTourLoaded(
+        tours, // Lúc này tours đã đúng kiểu List<AdminTourModel>
+        currentPage: result['number'] ?? 0,
+        totalPages: result['totalPages'] ?? 1,
+      ));
     } catch (e) {
+      print("Lỗi LoadAdminTours: $e");
       emit(AdminTourError(e.toString()));
     }
   }
@@ -52,20 +62,15 @@ class AdminTourBloc extends Bloc<AdminTourEvent, AdminTourState> {
       Emitter<AdminTourState> emit,
       ) async {
     try {
-      print('🔥 DELETE TOUR ID = ${event.id}');
-
       emit(AdminTourDeleteLoading());
 
       await deleteAdminTour(event.id);
-
-      print('✅ DELETE API OK');
 
       emit(AdminTourDeleteSuccess());
 
       final tours = await getAdminTours();
       emit(AdminTourLoaded(tours));
     } catch (e) {
-      print('❌ DELETE ERROR: $e');
       emit(AdminTourDeleteError(e.toString()));
     }
   }

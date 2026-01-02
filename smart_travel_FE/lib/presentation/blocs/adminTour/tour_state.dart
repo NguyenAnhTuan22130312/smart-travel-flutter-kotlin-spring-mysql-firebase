@@ -26,11 +26,13 @@ class AdminTourCreateSuccess extends AdminTourState {
 /// List tours loaded
 class AdminTourLoaded extends AdminTourState {
   final List<AdminTourModel> tours;
+  final int currentPage; // Thêm
+  final int totalPages;  // Thêm
 
-  const AdminTourLoaded(this.tours);
+  const AdminTourLoaded(this.tours, {this.currentPage = 0, this.totalPages = 1});
 
   @override
-  List<Object?> get props => [tours];
+  List<Object?> get props => [tours, currentPage, totalPages];
 }
 
 class AdminTourError extends AdminTourState {
