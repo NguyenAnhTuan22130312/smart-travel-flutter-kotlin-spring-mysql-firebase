@@ -16,6 +16,8 @@ import java.util.Optional;
 
 @Repository
 public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
+    Optional<Invoice> findByInvoiceNumber(String invoiceNumber);
+
     Optional<Invoice> findByBooking_Id(Long bookingId);
 
     // 1. Giữ nguyên tên method cũ (dùng cho chi tiết đơn)
@@ -42,7 +44,7 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
             SELECT b FROM Booking b
             LEFT JOIN FETCH b.invoice
             WHERE b.user.id = :userId
-              AND b.status IN ('ACTIVE')
+              AND b.status IN ('ACTIVE','CHECKED')
             ORDER BY b.createdAt DESC
             """)
     List<Booking> findActiveInvoicesByUserId(@Param("userId") Long userId);
@@ -121,4 +123,6 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
             @Param("typeFilter") String typeFilter,      // ALL / TOUR / HOTEL
             @Param("statusFilter") String statusFilter  // PENDING / ACTIVE / v.v.
     );
+
+
 }

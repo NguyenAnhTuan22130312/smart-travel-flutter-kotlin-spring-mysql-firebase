@@ -79,7 +79,10 @@ public class SecurityConfig {
             "/api/v1/ai/**",
 
             // ---BANNER ---
-            "/api/v1/banners"
+            "/api/v1/banners",
+
+            // ---REVIEW---
+            "/api/v1/reviews/**"
     };
     CustomAuthEntryPoint customAuthEntryPoint;
     UserHeaderAuthenticationFilter userHeaderAuthenticationFilter;
