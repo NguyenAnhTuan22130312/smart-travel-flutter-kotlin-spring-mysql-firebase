@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../blocs/invoice/review_bloc.dart';
+import '../../blocs/invoice/review_event.dart';
+import '../../screens/review/review_submit_screen.dart';
 import '../../theme/app_colors.dart';
 
 class InvoiceReviewCard extends StatelessWidget {
@@ -122,10 +126,23 @@ class InvoiceReviewCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Mở form đánh giá trải nghiệm")),
-                );
+              onPressed: reviewed
+                  ? null
+                  : () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ReviewSubmitScreen(
+                      invoiceNumber: invoiceNumber,
+                      serviceName: itemName,
+                    ),
+                  ),
+                ).then((result) {
+                  if (result == true) {
+
+                    context.read<ReviewBloc>().add(LoadReviewableInvoices());
+                  }
+                });
               },
               icon: const Icon(Icons.star_border, size: 20),
               label: const Text(

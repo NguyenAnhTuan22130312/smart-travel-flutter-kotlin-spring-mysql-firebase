@@ -81,6 +81,10 @@ class ApiConstants {
   static const String createBanner = '/banners/banner';
   static const String deleteBanner = '/banners/';
 
+  //Review
+  static const String invoiceReview = '/reviews/invoice-review';
+  static const String destinationReview = '/reviews/destination-review';
+
 
   // Timeout
   static const Duration connectionTimeout = Duration(seconds: 30);
