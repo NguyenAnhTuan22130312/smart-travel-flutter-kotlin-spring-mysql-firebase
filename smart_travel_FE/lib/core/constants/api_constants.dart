@@ -89,6 +89,12 @@ class ApiConstants {
   static const String desReview = '/reviews/destination/';
   static const String allReview = '/reviews/get-reviews';
 
+  //voucher
+  static const String getAllVoucher = '/admin/vouchers';
+  static const String createVoucher = '/admin/vouchers';
+  static const String updateVoucher = '/admin/vouchers/';
+  static const String deleteVoucher = '/admin/vouchers/';
+
   // Timeout
   static const Duration connectionTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);

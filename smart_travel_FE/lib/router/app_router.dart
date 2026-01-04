@@ -32,7 +32,10 @@ import 'package:smart_travel/presentation/screens/splash/splash_screen.dart';
 import 'package:smart_travel/router/route_names.dart';
 import 'package:smart_travel/presentation/screens/tour/tour_detail_screen.dart';
 import '../injection_container.dart' as di;
+import '../presentation/blocs/admin_voucher/voucher_bloc.dart';
+import '../presentation/blocs/admin_voucher/voucher_event.dart';
 import '../presentation/screens/invoice/my_invoices_screen.dart';
+import 'package:smart_travel/presentation/screens/admin/voucher/voucher_management_screen.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -77,6 +80,16 @@ class AppRouter {
       case RouteNames.adminDestination:
         return MaterialPageRoute(
           builder: (_) => const DestinationManagementScreen(),
+        );
+
+      case RouteNames.adminVoucher:
+        return MaterialPageRoute(
+          // Vì bên trong VoucherManagementScreen bạn đã bọc BlocProvider rồi
+          // nên ở đây chỉ cần gọi màn hình là được.
+          builder: (_) => BlocProvider(
+            create: (_) => di.sl<VoucherBloc>()..add(LoadAllVoucher()),
+            child: const VoucherManagementScreen(),
+          ),
         );
 
       case RouteNames.provinceDetail:
