@@ -15,6 +15,10 @@ import 'package:smart_travel/presentation/widgets/hotel/hotel_room_type.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_args.dart';
 
+import '../../../injection_container.dart';
+import '../../blocs/review/reviewhtd_bloc.dart';
+import '../../widgets/review/review_list_widget.dart';
+
 class DetailHotelScreen extends StatefulWidget {
   const DetailHotelScreen({Key? key}) : super(key: key);
 
@@ -140,6 +144,30 @@ class _DetailHotelScreenState extends State<DetailHotelScreen>
 
                   SliverToBoxAdapter(child: HotelMapSection(hotel: hotel)),
                   const SliverToBoxAdapter(child: SizedBox(height: 40)), // Padding bottom
+
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        "Đánh giá từ khách hàng",
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 500,
+                      child: BlocProvider(
+                        create: (_) => ReviewHtdBloc(sl()),
+                        child: ReviewListWidget(
+                          type: "HOTEL",
+                          serviceId: hotel.id,
+                        ),
+                      ),
+                    ),
+                  ),
+
                 ],
               );
             }

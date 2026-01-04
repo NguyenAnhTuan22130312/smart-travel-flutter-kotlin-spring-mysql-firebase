@@ -68,6 +68,7 @@ import 'package:smart_travel/domain/usecases/user/update_user_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/lock_user_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/unlock_user_usecase.dart';
 import 'package:smart_travel/presentation/blocs/admin_user/admin_user_bloc.dart';
+import 'package:smart_travel/presentation/blocs/admin_voucher/voucher_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/banner/banner_bloc.dart';
 import 'package:smart_travel/presentation/blocs/chat/chat_bloc.dart';
@@ -95,6 +96,8 @@ import 'package:smart_travel/domain/usecases/payment/confirm_cash_usecase.dart';
 import 'package:smart_travel/domain/usecases/payment/process_payment_usecase.dart';
 import 'package:smart_travel/presentation/blocs/payment/payment_bloc.dart';
 import 'package:smart_travel/presentation/blocs/booking/booking_bloc.dart';
+import 'package:smart_travel/presentation/blocs/review/reviewhtd_bloc.dart';
+import 'package:smart_travel/presentation/blocs/review/submit_review_bloc.dart';
 import 'core/network/network_info.dart';
 import 'data/data_sources/remote/auth_remote_datasource.dart';
 import 'package:smart_travel/data/data_sources/remote/booking_data_source.dart';
@@ -121,8 +124,18 @@ import 'package:smart_travel/domain/usecases/tour/delete_tour_usecase.dart';
 import 'package:smart_travel/domain/usecases/tour/update_tour_usecase.dart';
 
 import 'data/data_sources/remote/invoice_remote_data_source.dart';
+import 'data/data_sources/remote/review_remote_data_source.dart';
+import 'data/data_sources/remote/reviewhtd_remote_data_source.dart';
+import 'data/data_sources/remote/voucher_data_source.dart';
 import 'data/repositories/chat_repository_impl.dart';
 import 'data/repositories/invoice_repository_impl.dart';
+import 'data/repositories/review_repository_impl.dart';
+import 'data/repositories/reviewhtd_repository_impl.dart';
+
+import 'data/repositories/voucher_repository_impl.dart';
+import 'domain/repositories/review_repository.dart';
+import 'domain/repositories/reviewhtd_repository.dart';
+import 'domain/repositories/voucher_repository.dart';
 import 'domain/usecases/invoice/cancel_booking_usecase.dart';
 import 'domain/usecases/invoice/get_active_invoices_usecase.dart';
 import 'domain/repositories/invoice_repository.dart';
@@ -131,6 +144,13 @@ import 'domain/usecases/invoice/get_refunded_invoices_usecase.dart';
 import 'domain/usecases/invoice/get_reviewable_invoices_usecase.dart';
 import 'domain/usecases/invoice/get_transaction_history_usecase.dart';
 import 'domain/usecases/invoice/search_active_invoices_usecase.dart';
+import 'domain/usecases/review/get_reviewhtd_usecase.dart';
+import 'domain/usecases/review/submit_review_usecase.dart';
+import 'domain/usecases/voucher/create_voucher_uc.dart';
+import 'domain/usecases/voucher/delete_voucher_uc.dart';
+import 'domain/usecases/voucher/get_all_voucher_uc.dart';
+import 'domain/usecases/voucher/update_voucher_uc.dart';
+
 
 final sl = GetIt.instance;
 
@@ -311,6 +331,34 @@ Future<void> init() async {
   sl.registerLazySingleton(() => CreateBannerUc(sl()));
   sl.registerLazySingleton(() => UpdateBannerUc(sl()));
   sl.registerLazySingleton(() => DeleteBannerUc(sl()));
+
+
+// VOUCHERS
+
+  sl.registerFactory(() => VoucherBloc(
+    getAllVoucherUc: sl(),
+    createVoucherUc: sl(),
+    updateVoucherUc: sl(),
+    deleteVoucherUc: sl(),
+  ));
+
+  sl.registerLazySingleton(() => GetAllVoucherUc(sl()));
+  sl.registerLazySingleton(() => CreateVoucherUc(sl()));
+  sl.registerLazySingleton(() => UpdateVoucherUc(sl()));
+  sl.registerLazySingleton(() => DeleteVoucherUc(sl()));
+
+  sl.registerLazySingleton<VoucherRepository>(
+        () => VoucherRepositoryImpl(
+      voucherDataSource: sl(),
+      networkInfo: sl(),
+    ),
+  );
+
+  sl.registerLazySingleton<VoucherDataSource>(
+        () => VoucherDataSourceImpl(
+      dioClient: sl(),
+    ),
+  );
 
   sl.registerLazySingleton<ImageUploadService>(() => ImageUploadService(sl()));
 
@@ -528,4 +576,44 @@ Future<void> init() async {
   );
   sl.registerFactory(() => StatisticsBloc(repository: sl()));
 
+
+  // Review DataSource
+  sl.registerLazySingleton<ReviewRemoteDataSource>(
+        () => ReviewRemoteDataSourceImpl(sl<DioClient>()),
+  );
+
+  // Review Repository
+  sl.registerLazySingleton<ReviewRepository>(
+        () => ReviewRepositoryImpl(sl<ReviewRemoteDataSource>()),
+  );
+
+  // Submit Review UseCase
+  sl.registerLazySingleton<SubmitReviewUseCase>(
+        () => SubmitReviewUseCase(sl<ReviewRepository>()),
+  );
+
+  // Submit Review Bloc
+  sl.registerFactory<SubmitReviewBloc>(
+        () => SubmitReviewBloc(sl<SubmitReviewUseCase>()),
+  );
+
+  // ReviewHtd Remote DataSource
+  sl.registerLazySingleton<ReviewHtdRemoteDataSource>(
+        () => ReviewHtdRemoteDataSourceImpl(dioClient: sl<DioClient>()),
+  );
+
+  // ReviewHtd Repository
+  sl.registerLazySingleton<ReviewHtdRepository>(
+        () => ReviewHtdRepositoryImpl(sl<ReviewHtdRemoteDataSource>()),
+  );
+
+  // Get ReviewHtd UseCase
+  sl.registerLazySingleton<GetReviewHtdUseCase>(
+        () => GetReviewHtdUseCase(sl<ReviewHtdRepository>()),
+  );
+
+  // ReviewHtd Bloc
+  sl.registerFactory<ReviewHtdBloc>(
+        () => ReviewHtdBloc(sl<GetReviewHtdUseCase>()),
+  );
 }

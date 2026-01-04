@@ -56,14 +56,14 @@ class TourRepositoryImpl implements TourRepository {
   }
 
   @override
-  Future<List<Tour>> filterTours(TourFilterParams params) async {
+  Future<dynamic> filterTours(TourFilterParams params) async {
     final list = await remote.filterTours(params);
-    return list.map((e) => e.toEntity()).toList();
+    return list;
   }
 
   @override
-  Future<List<AdminTourModel>> getTours() {
-    return remote.getTours();
+  Future<dynamic> getTours({int page = 0, int size = 10}) {
+    return remote.getTours(page: page, size: size);
   }
 
   @override

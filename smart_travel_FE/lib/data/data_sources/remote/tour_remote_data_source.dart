@@ -14,8 +14,8 @@ import 'package:dio/dio.dart';
 abstract class TourRemoteDataSource {
   Future<TourDetailModel> getTourDetail(int id);
   Future<List<TourImageModel>> getTourImages(int id);
-  Future<List<TourSummaryResponse>> filterTours(TourFilterParams params);
-  Future<List<AdminTourModel>> getTours();
+  Future<dynamic> filterTours(TourFilterParams params);
+  Future<dynamic> getTours({int page = 0, int size = 10});
   Future<AdminTourModel> getToursDetail(int id);
   Future<AdminTourModel> createTour(Map<String, dynamic> body);
   Future<void> updateTour(int id, Map<String, dynamic> body);
@@ -82,7 +82,7 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
   }
 
   @override
-  Future<List<TourSummaryResponse>> filterTours(TourFilterParams p) async {
+  Future<dynamic> filterTours(TourFilterParams p) async {
     final base = "${ApiConstants.tour}/filter";
 
     final query = <String, dynamic>{
@@ -106,38 +106,23 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
     try {
       final res = await client.get(uri);
 
-      List list = [];
       final data = res.data;
 
-      if (data is Map && data.containsKey("content")) {
-        list = data["content"];
-      } else if (data is List) {
-        list = data;
-      }
-
-      return list
-          .map((e) => TourSummaryResponse.fromJson(e))
-          .toList();
+      return data;
     } catch (e) {
       throw ServerException("Lỗi khi gọi filterTours: $e");
     }
   }
 
   @override
-  Future<List<AdminTourModel>> getTours() async {
+  Future<dynamic> getTours({int page = 0, int size = 10}) async {
     try {
-      final res = await client.get(
-        "${ApiConstants.baseUrl}${ApiConstants.adminTours}",
-      );
+      final String urlWithParams = "${ApiConstants.baseUrl}${ApiConstants.adminTours}?page=$page&size=$size";
 
-      final data = res.data;
-      final List list = data['content'];
-
-      return list
-          .map((e) => AdminTourModel.fromJson(e))
-          .toList();
-    } on DioException catch (e) {
-      throw ServerException("Lỗi getTours: ${e.message}");
+      final res = await client.get(urlWithParams);
+      return res.data;
+    } catch (e) {
+      throw ServerException(e.toString());
     }
   }
 

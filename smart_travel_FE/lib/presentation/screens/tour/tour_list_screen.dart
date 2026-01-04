@@ -8,6 +8,10 @@ import 'package:smart_travel/presentation/screens/tour/tour_detail_screen.dart';
 import 'package:smart_travel/presentation/widgets/tour/tour_card.dart';
 import 'package:smart_travel/presentation/widgets/tour/tour_sort_button.dart';
 import 'package:smart_travel/presentation/widgets/tour/tour_filter_button.dart';
+// 1. IMPORT CÁC THÀNH PHẦN GIỐNG HOTEL
+import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
+import 'package:smart_travel/router/route_names.dart';
+import '../../theme/app_colors.dart';
 
 class TourListScreen extends StatefulWidget {
   const TourListScreen({super.key});
@@ -18,7 +22,9 @@ class TourListScreen extends StatefulWidget {
 
 class _TourListScreenState extends State<TourListScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
+  final ScrollController _scrollController = ScrollController(); // Thêm controller để cuộn trang
 
+  int _selectedIndex = 2; // Index của Tour trong menu dưới
   String? sortValue = "popular_desc";
   double? minRating;
   double? minPrice, maxPrice;
@@ -30,7 +36,19 @@ class _TourListScreenState extends State<TourListScreen> {
     _loadTours();
   }
 
-  void _loadTours() {
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // CẬP NHẬT: Thêm tham số page để phân trang
+  void _loadTours({int page = 0}) {
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(0);
+    }
+
     final params = TourFilterParams(
       keyword: _searchCtrl.text.trim(),
       minPrice: minPrice?.toInt(),
@@ -39,10 +57,183 @@ class _TourListScreenState extends State<TourListScreen> {
       maxDays: maxDays,
       minRating: minRating,
       sort: sortValue,
+      page: page, // Đảm bảo TourFilterParams của bạn có field này
     );
 
     context.read<TourBloc>().add(LoadToursEvent(params));
   }
+
+  // 2. HÀM ĐIỀU HƯỚNG BOTTOM MENU (GIỐNG HOTEL)
+  void _onNavItemTapped(int index) {
+    if (index == _selectedIndex) return;
+    switch (index) {
+      case 0: Navigator.pushReplacementNamed(context, RouteNames.home); break;
+      case 1: Navigator.pushReplacementNamed(context, RouteNames.explore); break;
+      case 3: Navigator.pushReplacementNamed(context, RouteNames.hotelList); break;
+      case 5: Navigator.pushReplacementNamed(context, RouteNames.profile); break;
+    }
+  }
+
+  // 3. UI PHÂN TRANG (GIỐNG HOTEL)
+  Widget _buildPaginationControls(int currentPage, int totalPages) {
+    if (totalPages <= 1) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            onPressed: currentPage > 0 ? () => _loadTours(page: currentPage - 1) : null,
+            icon: Icon(Icons.arrow_back_ios_rounded, size: 18,
+                color: currentPage > 0 ? AppColors.primary : Colors.grey[300]),
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: List.generate(totalPages, (index) {
+                final isSelected = index == currentPage;
+                return GestureDetector(
+                  onTap: () => isSelected ? null : _loadTours(page: index),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: 35, height: 35,
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.primary : Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: isSelected ? AppColors.primary : Colors.grey.shade300),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text("${index + 1}",
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : Colors.black,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+          IconButton(
+            onPressed: currentPage < totalPages - 1 ? () => _loadTours(page: currentPage + 1) : null,
+            icon: Icon(Icons.arrow_forward_ios_rounded, size: 18,
+                color: currentPage < totalPages - 1 ? AppColors.primary : Colors.grey[300]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.mainGradient),
+        ),
+        title: const Text("Danh sách Tour",
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Column(
+        children: [
+          // Phần Search và Sort/Filter gom lại thành Header cố định
+          _buildTopBar(),
+
+          Expanded(
+            child: BlocBuilder<TourBloc, TourState>(
+              builder: (context, state) {
+                if (state.loading) return const Center(child: CircularProgressIndicator());
+
+                final tours = state.tours;
+                if (tours.isEmpty) return const Center(child: Text("Không có tour nào"));
+
+                return ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  itemCount: tours.length + 1, // Cộng 1 để hiện thanh phân trang ở cuối
+                  itemBuilder: (context, index) {
+                    if (index == tours.length) {
+                      // HIỂN THỊ PHÂN TRANG (Lấy từ state của Bloc)
+                      return _buildPaginationControls(state.currentPage ?? 0, state.totalPages ?? 1);
+                    }
+
+                    final t = tours[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: TourCard(
+                        tour: t,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => TourDetailScreen(tourId: t.id!)),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+      // 4. THÊM BOTTOM NAVIGATION (GIỐNG HOTEL)
+      bottomNavigationBar: AppBottomNavigationWithIndicator(
+        currentIndex: _selectedIndex,
+        onTap: _onNavItemTapped,
+      ),
+    );
+  }
+
+  // TỔ CHỨC LẠI HEADER CHO GIỐNG HOTEL
+  Widget _buildTopBar() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5, offset: const Offset(0, 2))],
+      ),
+      child: Column(
+        children: [
+          // Search Bar
+          TextField(
+            controller: _searchCtrl,
+            decoration: InputDecoration(
+              hintText: "Tìm kiếm tour...",
+              prefixIcon: const Icon(Icons.search, color: AppColors.primary),
+              filled: true,
+              fillColor: Colors.grey.shade100,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              contentPadding: const EdgeInsets.symmetric(vertical: 0),
+            ),
+            onSubmitted: (_) => _loadTours(),
+          ),
+          const SizedBox(height: 12),
+          // Sort & Filter Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TourSortButton(
+                sortValue: sortValue,
+                onSelected: (v) {
+                  setState(() => sortValue = v);
+                  _loadTours();
+                },
+              ),
+              TourFilterButton(onPressed: _openFilterSheet),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
 
   // ===========================
   // FILTER BOTTOM SHEET
@@ -194,77 +385,6 @@ class _TourListScreenState extends State<TourListScreen> {
           },
         );
       },
-    );
-  }
-
-  // ===========================
-  // MAIN BUILD UI
-  // ===========================
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade100,
-      body: CustomScrollView(
-        slivers: [
-          // HEADER
-          SliverAppBar(
-            pinned: true,
-            expandedHeight: 50,
-            automaticallyImplyLeading: false,
-            backgroundColor: Colors.transparent,
-            flexibleSpace: _buildHeader(),
-          ),
-
-          // SEARCH BAR
-          SliverToBoxAdapter(child: _buildSearchBar()),
-
-          // SORT + FILTER
-          SliverToBoxAdapter(child: _buildSortFilterRow()),
-
-          // LIST
-          BlocBuilder<TourBloc, TourState>(
-            builder: (context, state) {
-              if (state.loading) {
-                return const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
-
-              if (state.tours.isEmpty) {
-                return const SliverFillRemaining(
-                  child: Center(child: Text("Không có tour nào")),
-                );
-              }
-
-              return SliverList(
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    final t = state.tours[index];
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      child: TourCard(
-                        tour: t,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => TourDetailScreen(tourId: t.id!),
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  },
-                  childCount: state.tours.length,
-                ),
-              );
-            },
-          ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 20)),
-        ],
-      ),
     );
   }
 

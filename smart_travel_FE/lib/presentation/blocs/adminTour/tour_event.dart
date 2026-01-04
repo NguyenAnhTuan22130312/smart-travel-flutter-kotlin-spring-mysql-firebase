@@ -10,7 +10,13 @@ abstract class AdminTourEvent extends Equatable {
 }
 
 /// Load list tour
-class LoadAdminTours extends AdminTourEvent {}
+class LoadAdminTours extends AdminTourEvent {
+  final int page;
+  const LoadAdminTours({this.page = 0});
+
+  @override
+  List<Object?> get props => [page];
+}
 
 /// Create tour
 class CreateAdminTour extends AdminTourEvent {

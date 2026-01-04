@@ -6,7 +6,7 @@ class GetAdminTours {
 
   GetAdminTours(this.repository);
 
-  Future<List<AdminTourModel>> call() {
-    return repository.getTours();
+  Future<dynamic> call({int page = 0, int size = 10}) {
+    return repository.getTours(page: page, size: size);
   }
 }
