@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../injection_container.dart';
+import '../../blocs/review/reviewhtd_bloc.dart';
 import '../../theme/app_colors.dart';
 import 'package:smart_travel/presentation/blocs/tour/tour_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/tour/tour_detail_event.dart';
 import 'package:smart_travel/presentation/blocs/tour/tour_detail_state.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_args.dart';
+
+import '../../widgets/review/review_list_widget.dart';
 
 class TourDetailScreen extends StatefulWidget {
   final int tourId;
@@ -109,6 +113,25 @@ class _TourDetailScreenState extends State<TourDetailScreen> {
                             _buildExpandableItinerary(t),
                             const SizedBox(height: 20),
                             _buildGallery(t.imageUrls),
+                            const SizedBox(height: 24),
+
+                            Text(
+                              "Đánh giá từ khách hàng",
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 16),
+
+                            SizedBox(
+                              height: 500, // hoặc 400 / 600 tùy UI
+                              child: BlocProvider(
+                                create: (_) => ReviewHtdBloc(sl()),
+                                child: ReviewListWidget(
+                                  type: "TOUR",
+                                  serviceId: widget.tourId,
+                                ),
+                              ),
+                            ),
+
                           ],
                         ),
                       ),

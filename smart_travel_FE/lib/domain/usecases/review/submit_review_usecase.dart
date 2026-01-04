@@ -1,6 +1,7 @@
 import 'package:image_picker/image_picker.dart';
 
-import '../../entities/review_repository.dart';
+import '../../repositories/review_repository.dart';
+
 
 class SubmitReviewUseCase {
   final ReviewRepository repository;

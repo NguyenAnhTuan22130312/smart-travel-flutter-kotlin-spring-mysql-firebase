@@ -95,6 +95,7 @@ import 'package:smart_travel/domain/usecases/payment/confirm_cash_usecase.dart';
 import 'package:smart_travel/domain/usecases/payment/process_payment_usecase.dart';
 import 'package:smart_travel/presentation/blocs/payment/payment_bloc.dart';
 import 'package:smart_travel/presentation/blocs/booking/booking_bloc.dart';
+import 'package:smart_travel/presentation/blocs/review/reviewhtd_bloc.dart';
 import 'package:smart_travel/presentation/blocs/review/submit_review_bloc.dart';
 import 'core/network/network_info.dart';
 import 'data/data_sources/remote/auth_remote_datasource.dart';
@@ -123,10 +124,14 @@ import 'package:smart_travel/domain/usecases/tour/update_tour_usecase.dart';
 
 import 'data/data_sources/remote/invoice_remote_data_source.dart';
 import 'data/data_sources/remote/review_remote_data_source.dart';
+import 'data/data_sources/remote/reviewhtd_remote_data_source.dart';
 import 'data/repositories/chat_repository_impl.dart';
 import 'data/repositories/invoice_repository_impl.dart';
 import 'data/repositories/review_repository_impl.dart';
-import 'domain/entities/review_repository.dart';
+import 'data/repositories/reviewhtd_repository_impl.dart';
+
+import 'domain/repositories/review_repository.dart';
+import 'domain/repositories/reviewhtd_repository.dart';
 import 'domain/usecases/invoice/cancel_booking_usecase.dart';
 import 'domain/usecases/invoice/get_active_invoices_usecase.dart';
 import 'domain/repositories/invoice_repository.dart';
@@ -135,7 +140,9 @@ import 'domain/usecases/invoice/get_refunded_invoices_usecase.dart';
 import 'domain/usecases/invoice/get_reviewable_invoices_usecase.dart';
 import 'domain/usecases/invoice/get_transaction_history_usecase.dart';
 import 'domain/usecases/invoice/search_active_invoices_usecase.dart';
+import 'domain/usecases/review/get_reviewhtd_usecase.dart';
 import 'domain/usecases/review/submit_review_usecase.dart';
+
 
 final sl = GetIt.instance;
 
@@ -554,4 +561,23 @@ Future<void> init() async {
         () => SubmitReviewBloc(sl<SubmitReviewUseCase>()),
   );
 
+  // ReviewHtd Remote DataSource
+  sl.registerLazySingleton<ReviewHtdRemoteDataSource>(
+        () => ReviewHtdRemoteDataSourceImpl(dioClient: sl<DioClient>()),
+  );
+
+  // ReviewHtd Repository
+  sl.registerLazySingleton<ReviewHtdRepository>(
+        () => ReviewHtdRepositoryImpl(sl<ReviewHtdRemoteDataSource>()),
+  );
+
+  // Get ReviewHtd UseCase
+  sl.registerLazySingleton<GetReviewHtdUseCase>(
+        () => GetReviewHtdUseCase(sl<ReviewHtdRepository>()),
+  );
+
+  // ReviewHtd Bloc
+  sl.registerFactory<ReviewHtdBloc>(
+        () => ReviewHtdBloc(sl<GetReviewHtdUseCase>()),
+  );
 }

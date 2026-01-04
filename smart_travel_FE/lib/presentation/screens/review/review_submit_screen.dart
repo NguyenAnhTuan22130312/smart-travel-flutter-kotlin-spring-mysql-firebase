@@ -204,12 +204,12 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                             },
                           ),
                         ),
-                      const SizedBox(height: 100), // Để nút gửi không che content
+                      const SizedBox(height: 100),
                     ],
                   ),
                 ),
 
-                // NÚT GỬI ĐÁNH GIÁ – CỐ ĐỊNH DƯỚI CÙNG
+
                 if (state is! SubmitReviewLoading)
                   Positioned(
                     bottom: 20,

@@ -5,6 +5,8 @@ import com.example.smart_travel_BE.dto.review.request.ReviewRequest;
 import com.example.smart_travel_BE.dto.review.response.ReviewResponse;
 import com.example.smart_travel_BE.dto.user.response.APIResponse;
 import com.example.smart_travel_BE.entity.Review;
+import com.example.smart_travel_BE.exception.AppException;
+import com.example.smart_travel_BE.exception.ErrorCode;
 import com.example.smart_travel_BE.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -91,6 +93,38 @@ public class ReviewController {
         return APIResponse.<List<ReviewResponse>>builder()
                 .code(1000)
                 .msg("Lấy đánh giá điểm đến thành công")
+                .data(reviews)
+                .build();
+    }
+
+    // src/main/java/com/example/smart_travel_BE/controller/ReviewController.java
+
+    @GetMapping("/get-reviews")
+    public APIResponse<List<ReviewResponse>> getReviews(
+            @RequestParam String type,
+            @RequestParam Long serviceId,
+            @RequestParam(required = false) Integer rating,
+            @RequestParam(required = false) Boolean hasImage) {
+
+        List<ReviewResponse> reviews;
+
+        switch (type.toUpperCase()) {
+            case "HOTEL":
+                reviews = reviewService.getHotelReviews(serviceId, rating, hasImage);
+                break;
+            case "TOUR":
+                reviews = reviewService.getTourReviews(serviceId, rating, hasImage);
+                break;
+            case "DESTINATION":
+                reviews = reviewService.getDestinationReviews(serviceId, rating, hasImage);
+                break;
+            default:
+                throw new AppException(ErrorCode.INVALID_TYPE);
+        }
+
+        return APIResponse.<List<ReviewResponse>>builder()
+                .code(1000)
+                .msg("Lấy danh sách đánh giá thành công")
                 .data(reviews)
                 .build();
     }
