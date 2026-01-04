@@ -137,17 +137,6 @@ class ReviewCard extends StatelessWidget {
             ),
           if (images.isNotEmpty) const SizedBox(height: 12),
 
-          // Lượt like
-          Row(
-            children: [
-              Icon(Icons.thumb_up_alt_outlined, size: 18, color: Colors.grey[600]),
-              const SizedBox(width: 6),
-              Text(
-                "$likesCount lượt thích",
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-              ),
-            ],
-          ),
         ],
       ),
     );

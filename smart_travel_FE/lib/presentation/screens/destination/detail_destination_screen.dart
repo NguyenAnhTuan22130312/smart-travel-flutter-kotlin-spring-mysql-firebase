@@ -134,7 +134,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                       _buildOverviewTab(destination),
                       _buildHotelsTab(destination.hotels ?? []),
                       _buildToursTab(destination.tours ?? []),
-                      _buildDestinationReviewsTab(destination.id),
+                      _buildDestinationReviewsTab (destination.id),
                     ],
                   ),
                 ),
