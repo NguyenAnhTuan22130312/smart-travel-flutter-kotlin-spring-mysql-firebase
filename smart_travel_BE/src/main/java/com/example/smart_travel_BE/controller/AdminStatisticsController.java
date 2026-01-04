@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/admin/statistics")
 @RequiredArgsConstructor
 @Slf4j
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'ADMINTOUR', 'ADMINHOTEL')")
 public class AdminStatisticsController {
     private final StatisticsService statisticsService;
 

@@ -8,11 +8,36 @@ import 'package:smart_travel/presentation/blocs/admin_user/admin_user_event.dart
 import 'package:smart_travel/presentation/blocs/admin_user/admin_user_state.dart';
 import 'package:smart_travel/presentation/screens/admin/user/user_edit_modal.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
+import 'package:smart_travel/core/utils/admin_permission_helper.dart';
 
-class UserDetailModal extends StatelessWidget {
+class UserDetailModal extends StatefulWidget {
   final dynamic user;
 
   const UserDetailModal({Key? key, required this.user}) : super(key: key);
+
+  @override
+  State<UserDetailModal> createState() => _UserDetailModalState();
+}
+
+class _UserDetailModalState extends State<UserDetailModal> {
+  bool _canModify = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkPermissions();
+  }
+
+  Future<void> _checkPermissions() async {
+    final canModify = await AdminPermissionHelper.canModifyUser(
+      widget.user.role,
+    );
+    setState(() {
+      _canModify = canModify;
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,26 +65,26 @@ class UserDetailModal extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              user.fullName,
+                              widget.user.fullName,
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                          _buildRoleBadge(user.role),
+                          _buildRoleBadge(widget.user.role),
                         ],
                       ),
                       const SizedBox(height: 8),
 
                       // Status Badge
-                      _buildStatusBadge(user.isActive ?? true),
+                      _buildStatusBadge(widget.user.isActive ?? true),
 
                       const SizedBox(height: 20),
 
                       // Level & Experience Section (NEW!)
-                      if (user.currentLevel != null ||
-                          user.experiencePoints != null)
+                      if (widget.user.currentLevel != null ||
+                          widget.user.experiencePoints != null)
                         _buildLevelSection(),
 
                       // Contact Information
@@ -71,75 +96,75 @@ class UserDetailModal extends StatelessWidget {
                           _buildCopyableInfoRow(
                             Icons.email_rounded,
                             'Email',
-                            user.email,
+                            widget.user.email,
                             context,
                           ),
-                          if (user.phone != null)
+                          if (widget.user.phone != null)
                             _buildCopyableInfoRow(
                               Icons.phone_rounded,
                               'Số điện thoại',
-                              user.phone!,
+                              widget.user.phone!,
                               context,
                             ),
                         ],
                       ),
 
                       // Personal Information
-                      if (user.bio != null ||
-                          user.gender != null ||
-                          user.dateOfBirth != null)
+                      if (widget.user.bio != null ||
+                          widget.user.gender != null ||
+                          widget.user.dateOfBirth != null)
                         _buildSectionCard(
                           icon: Icons.person_rounded,
                           title: 'Thông tin cá nhân',
                           color: Colors.purple,
                           children: [
-                            if (user.bio != null)
+                            if (widget.user.bio != null)
                               _buildInfoRow(
                                 Icons.info_outline,
                                 'Bio',
-                                user.bio!,
+                                widget.user.bio!,
                               ),
-                            if (user.gender != null)
+                            if (widget.user.gender != null)
                               _buildInfoRow(
                                 Icons.wc_rounded,
                                 'Giới tính',
-                                _formatGender(user.gender!),
+                                _formatGender(widget.user.gender!),
                               ),
-                            if (user.dateOfBirth != null)
+                            if (widget.user.dateOfBirth != null)
                               _buildInfoRow(
                                 Icons.cake_rounded,
                                 'Ngày sinh',
-                                _formatDateOnly(user.dateOfBirth!),
+                                _formatDateOnly(widget.user.dateOfBirth!),
                               ),
                           ],
                         ),
 
                       // Location Info
-                      if (user.address != null ||
-                          user.city != null ||
-                          user.country != null)
+                      if (widget.user.address != null ||
+                          widget.user.city != null ||
+                          widget.user.country != null)
                         _buildSectionCard(
                           icon: Icons.location_on_rounded,
                           title: 'Địa chỉ',
                           color: Colors.green,
                           children: [
-                            if (user.address != null)
+                            if (widget.user.address != null)
                               _buildInfoRow(
                                 Icons.home_rounded,
                                 'Địa chỉ',
-                                user.address!,
+                                widget.user.address!,
                               ),
-                            if (user.city != null)
+                            if (widget.user.city != null)
                               _buildInfoRow(
                                 Icons.location_city_rounded,
                                 'Thành phố',
-                                user.city!,
+                                widget.user.city!,
                               ),
-                            if (user.country != null)
+                            if (widget.user.country != null)
                               _buildInfoRow(
                                 Icons.flag_rounded,
                                 'Quốc gia',
-                                user.country!,
+                                widget.user.country!,
                               ),
                           ],
                         ),
@@ -151,30 +176,30 @@ class UserDetailModal extends StatelessWidget {
                         color: Colors.orange,
                         children: [
                           _buildInfoRow(
-                            user.emailVerified
+                            widget.user.emailVerified
                                 ? Icons.verified_user_rounded
                                 : Icons.cancel_rounded,
                             'Email đã xác thực',
-                            user.emailVerified ? 'Có' : 'Chưa',
+                            widget.user.emailVerified ? 'Có' : 'Chưa',
                             valueColor:
-                                user.emailVerified
+                                widget.user.emailVerified
                                     ? Colors.green[700]
                                     : Colors.red[700],
                           ),
                           _buildInfoRow(
                             Icons.login_rounded,
                             'Loại tài khoản',
-                            _formatAuthProvider(user.authProvider),
+                            _formatAuthProvider(widget.user.authProvider),
                           ),
                           _buildInfoRow(
                             Icons.calendar_today_rounded,
                             'Ngày tạo',
-                            _formatDate(user.createdAt),
+                            _formatDate(widget.user.createdAt),
                           ),
                           _buildInfoRow(
                             Icons.update_rounded,
                             'Cập nhật lần cuối',
-                            _formatDate(user.updatedAt),
+                            _formatDate(widget.user.updatedAt),
                           ),
                         ],
                       ),
@@ -217,10 +242,10 @@ class UserDetailModal extends StatelessWidget {
                 radius: 55,
                 backgroundColor: Colors.white,
                 child:
-                    user.avatarUrl != null
+                    widget.user.avatarUrl != null
                         ? ClipOval(
                           child: Image.network(
-                            user.avatarUrl!,
+                            widget.user.avatarUrl!,
                             width: 106,
                             height: 106,
                             fit: BoxFit.cover,
@@ -321,7 +346,7 @@ class UserDetailModal extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        user.currentLevel ?? 'N/A',
+                        widget.user.currentLevel ?? 'N/A',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -356,8 +381,8 @@ class UserDetailModal extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        user.experiencePoints != null
-                            ? '${user.experiencePoints} XP'
+                        widget.user.experiencePoints != null
+                            ? '${widget.user.experiencePoints} XP'
                             : 'N/A',
                         style: TextStyle(
                           fontSize: 20,
@@ -660,7 +685,38 @@ class UserDetailModal extends StatelessWidget {
   }
 
   Widget _buildActionButtons(BuildContext context) {
-    final isActive = user.isActive ?? true;
+    final isActive = widget.user.isActive ?? true;
+
+    // Hide all buttons while checking permissions
+    if (_isLoading) {
+      return const Padding(
+        padding: EdgeInsets.all(20),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // If no modify permission, only show Close button
+    if (!_canModify) {
+      return Padding(
+        padding: const EdgeInsets.all(20),
+        child: SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.close),
+            label: const Text('Đóng'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              side: BorderSide(color: Colors.grey[400]!),
+              foregroundColor: Colors.grey[700],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return BlocListener<AdminUserBloc, AdminUserState>(
       listener: (context, state) {
@@ -743,7 +799,7 @@ class UserDetailModal extends StatelessWidget {
                         builder:
                             (dialogContext) => BlocProvider.value(
                               value: bloc,
-                              child: UserEditModal(user: user),
+                              child: UserEditModal(user: widget.user),
                             ),
                       );
                     },
@@ -825,8 +881,8 @@ class UserDetailModal extends StatelessWidget {
             title: Text(isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản'),
             content: Text(
               isActive
-                  ? 'Bạn có chắc muốn khóa tài khoản "${user.fullName}" không?'
-                  : 'Bạn có chắc muốn mở khóa tài khoản "${user.fullName}" không?',
+                  ? 'Bạn có chắc muốn khóa tài khoản "${widget.user.fullName}" không?'
+                  : 'Bạn có chắc muốn mở khóa tài khoản "${widget.user.fullName}" không?',
             ),
             actions: [
               TextButton(
@@ -837,9 +893,11 @@ class UserDetailModal extends StatelessWidget {
                 onPressed: () {
                   Navigator.pop(dialogContext);
                   if (isActive) {
-                    context.read<AdminUserBloc>().add(LockUser(user.id));
+                    context.read<AdminUserBloc>().add(LockUser(widget.user.id));
                   } else {
-                    context.read<AdminUserBloc>().add(UnlockUser(user.id));
+                    context.read<AdminUserBloc>().add(
+                      UnlockUser(widget.user.id),
+                    );
                   }
                 },
                 style: ElevatedButton.styleFrom(

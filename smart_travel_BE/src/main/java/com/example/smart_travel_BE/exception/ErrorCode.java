@@ -116,6 +116,11 @@ public enum ErrorCode {
     /// INVOICE
     INVALID_TYPE(1018, "Sai type cua hotel, tour, destination", HttpStatus.UNAUTHORIZED),
 
+    // ADMIN PERMISSIONS
+    CANNOT_MODIFY_ADMIN_USER(1090, "Không thể sửa thông tin admin khác cùng cấp", HttpStatus.FORBIDDEN),
+    CANNOT_CHANGE_ADMIN_ROLE(1091, "Không thể thay đổi role của ADMINTOUR/ADMINHOTEL", HttpStatus.FORBIDDEN),
+    NO_WRITE_PERMISSION(1092, "Bạn chỉ có quyền xem, không có quyền chỉnh sửa", HttpStatus.FORBIDDEN),
+    CANNOT_MODIFY_HIGHER_ROLE(1093, "Không thể chỉnh sửa tài khoản có role cao hơn hoặc bằng bạn", HttpStatus.FORBIDDEN),
     REVIEW_SPAM_DETECTED(1019,"spam it thoi", HttpStatus.BAD_REQUEST), DESTINATION_NOT_FOUND(1019,  "khong thay destination" ,HttpStatus.NOT_FOUND );
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
