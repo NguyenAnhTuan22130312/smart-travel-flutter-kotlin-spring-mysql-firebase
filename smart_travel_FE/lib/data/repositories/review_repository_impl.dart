@@ -1,6 +1,6 @@
 import 'package:image_picker/image_picker.dart';
 
-import '../../domain/entities/review_repository.dart';
+import '../../domain/repositories/review_repository.dart';
 import '../data_sources/remote/review_remote_data_source.dart';
 
 class ReviewRepositoryImpl implements ReviewRepository {

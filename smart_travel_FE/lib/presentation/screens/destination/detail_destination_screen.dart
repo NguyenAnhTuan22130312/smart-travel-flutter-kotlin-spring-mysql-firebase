@@ -13,7 +13,10 @@ import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_e
 import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_state.dart';
 import 'package:smart_travel/router/route_names.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../injection_container.dart';
+import '../../blocs/review/reviewhtd_bloc.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/review/review_list_widget.dart';
 
 class DetailDestinationScreen extends StatefulWidget {
   const DetailDestinationScreen({Key? key}) : super(key: key);
@@ -131,7 +134,7 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
                       _buildOverviewTab(destination),
                       _buildHotelsTab(destination.hotels ?? []),
                       _buildToursTab(destination.tours ?? []),
-                      _buildReviewsTab(destination.reviews ?? []),
+                      _buildDestinationReviewsTab (destination.id),
                     ],
                   ),
                 ),
@@ -676,87 +679,16 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
     );
   }
 
-  Widget _buildReviewsTab(List<Review> reviews) {
-    if (reviews.isEmpty) {
-      return const Center(child: Text('Chưa có đánh giá'));
-    }
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: reviews.length,
-      itemBuilder: (context, i) {
-        final r = reviews[i];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 12, offset: const Offset(0, 4))],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    ...List.generate(5, (j) => Icon(
-                      j < r.rating! ? Icons.star : Icons.star_border,
-                      color: const Color(0xFFFDBF0E),
-                      size: 18,
-                    )),
-                    const SizedBox(width: 8),
-                    Text('${r.rating}/5', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(r.comment!, style: TextStyle(fontSize: 15, color: Colors.grey[800], height: 1.6)),
-                if (r.imageUrls?.isNotEmpty == true) ...[
-                  const SizedBox(height: 14),
-                  SizedBox(
-                    height: 90,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: r.imageUrls!.length,
-                      itemBuilder: (context, j) => Padding(
-                        padding: const EdgeInsets.only(right: 10),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            r.imageUrls![j],
-                            width: 90,
-                            height: 90,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(color: Colors.grey[300], width: 90, height: 90),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(8)),
-                      child: Row(
-                        children: [
-                          Icon(Icons.thumb_up, size: 16, color: Colors.blue[600]),
-                          const SizedBox(width: 4),
-                          Text('${r.likesCount}', style: TextStyle(color: Colors.blue[600], fontWeight: FontWeight.w600, fontSize: 13)),
-                        ],
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(_formatDate(r.createdAt), style: TextStyle(color: Colors.grey[500], fontSize: 12)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+  Widget _buildDestinationReviewsTab(int destinationId) {
+    return BlocProvider(
+      create: (_) => ReviewHtdBloc(sl()),
+      child: ReviewListWidget(
+        type: "DESTINATION",
+        serviceId: destinationId,
+      ),
     );
   }
+
 
   // Helper
   String _formatPrice(double price) {
