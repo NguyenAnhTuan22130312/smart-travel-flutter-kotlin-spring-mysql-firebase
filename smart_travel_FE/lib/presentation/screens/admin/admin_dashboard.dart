@@ -6,6 +6,7 @@ import 'package:smart_travel/presentation/blocs/statistics/statistics_bloc.dart'
 import 'package:smart_travel/presentation/blocs/statistics/statistics_event.dart';
 import 'package:smart_travel/presentation/blocs/statistics/statistics_state.dart';
 import 'package:smart_travel/presentation/widgets/statistic/statistics_overview_widget.dart';
+
 import 'package:smart_travel/presentation/theme/app_colors.dart';
 import 'package:smart_travel/injection_container.dart' as di;
 
@@ -45,7 +46,7 @@ class AdminDashboardScreen extends StatelessWidget {
       'color': Colors.red,
     },
     {
-      'id': 'admin/promotions',
+      'id': 'admin/voucher',
       'icon': Icons.sticky_note_2_outlined,
       'label': 'Khuyến Mãi',
       'color': Colors.pink,
