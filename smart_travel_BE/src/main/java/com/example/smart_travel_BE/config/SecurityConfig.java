@@ -85,7 +85,8 @@ public class SecurityConfig {
             "/api/v1/reviews/**",
 
             //Voucher
-            "/api/v1/admin/vouchers/**"
+            "/api/v1/admin/vouchers/**",
+            "/api/v1/rewards/**",
     };
     CustomAuthEntryPoint customAuthEntryPoint;
     UserHeaderAuthenticationFilter userHeaderAuthenticationFilter;

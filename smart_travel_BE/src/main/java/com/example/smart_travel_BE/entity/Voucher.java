@@ -21,4 +21,12 @@ public class Voucher {
     private LocalDateTime expiryDate;
     private Boolean isActive;
     private Integer usageLimit; // Giới hạn số lần dùng
+    @Column(name = "points_required")
+    private Long pointsRequired;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "image_url")
+    private String imageUrl;
 }

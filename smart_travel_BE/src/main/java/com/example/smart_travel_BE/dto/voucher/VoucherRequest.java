@@ -29,4 +29,7 @@ public class VoucherRequest {
     @NotNull(message = "Giới hạn sử dụng không được để trống")
     @Min(value = 1, message = "Giới hạn sử dụng ít nhất là 1")
     private Integer usageLimit;
+    private Long pointsRequired; // Thêm dòng này
+    private String description;
+    private String imageUrl;
 }
