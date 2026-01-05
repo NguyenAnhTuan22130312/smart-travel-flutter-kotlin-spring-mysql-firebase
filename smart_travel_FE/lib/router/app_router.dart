@@ -16,6 +16,7 @@ import 'package:smart_travel/presentation/screens/admin/tour/tour_mgt.dart';
 import 'package:smart_travel/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:smart_travel/presentation/screens/auth/login_screen.dart';
 import 'package:smart_travel/presentation/screens/auth/register_screen.dart';
+import 'package:smart_travel/presentation/screens/chat/group_chat_screen.dart';
 import 'package:smart_travel/presentation/screens/destination/detail_destination_screen.dart';
 import 'package:smart_travel/presentation/screens/explore/explore_screen.dart';
 import 'package:smart_travel/presentation/screens/home/home_screen.dart';
@@ -163,6 +164,17 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => const MyInvoicesScreen(),
         );
+      case RouteNames.myFriend:
+        final args = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+          builder: (_) => GroupChatScreen(
+            groupId: args['groupId'],
+            currentUserId: args['userId'],
+            currentUserName: args['userName'],
+            currentUserAvatar: args['avatar'],
+          ),
+        );
+
       default:
         return MaterialPageRoute(
           builder:

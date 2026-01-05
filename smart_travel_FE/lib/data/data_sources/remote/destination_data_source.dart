@@ -10,6 +10,7 @@ import 'package:smart_travel/data/models/destination/destination_detail_response
 import 'package:smart_travel/data/models/destination/destination_response_modal.dart';
 import 'package:smart_travel/data/models/destination/destination_upate_request.dart';
 import 'package:smart_travel/data/models/destination/destinations-featured-response-modal.dart';
+import 'package:smart_travel/data/models/destination/weather_data_model.dart';
 import 'package:smart_travel/domain/params/destination_update_params.dart';
 
 abstract class DestinationDataSource {
@@ -32,13 +33,17 @@ abstract class DestinationDataSource {
   ///Cập nhật địa điểm
   Future<DestinationDetailResponse> updateDestination(int destinationId, DestinationUpdateRequest request, List<XFile>? imageXFile);
 
-
   ///Xóa địa điểm
   Future<String> deleteDestination(int destinationId);
+
+  ///Lấy thời tiết
+  Future<WeatherDataModel> weather(double latitude, double longitude);
 
 }
 class DestinationDataSourceImpl implements DestinationDataSource{
   final DioClient client;
+  final String apiKey = '50e28d94f9cc85814a17ce5c46a53898';
+
 
   DestinationDataSourceImpl({required this.client});
 
@@ -274,6 +279,25 @@ class DestinationDataSourceImpl implements DestinationDataSource{
         throw e.error as ServerException;
       }
       throw ServerException(e.message ?? 'Lỗi khi xóa tỉnh thành');
+    }
+  }
+
+  @override
+  Future<WeatherDataModel> weather(double latitude, double longitude) async{
+    try {
+      final response = await client.get(
+        '${ApiConstants.weather}weather?lat=$latitude&lon=$longitude&appid=$apiKey&units=metric',
+      );
+      print("WEATHER: ${response.data}");
+
+      final resu = WeatherDataModel.fromJson(response.data);
+      print("WEATHER: ${resu}");
+      return WeatherDataModel.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.error is ServerException) {
+        throw e.error as ServerException;
+      }
+      throw ServerException(e.message ?? 'Lỗi khi lấy thông tin thời tiết');
     }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:smart_travel/domain/entities/destinations.dart';
+import 'package:smart_travel/domain/entities/weather.dart';
 
 abstract class DestinationState extends Equatable {
   const DestinationState();
@@ -80,6 +81,7 @@ class DeleteDestinationError extends DestinationState{
   final String message;
   DeleteDestinationError(this.message);
 }
+
 
 
 

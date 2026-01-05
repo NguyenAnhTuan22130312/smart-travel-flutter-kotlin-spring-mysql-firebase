@@ -41,4 +41,7 @@ class RouteNames {
   static const String userLevel = '/profile/level';
 
   static const String myInvoices = '/my-invoices';
+
+  static const String myFriend = '/my-friend';
+
 }

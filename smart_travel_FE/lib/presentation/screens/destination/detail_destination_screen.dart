@@ -8,9 +8,17 @@ import 'package:smart_travel/domain/entities/destinations.dart';
 import 'package:smart_travel/domain/entities/hotel.dart';
 import 'package:smart_travel/domain/entities/review.dart';
 import 'package:smart_travel/domain/entities/tour.dart';
+import 'package:smart_travel/domain/entities/weather.dart';
+import 'package:smart_travel/domain/params/get_weather_params.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_event.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_state.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
+import 'package:smart_travel/presentation/blocs/weather/weather_bloc.dart';
+import 'package:smart_travel/presentation/blocs/weather/weather_event.dart';
+import 'package:smart_travel/presentation/blocs/weather/weather_state.dart';
 import 'package:smart_travel/router/route_names.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../injection_container.dart';
@@ -37,8 +45,12 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final arguments = ModalRoute.of(context)?.settings.arguments;
-      context.read<DestinationDetailBloc>().add(GetDetailDestinationEvent(arguments as int));
+      final args = ModalRoute.of(context)!.settings.arguments
+      as ({int id, double lat, double lng});
+      context.read<DestinationDetailBloc>().add(GetDetailDestinationEvent(args.id));
+      GetWeatherParams params = GetWeatherParams(latitude: args.lat, longitude: args.lng);
+      context.read<WeatherBloc>().add(GetWeatherEvent(params));
+
     });
 
     _tabController = TabController(length: 4, vsync: this);
@@ -452,12 +464,155 @@ class _DetailDestinationScreenState extends State<DetailDestinationScreen>
     );
   }
 
+
+    ///Thời tiết
+  Widget _getWeatherAnimation(WeatherEntity weather) {
+    final isDay = weather.isDay;
+    final condition = weather.condition;
+
+    if (condition.contains('rain')) {
+      return Lottie.asset(
+        isDay
+            ? 'assets/lottie/rain_day.json'
+            : 'assets/lottie/rain_night.json',
+      );
+    }
+
+    if (condition.contains('cloud')) {
+      return Lottie.asset(
+        isDay
+            ? 'assets/lottie/cloudy_day.json'
+            : 'assets/lottie/cloudy_night.json',
+      );
+    }
+
+    if (condition.contains('clear') || condition.contains('sun')) {
+      return Lottie.asset(
+        isDay
+            ? 'assets/lottie/sunny.json'
+            : 'assets/lottie/night.json',
+      );
+    }
+
+    // fallback
+    return Lottie.asset(
+      isDay
+          ? 'assets/lottie/cloudy_day.json'
+          : 'assets/lottie/cloudy_night.json',
+    );
+  }
+    Widget _buildWeatherCard(WeatherEntity weather) {
+      final weatherAnimation = _getWeatherAnimation(weather);
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white70,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 16, offset: const Offset(0, 4))],
+        ),
+        child: Row(
+          children: [
+            SizedBox(width: 56, height: 56, child: weatherAnimation),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${weather.temperature.round()}°C tại ${weather.cityName}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _getTravelAdvice(weather),
+                    style: const TextStyle(color: Colors.black, fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+  String _getTravelAdvice(WeatherEntity weather) {
+    if (weather.condition.contains('rain')) {
+      return weather.isDay
+          ? "Mưa, nên mang theo ô khi ra ngoài."
+          : "Trời mưa ban đêm, hạn chế di chuyển xa.";
+    }
+
+    if (weather.condition.contains('cloud')) {
+      return weather.isDay
+          ? "Trời nhiều mây, thích hợp tham quan nhẹ nhàng."
+          : "Nhiều mây ban đêm, thích hợp dạo phố ngắn.";
+    }
+
+    return weather.isDay
+        ? "Thời tiết đẹp cho các hoạt động ngoài trời."
+        : "Trời quang ban đêm, thích hợp dạo mát.";
+  }
+
   Widget _buildOverviewTab(DestinationEntity destination) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          BlocBuilder<WeatherBloc, WeatherState>(
+            builder: (context, state) {
+              print("Current Weather State: $state");
+              if (state is GetWeatherError) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 20),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.cloud_off, color: Colors.grey[600]),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Text(
+                          'Không thể cập nhật thời tiết lúc này',
+                          style: TextStyle(fontSize: 13, color: Colors.black54),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          // Gọi lại Event lấy thời tiết
+                          final args = ModalRoute.of(context)!.settings.arguments
+                          as ({int id, double lat, double lng});
+                          context.read<WeatherBloc>().add(
+                              GetWeatherEvent(GetWeatherParams(latitude: args.lat, longitude: args.lng))
+                          );
+                        },
+                        child: const Text('Thử lại'),
+                      )
+                    ],
+                  ),
+                );
+              }
+              if (state is GetWeatherSuccess) {
+                return Column(
+                  children: [
+                    _buildWeatherCard(state.entity),
+                    const SizedBox(height: 20),
+                  ],
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
           const Text('Mô tả', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           Text(

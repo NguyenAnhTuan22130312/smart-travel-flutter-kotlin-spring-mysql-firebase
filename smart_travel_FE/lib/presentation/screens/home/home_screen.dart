@@ -13,6 +13,7 @@ import 'package:smart_travel/presentation/widgets/category/custom_category.dart'
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
 import 'package:smart_travel/presentation/widgets/common/refreshable_scroll_view.dart';
 import 'package:smart_travel/presentation/widgets/destination/destination_card.dart';
+import 'package:smart_travel/presentation/widgets/destination/share_to_group_bottom_sheet.dart';
 import 'package:smart_travel/presentation/widgets/home/home_banner_slider.dart';
 import 'package:smart_travel/presentation/widgets/province/province_is_popular_card.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
@@ -101,9 +102,50 @@ void _onNavItemTapped(int index) {
               const SliverToBoxAdapter(child: SizedBox(height: 24)),
             ],
           ),
+
+      floatingActionButton: SizedBox(
+        width: 56,
+        height: 56,
+        child: FloatingActionButton(
+          backgroundColor: const Color(0x9651FDDB),
+          elevation: 0,
+          shape: const CircleBorder(),
+          onPressed: () {
+            _showShareToGroupDialog();
+
+          },
+          child: const Icon(Icons.people),
+        ),
+      ),
       bottomNavigationBar: AppBottomNavigationWithIndicator(
         currentIndex: _selectedIndex,
         onTap: _onNavItemTapped,
+      ),
+    );
+  }
+
+  /// Dialog chọn nhóm để chia sẻ
+  void _showShareToGroupDialog(
+      ) {
+    final profileState = context.read<ProfileBloc>().state;
+    //CHƯA ĐĂNG NHẬP
+    if (profileState is! ProfileLoaded) {
+      // Chưa đăng nhập / chưa load xong
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng đăng nhập')),
+      );
+      return;
+    }
+    //ĐÃ ĐĂNG NHẬP
+    final user = profileState.user;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ShareToGroupScreen(
+          currentUserId: user.id.toString(),
+          currentUserName: user.fullName,
+          currentUserAvatar: user.avatarUrl,
+        ),
       ),
     );
   }
