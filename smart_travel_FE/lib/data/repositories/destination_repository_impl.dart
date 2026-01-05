@@ -7,8 +7,10 @@ import 'package:smart_travel/data/models/destination/destination_add_request.dar
 import 'package:smart_travel/data/models/destination/destination_upate_request.dart';
 import 'package:smart_travel/data/models/destination/destinations-featured-response-modal.dart';
 import 'package:smart_travel/domain/entities/destinations.dart';
+import 'package:smart_travel/domain/entities/weather.dart';
 import 'package:smart_travel/domain/params/destination_add_params.dart';
 import 'package:smart_travel/domain/params/destination_update_params.dart';
+import 'package:smart_travel/domain/params/get_weather_params.dart';
 import 'package:smart_travel/domain/repositories/destination_repository.dart';
 
 import '../../core/network/network_info.dart';
@@ -207,6 +209,28 @@ class DestinationRepositoryImpl extends DestinationRepository {
     try {
       final res = await destinationDataSource.deleteDestination(destinationId);
       return Right(res);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Lỗi không mong muốn: $e'));
+    }
+  }
+
+  //Lấy thời tiết hiện tại
+  @override
+  Future<Either<Failure, WeatherEntity>> weather(GetWeatherParams params) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(
+        NetworkFailure('Không có kết nối internet. Vui lòng kiểm tra lại.'),
+      );
+    }
+    try {
+      final res = await destinationDataSource.weather(params.latitude,params.longitude);
+      print("WEATHER");
+      print(res);
+      return Right(res.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } on NetworkException catch (e) {

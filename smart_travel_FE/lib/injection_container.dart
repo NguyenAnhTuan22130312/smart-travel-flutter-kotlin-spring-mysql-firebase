@@ -39,6 +39,7 @@ import 'package:smart_travel/domain/usecases/destination/filter_destinations_by_
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_featured_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_detail_destination_use_case.dart';
+import 'package:smart_travel/domain/usecases/destination/get_weather_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/update_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/create_hotel_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/delete_hotel_use_case.dart';
@@ -74,6 +75,7 @@ import 'package:smart_travel/presentation/blocs/banner/banner_bloc.dart';
 import 'package:smart_travel/presentation/blocs/chat/chat_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_bloc.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
 import 'package:smart_travel/presentation/blocs/favorite/favorite_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
@@ -98,6 +100,7 @@ import 'package:smart_travel/presentation/blocs/payment/payment_bloc.dart';
 import 'package:smart_travel/presentation/blocs/booking/booking_bloc.dart';
 import 'package:smart_travel/presentation/blocs/review/reviewhtd_bloc.dart';
 import 'package:smart_travel/presentation/blocs/review/submit_review_bloc.dart';
+import 'package:smart_travel/presentation/blocs/weather/weather_bloc.dart';
 import 'core/network/network_info.dart';
 import 'data/data_sources/remote/auth_remote_datasource.dart';
 import 'package:smart_travel/data/data_sources/remote/booking_data_source.dart';
@@ -289,6 +292,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => AddDestinationUseCase(sl()));
   sl.registerLazySingleton(() => UpdateDestinationUseCase(sl()));
   sl.registerLazySingleton(() => DeleteDestinationUseCase(sl()));
+  sl.registerLazySingleton(() => GetWeatherUseCase(sl()));
 
   sl.registerLazySingleton(() => GetAllProvinceUseCase(sl()));
   sl.registerLazySingleton(() => ProvinceDetailUseCase(sl()));
@@ -386,11 +390,16 @@ Future<void> init() async {
       addDestinationUseCase: sl(),
       updateDestinationUseCase: sl(),
       deleteDestinationUseCase: sl(),
+      getWeatherUseCase: sl(),
     ),
   );
+
   sl.registerFactory(
     () => DestinationDetailBloc(getDetailDestinationUseCase: sl()),
   );
+
+  // ---  BLOC WEATHER ---
+  sl.registerFactory(() => WeatherBloc(getWeatherUseCase: sl()));
 
   sl.registerFactory(
     () => ProvinceBloc(

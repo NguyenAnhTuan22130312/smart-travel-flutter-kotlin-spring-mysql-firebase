@@ -95,6 +95,10 @@ class ApiConstants {
   static const String updateVoucher = '/admin/vouchers/';
   static const String deleteVoucher = '/admin/vouchers/';
 
+  //Weather
+  static const String weather = 'https://api.openweathermap.org/data/2.5/';
+
+
   // Timeout
   static const Duration connectionTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
