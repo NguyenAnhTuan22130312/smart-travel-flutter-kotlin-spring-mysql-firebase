@@ -63,21 +63,37 @@ class _VoucherSelectionModalState extends State<VoucherSelectionModal> with Sing
       }
 
       // --- GIAI ĐOẠN 2: LẤY ĐIỂM (KHÔNG QUAN TRỌNG, CHẠY SAU) ---
+      // ... đoạn trên giữ nguyên
+
+      // --- GIAI ĐOẠN 2: LẤY ĐIỂM ---
       print("Step 3: Gọi API User Profile (Lấy điểm)...");
       try {
-        final profileRes = await _dioClient.get('/users/${widget.userId}');
-        print("Step 3 Xong. Data: ${profileRes.data}");
+        final profileRes = await _dioClient.get('/users/user/${widget.userId}');
+
+        // IN RA ĐỂ KIỂM TRA CẤU TRÚC JSON (Quan trọng)
+        print("Step 3 JSON Data: ${profileRes.data}");
 
         if (mounted && profileRes.data != null) {
           setState(() {
-            // Kiểm tra kỹ null safety
-            _currentPoints = profileRes.data['experiencePoints'] ?? 0;
+            // LOGIC CŨ (SAI):
+            // _currentPoints = profileRes.data['experiencePoints'] ?? 0;
+
+            // LOGIC MỚI (THỬ 1 TRONG 2 CÁCH SAU TÙY VÀO JSON CỦA BẠN):
+
+            // CÁCH 1: Nếu JSON lồng nhau (User -> userProfile -> points)
+            if (profileRes.data['userProfile'] != null) {
+              _currentPoints = profileRes.data['experiencePoints'] ?? 0;
+            }
+            // CÁCH 2: Nếu JSON phẳng (Backend đã map sẵn ra ngoài)
+            else {
+              _currentPoints = profileRes.data['experiencePoints'] ?? 0;
+            }
           });
+          print("Điểm đã lấy được: $_currentPoints");
         }
       } catch (e) {
-        // Nếu lỗi lấy điểm (401, refresh token fail...), chỉ log ra chứ không chặn UI
-        print("⚠️ Lỗi lấy điểm (Không ảnh hưởng danh sách): $e");
-        // Giữ nguyên điểm là 0 hoặc giá trị cũ
+        print("Lỗi lấy điểm: $e");
+        setState(() => _currentPoints = 0);
       }
 
     } catch (e, stackTrace) {
@@ -102,23 +118,26 @@ class _VoucherSelectionModalState extends State<VoucherSelectionModal> with Sing
     }
 
     try {
-      // SỬA 3: Dùng _dioClient.post
-      await _dioClient.post('/rewards/redeem', data: {
-        'userId': widget.userId,
-        'voucherId': voucherId
-      });
+      // --- SỬA TẠI ĐÂY ---
+      // Backend đang dùng @RequestParam nên phải truyền tham số lên URL
+      // Thay vì dùng data: {...}, ta nối chuỗi query string:
+      await _dioClient.post(
+        '/rewards/redeem?userId=${widget.userId}&voucherId=$voucherId',
+      );
+      // -------------------
 
-      await _fetchAllData(); // Load lại để trừ điểm
+      // Sau khi đổi xong thì load lại data để cập nhật điểm và danh sách
+      await _fetchAllData();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Đổi quà thành công!"), backgroundColor: Colors.green));
-        _tabController.animateTo(0); // Chuyển về tab voucher của tôi
+        _tabController.animateTo(0); // Chuyển về tab kho voucher
       }
 
     } catch (e) {
       String msg = "Đổi quà thất bại";
-      // Xử lý lỗi từ DioClient (thường nó wrap DioException)
       if (e is DioException && e.response != null) {
+        // Backend trả về lỗi (ví dụ: Không đủ điểm, Voucher hết hạn...)
         msg = e.response?.data['message'] ?? msg;
       }
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));

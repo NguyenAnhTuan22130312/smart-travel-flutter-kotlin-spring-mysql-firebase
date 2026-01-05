@@ -1,5 +1,5 @@
 package com.example.smart_travel_BE.entity;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
@@ -20,6 +20,7 @@ public class UserProfile {
 
     // Quan hệ 1-1 với bảng users
     @OneToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
