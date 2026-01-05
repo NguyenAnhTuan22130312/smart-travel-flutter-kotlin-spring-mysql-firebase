@@ -116,7 +116,10 @@ public enum ErrorCode {
     /// INVOICE
     INVALID_TYPE(1018, "Sai type cua hotel, tour, destination", HttpStatus.UNAUTHORIZED),
 
-    REVIEW_SPAM_DETECTED(1019,"spam it thoi", HttpStatus.BAD_REQUEST), DESTINATION_NOT_FOUND(1019,  "khong thay destination" ,HttpStatus.NOT_FOUND );
+    REVIEW_SPAM_DETECTED(1019,"spam it thoi", HttpStatus.BAD_REQUEST), DESTINATION_NOT_FOUND(1019,  "khong thay destination" ,HttpStatus.NOT_FOUND ),
+    REFUND_NOT_PENDING(1050,"status not in pending" , HttpStatus.BAD_REQUEST ),
+    INVALID_BOOKING_TYPE(1051, "Chỉ áp dụng check-in cho đơn đặt phòng khách sạn",HttpStatus.BAD_REQUEST),
+    INVALID_STATUS(1052, "Đơn hàng phải ở trạng thái ACTIVE để check-in",HttpStatus.BAD_REQUEST),;
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
         this.message = message;

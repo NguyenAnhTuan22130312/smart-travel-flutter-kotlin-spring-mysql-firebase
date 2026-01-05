@@ -2,7 +2,13 @@
 
 package com.example.smart_travel_BE.service;
 
+import com.example.smart_travel_BE.dto.invoice.request.CancelOrderRequest;
+import com.example.smart_travel_BE.dto.invoice.request.CheckInRequest;
+import com.example.smart_travel_BE.dto.invoice.request.CheckOutRequest;
+import com.example.smart_travel_BE.dto.invoice.request.RefundApprovalRequest;
 import com.example.smart_travel_BE.dto.invoice.response.ActiveInvoiceResponse;
+import com.example.smart_travel_BE.dto.invoice.response.AdminInvoiceDetailResponse;
+import com.example.smart_travel_BE.dto.invoice.response.AdminInvoiceResponse;
 import com.example.smart_travel_BE.dto.invoice.response.InvoiceDetailResponse;
 import com.example.smart_travel_BE.entity.*;
 import com.example.smart_travel_BE.exception.AppException;
@@ -20,10 +26,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
+import java.time.LocalDateTime;
+
 import java.util.List;
-import java.util.stream.Collectors;
+import java.math.BigDecimal;
+import java.math.RoundingMode;  // ← THÊM IMPORT NÀY
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -38,6 +46,7 @@ public class InvoiceService {
     private final RoomTypeRepository roomTypeRepository;
     private final InvoiceMapper invoiceMapper;
     private final InvoiceDetailMapper invoiceDetailMapper;
+    private final UserProfileRepository userProfileRepository;
 
 
     // 1. Lấy danh sách đơn ĐANG HOẠT ĐỘNG (giữ tên cũ)
@@ -295,5 +304,309 @@ public class InvoiceService {
         return bookings.stream()
                 .map(invoiceMapper::toActiveResponse)  // ← hàm bạn đã có sẵn
                 .toList();
+    }
+
+    public List<AdminInvoiceResponse> getAdminInvoices(String invoiceNumber, String status) {
+        User currentUser = getCurrentUser();
+        String role = currentUser.getRole();
+
+        List<Booking> bookings = invoiceRepository.findAdminInvoices(
+                currentUser.getId(),
+                role,
+                invoiceNumber,
+                status
+        );
+
+        return bookings.stream()
+                .map(this::mapToAdminResponse)
+                .toList();
+    }
+
+    private AdminInvoiceResponse mapToAdminResponse(Booking booking) {
+        String itemName = "Dịch vụ không xác định";
+
+        if ("HOTEL".equalsIgnoreCase(booking.getBookingType())) {
+            Hotel hotel = invoiceRepository.findHotelWithImagesById(booking.getHotelId()).orElse(null);
+            String hotelName = hotel != null ? hotel.getName() : "Khách sạn đã xóa";
+            String roomName = booking.getRoomType() != null ? " - " + booking.getRoomType().getName() : "";
+            itemName = hotelName + roomName;
+        } else if ("TOUR".equalsIgnoreCase(booking.getBookingType())) {
+            Tour tour = invoiceRepository.findTourWithImagesById(booking.getTourId()).orElse(null);
+            itemName = tour != null ? tour.getName() : "Tour đã xóa";
+        }
+
+        Invoice invoice = booking.getInvoice();
+
+        return AdminInvoiceResponse.builder()
+                .bookingId(booking.getId())
+                .invoiceNumber(invoice != null ? invoice.getInvoiceNumber() : null)
+                .itemName(itemName)
+                .startDate(booking.getStartDate())
+                .endDate(booking.getEndDate())
+                .status(booking.getStatus())
+                .build();
+    }
+
+    public AdminInvoiceDetailResponse getAdminInvoiceDetail(Long bookingId) {
+        User currentUser = getCurrentUser();
+        String role = currentUser.getRole();
+
+        // Lấy booking + eager load cần thiết
+        Booking booking = invoiceRepository.findFullBookingById(bookingId)
+                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+
+        Invoice invoice = booking.getInvoice();
+        Payment payment = booking.getPayment();
+
+        // KIỂM TRA QUYỀN XEM CHI TIẾT
+        if (!role.equals("ADMIN")) {
+            if (role.equals("ADMINHOTEL") && "HOTEL".equalsIgnoreCase(booking.getBookingType())) {
+                Hotel hotel = invoiceRepository.findHotelWithImagesById(booking.getHotelId()).orElse(null);
+                if (hotel == null || !currentUser.getId().equals(hotel.getOwner().getId())) {
+                    throw new AppException(ErrorCode.UNAUTHORIZED);
+                }
+            } else if (role.equals("ADMINTOUR") && "TOUR".equalsIgnoreCase(booking.getBookingType())) {
+                Tour tour = invoiceRepository.findTourWithImagesById(booking.getTourId()).orElse(null);
+                if (tour == null || !currentUser.getId().equals(tour.getOwner().getId())) {
+                    throw new AppException(ErrorCode.UNAUTHORIZED);
+                }
+            } else {
+                throw new AppException(ErrorCode.UNAUTHORIZED);
+            }
+        }
+
+
+        String serviceName = "Dịch vụ không xác định";
+        String roomTypeName = null;
+
+        if ("HOTEL".equalsIgnoreCase(booking.getBookingType())) {
+            Hotel hotel = invoiceRepository.findHotelWithImagesById(booking.getHotelId()).orElse(null);
+            serviceName = hotel != null ? hotel.getName() : "Khách sạn đã xóa";
+            if (booking.getRoomType() != null) {
+                roomTypeName = booking.getRoomType().getName();
+            }
+        } else if ("TOUR".equalsIgnoreCase(booking.getBookingType())) {
+            Tour tour = invoiceRepository.findTourWithImagesById(booking.getTourId()).orElse(null);
+            serviceName = tour != null ? tour.getName() : "Tour đã xóa";
+        }
+
+        User customer = booking.getUser();
+
+        return AdminInvoiceDetailResponse.builder()
+                .bookingId(booking.getId())
+                .invoiceNumber(invoice != null ? invoice.getInvoiceNumber() : null)
+                .status(booking.getStatus())
+                .createdAt(booking.getCreatedAt())
+                .updatedAt(booking.getUpdatedAt())
+
+                .hotelId(booking.getHotelId())
+                .tourId(booking.getTourId())
+
+                .serviceName(serviceName)
+                .roomTypeName(roomTypeName)
+
+                .startDate(booking.getStartDate())
+                .endDate(booking.getEndDate())
+                .numberOfPeople(booking.getNumberOfPeople())
+                .numberOfRooms(booking.getNumberOfRooms())
+                .specialRequests(booking.getSpecialRequests())
+                .cancellationReason(booking.getCancellationReason())
+
+                .totalPrice(booking.getTotalPrice())
+                .discountAmount(booking.getDiscountAmount())
+                .finalPrice(booking.getFinalPrice())
+
+                .paymentStatus(payment != null ? payment.getPayment_status() : null)
+
+                .taxAmount(invoice != null ? invoice.getTaxAmount() : BigDecimal.ZERO)
+
+                .customerName(customer != null ? customer.getFullName() : "Khách lẻ")
+                .customerPhone(customer != null ? customer.getPhone() : null)
+                .customerEmail(customer != null ? customer.getEmail() : null)
+                .build();
+    }
+
+    private void validateOwnerPermission(Booking booking, User currentUser) {
+        String role = currentUser.getRole();
+
+        // ADMIN không được phép thao tác với hotel/tour
+        if ("ADMIN".equals(role)) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        // Chỉ ADMINHOTEL hoặc ADMINTOUR mới được phép
+        if (!"ADMINHOTEL".equals(role) && !"ADMINTOUR".equals(role)) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        boolean isOwner = false;
+
+        if ("HOTEL".equalsIgnoreCase(booking.getBookingType())) {
+            Hotel hotel = invoiceRepository.findHotelWithImagesById(booking.getHotelId()).orElse(null);
+            if (hotel != null && currentUser.getId().equals(hotel.getOwner().getId())) {
+                isOwner = true;
+            }
+        } else if ("TOUR".equalsIgnoreCase(booking.getBookingType())) {
+            Tour tour = invoiceRepository.findTourWithImagesById(booking.getTourId()).orElse(null);
+            if (tour != null && currentUser.getId().equals(tour.getOwner().getId())) {
+                isOwner = true;
+            }
+        }
+
+        if (!isOwner) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+    }
+
+    @Transactional
+    public void approveRefund(RefundApprovalRequest request) {
+        User currentUser = getCurrentUser();
+
+        Booking booking = bookingRepository.findById(request.getBookingId())
+                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+
+        if (!"PENDING_REFUND".equals(booking.getStatus())) {
+            throw new AppException(ErrorCode.REFUND_NOT_PENDING);
+        }
+
+        validateOwnerPermission(booking, currentUser);
+
+        booking.setStatus("REFUNDED");
+        bookingRepository.save(booking);
+    }
+
+    @Transactional
+    public void checkIn(CheckInRequest request) {
+        User currentUser = getCurrentUser();
+
+        Booking booking = bookingRepository.findById(request.getBookingId())
+                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+
+        // Kiểm tra trạng thái hiện tại phải là ACTIVE
+        if (!"ACTIVE".equals(booking.getStatus())) {
+            throw new AppException(ErrorCode.INVALID_STATUS); // "Đơn hàng phải ở trạng thái ACTIVE để check-in"
+        }
+
+        // KIỂM TRA QUYỀN: Chỉ chủ (owner) của hotel/tour mới được check-in (ADMIN không được)
+        boolean isOwner = false;
+
+        if ("HOTEL".equalsIgnoreCase(booking.getBookingType())) {
+            Hotel hotel = invoiceRepository.findHotelWithImagesById(booking.getHotelId()).orElse(null);
+            if (hotel != null && currentUser.getId().equals(hotel.getOwner().getId())) {
+                isOwner = true;
+            }
+        } else if ("TOUR".equalsIgnoreCase(booking.getBookingType())) {
+            Tour tour = invoiceRepository.findTourWithImagesById(booking.getTourId()).orElse(null);
+            if (tour != null && currentUser.getId().equals(tour.getOwner().getId())) {
+                isOwner = true;
+            }
+        }
+
+        if (!isOwner) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        // Cập nhật
+        if ("HOTEL".equalsIgnoreCase(booking.getBookingType())) {
+            booking.setNumberOfRooms(request.getNumberOfRooms());
+        }
+        booking.setStatus("CHECKED");  // chung cho cả hotel (nhận phòng) và tour (điểm danh/nhận vé)
+
+        bookingRepository.save(booking);
+    }
+
+    @Transactional
+    public void checkOut(CheckOutRequest request) {
+        User currentUser = getCurrentUser();
+
+        Booking booking = bookingRepository.findById(request.getBookingId())
+                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+
+        if (!"CHECKED".equals(booking.getStatus())) {
+            throw new AppException(ErrorCode.INVALID_STATUS);
+        }
+
+        validateOwnerPermission(booking, currentUser);
+
+        // Chuyển trạng thái sang COMPLETED
+        booking.setStatus("COMPLETED");
+        bookingRepository.save(booking);
+
+        // === TÍNH EXP CHO KHÁCH HÀNG (NGƯỜI ĐẶT ĐƠN) ===
+        User customer = booking.getUser();
+        if (customer != null) {
+            BigDecimal finalPrice = booking.getFinalPrice();
+            long expEarned = finalPrice != null
+                    ? finalPrice.divide(new BigDecimal("100000"), RoundingMode.FLOOR).longValue() * 100
+                    : 0;
+
+            if (expEarned > 0) {
+                // Dùng repository của bạn bè bạn: findByUser
+                Optional<UserProfile> profileOpt = userProfileRepository.findByUser(customer);
+
+                UserProfile profile = profileOpt.orElseGet(() -> {
+                    UserProfile newProfile = UserProfile.builder()
+                            .user(customer)
+                            .experiencePoints(0L)
+                            .darkModeEnabled(false)
+                            .updatedAt(LocalDateTime.now())
+                            .build();
+                    return userProfileRepository.save(newProfile);
+                });
+
+                // Chỉ cộng exp – KHÔNG cập nhật level (bạn bè bạn xử lý ở Flutter)
+                profile.setExperiencePoints(profile.getExperiencePoints() + expEarned);
+                profile.setUpdatedAt(LocalDateTime.now());
+
+                userProfileRepository.save(profile);
+            }
+        }
+    }
+
+    @Transactional
+    public void cancelOrder(CancelOrderRequest request) {
+        User currentUser = getCurrentUser();
+        String role = currentUser.getRole();
+        String fullName = currentUser.getFullName() != null ? currentUser.getFullName() : "Admin";
+
+        Booking booking = bookingRepository.findById(request.getBookingId())
+                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+
+        // Kiểm tra trạng thái hiện tại phải là ACTIVE
+        if (!"ACTIVE".equals(booking.getStatus())) {
+            throw new AppException(ErrorCode.INVALID_STATUS); // "Chỉ hủy được đơn ở trạng thái ACTIVE"
+        }
+
+        // KIỂM TRA QUYỀN HỦY
+        boolean canCancel = false;
+
+        if ("ADMIN".equals(role)) {
+            canCancel = true;  // ADMIN hủy được mọi đơn
+        } else if ("ADMINHOTEL".equals(role) || "ADMINTOUR".equals(role)) {
+            // Kiểm tra có phải chủ của hotel/tour không
+            if ("HOTEL".equalsIgnoreCase(booking.getBookingType())) {
+                Hotel hotel = invoiceRepository.findHotelWithImagesById(booking.getHotelId()).orElse(null);
+                if (hotel != null && currentUser.getId().equals(hotel.getOwner().getId())) {
+                    canCancel = true;
+                }
+            } else if ("TOUR".equalsIgnoreCase(booking.getBookingType())) {
+                Tour tour = invoiceRepository.findTourWithImagesById(booking.getTourId()).orElse(null);
+                if (tour != null && currentUser.getId().equals(tour.getOwner().getId())) {
+                    canCancel = true;
+                }
+            }
+        }
+
+        if (!canCancel) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        // Tạo cancellationReason theo format
+        String cancellationReason = String.format("%s - %s - %s", role, fullName, request.getCancelMessage());
+
+        // Hủy đơn
+        booking.setStatus("CANCELLED");
+        booking.setCancellationReason(cancellationReason);
+        bookingRepository.save(booking);
     }
 }
