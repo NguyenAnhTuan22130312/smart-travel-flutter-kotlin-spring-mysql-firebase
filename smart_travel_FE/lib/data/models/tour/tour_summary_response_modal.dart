@@ -7,12 +7,14 @@ class TourSummaryResponse {
   final double pricePerPerson;
   final double? averageRating;
   final int? reviewCount;
+  final int owner_id;
   final String? images; // Ảnh đầu tiên
 
   TourSummaryResponse({
     required this.id,
     required this.name,
     this.durationDays,
+    required this.owner_id,
     required this.pricePerPerson,
     this.averageRating,
     this.reviewCount,
@@ -30,6 +32,7 @@ class TourSummaryResponse {
           : null,
       reviewCount: json['reviewCount'] as int?,
       images: json['thumbnail'] as String?,
+      owner_id: json['owner_id'] as int,
     );
   }
 
@@ -42,6 +45,7 @@ class TourSummaryResponse {
       averageRating: averageRating,
       reviewCount: reviewCount,
       image: images,
+      owner_id: owner_id,
     );
   }
 }

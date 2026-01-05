@@ -14,6 +14,7 @@ class Tour{
   final int? reviewCount;
   final int? bookingCount;
   final bool? isActive;
+  final int owner_id;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final List<String>? imageUrls; // Danh sách URL ảnh
@@ -34,6 +35,7 @@ class Tour{
     this.averageRating,
     this.reviewCount,
     this.bookingCount,
+    required this.owner_id,
     this.isActive,
     this.createdAt,
     this.updatedAt,
