@@ -32,8 +32,17 @@ class TokenRefreshInterceptor extends QueuedInterceptor {
       final newToken = await _getNewToken();
 
       if (newToken == null) {
-        // Nếu không có token mới, phải trả về lỗi kèm message từ BE
-        return handler.reject(_createErrorWithBeMessage(err));
+        // Refresh token failed - clear all tokens and throw TokenExpiredException
+        await localDataSource.clear();
+        return handler.reject(
+          DioException(
+            requestOptions: err.requestOptions,
+            response: err.response,
+            type: err.type,
+            error: const TokenExpiredException(),
+            message: 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.',
+          ),
+        );
       }
 
       final requestOptions = err.requestOptions;
@@ -41,33 +50,31 @@ class TokenRefreshInterceptor extends QueuedInterceptor {
 
       // === XỬ LÝ LỖI FORM DATA FINALIZED ===
       if (requestOptions.data is FormData) {
-        return handler.reject(DioException(
-          requestOptions: requestOptions,
-          error: ServerException("Phiên đăng nhập hết hạn hoặc bạn không có quyền truy cập. Vui lòng đăng nhập lại ."),
-        ));
+        return handler.reject(
+          DioException(
+            requestOptions: requestOptions,
+            error: ServerException(
+              "Phiên đăng nhập hết hạn hoặc bạn không có quyền truy cập. Vui lòng đăng nhập lại .",
+            ),
+          ),
+        );
       }
 
       final response = await dio.fetch(requestOptions);
       return handler.resolve(response);
-
     } catch (e) {
-      return handler.reject(_createErrorWithBeMessage(err));
+      // Any error during refresh - clear tokens and throw TokenExpiredException
+      await localDataSource.clear();
+      return handler.reject(
+        DioException(
+          requestOptions: err.requestOptions,
+          response: err.response,
+          type: err.type,
+          error: const TokenExpiredException(),
+          message: 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.',
+        ),
+      );
     }
-  }
-
-// Hàm bổ trợ để lấy message từ BE thay vì để 'null'
-  DioException _createErrorWithBeMessage(DioException err) {
-    String msg = "Phiên đăng nhập hết hạn";
-    if (err.response?.data != null && err.response?.data is Map) {
-      msg = err.response!.data['msg'] ?? msg;
-    }
-    return DioException(
-      requestOptions: err.requestOptions,
-      response: err.response,
-      type: err.type,
-      error: ServerException(msg),
-      message: msg,
-    );
   }
 
   Future<String?> _getNewToken() async {
@@ -92,11 +99,11 @@ class TokenRefreshInterceptor extends QueuedInterceptor {
 
       String? newToken;
       result.fold(
-            (failure) {
+        (failure) {
           print('Refresh token failed: ${failure.message}');
           throw Exception(failure.message);
         },
-            (auth) {
+        (auth) {
           newToken = auth.token;
           if (newToken != null) {
             localDataSource.saveToken(newToken!);
@@ -107,7 +114,6 @@ class TokenRefreshInterceptor extends QueuedInterceptor {
       // Hoàn thành completer với token mới
       _refreshCompleter?.complete(newToken);
       return newToken;
-
     } catch (e) {
       print('Error refreshing token: $e');
       _refreshCompleter?.complete(null);

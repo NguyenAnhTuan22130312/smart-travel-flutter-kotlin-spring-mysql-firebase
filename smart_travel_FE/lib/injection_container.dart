@@ -39,6 +39,7 @@ import 'package:smart_travel/domain/usecases/destination/filter_destinations_by_
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_featured_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_detail_destination_use_case.dart';
+import 'package:smart_travel/domain/usecases/destination/get_weather_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/update_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/create_hotel_use_case.dart';
 import 'package:smart_travel/domain/usecases/hotel/delete_hotel_use_case.dart';
@@ -68,11 +69,13 @@ import 'package:smart_travel/domain/usecases/user/update_user_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/lock_user_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/unlock_user_usecase.dart';
 import 'package:smart_travel/presentation/blocs/admin_user/admin_user_bloc.dart';
+import 'package:smart_travel/presentation/blocs/admin_voucher/voucher_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/banner/banner_bloc.dart';
 import 'package:smart_travel/presentation/blocs/chat/chat_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_bloc.dart';
+import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
 import 'package:smart_travel/presentation/blocs/favorite/favorite_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
@@ -97,6 +100,7 @@ import 'package:smart_travel/presentation/blocs/payment/payment_bloc.dart';
 import 'package:smart_travel/presentation/blocs/booking/booking_bloc.dart';
 import 'package:smart_travel/presentation/blocs/review/reviewhtd_bloc.dart';
 import 'package:smart_travel/presentation/blocs/review/submit_review_bloc.dart';
+import 'package:smart_travel/presentation/blocs/weather/weather_bloc.dart';
 import 'core/network/network_info.dart';
 import 'data/data_sources/remote/auth_remote_datasource.dart';
 import 'package:smart_travel/data/data_sources/remote/booking_data_source.dart';
@@ -125,13 +129,16 @@ import 'package:smart_travel/domain/usecases/tour/update_tour_usecase.dart';
 import 'data/data_sources/remote/invoice_remote_data_source.dart';
 import 'data/data_sources/remote/review_remote_data_source.dart';
 import 'data/data_sources/remote/reviewhtd_remote_data_source.dart';
+import 'data/data_sources/remote/voucher_data_source.dart';
 import 'data/repositories/chat_repository_impl.dart';
 import 'data/repositories/invoice_repository_impl.dart';
 import 'data/repositories/review_repository_impl.dart';
 import 'data/repositories/reviewhtd_repository_impl.dart';
 
+import 'data/repositories/voucher_repository_impl.dart';
 import 'domain/repositories/review_repository.dart';
 import 'domain/repositories/reviewhtd_repository.dart';
+import 'domain/repositories/voucher_repository.dart';
 import 'domain/usecases/invoice/cancel_booking_usecase.dart';
 import 'domain/usecases/invoice/get_active_invoices_usecase.dart';
 import 'domain/repositories/invoice_repository.dart';
@@ -142,6 +149,10 @@ import 'domain/usecases/invoice/get_transaction_history_usecase.dart';
 import 'domain/usecases/invoice/search_active_invoices_usecase.dart';
 import 'domain/usecases/review/get_reviewhtd_usecase.dart';
 import 'domain/usecases/review/submit_review_usecase.dart';
+import 'domain/usecases/voucher/create_voucher_uc.dart';
+import 'domain/usecases/voucher/delete_voucher_uc.dart';
+import 'domain/usecases/voucher/get_all_voucher_uc.dart';
+import 'domain/usecases/voucher/update_voucher_uc.dart';
 
 
 final sl = GetIt.instance;
@@ -281,6 +292,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => AddDestinationUseCase(sl()));
   sl.registerLazySingleton(() => UpdateDestinationUseCase(sl()));
   sl.registerLazySingleton(() => DeleteDestinationUseCase(sl()));
+  sl.registerLazySingleton(() => GetWeatherUseCase(sl()));
 
   sl.registerLazySingleton(() => GetAllProvinceUseCase(sl()));
   sl.registerLazySingleton(() => ProvinceDetailUseCase(sl()));
@@ -324,6 +336,34 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpdateBannerUc(sl()));
   sl.registerLazySingleton(() => DeleteBannerUc(sl()));
 
+
+// VOUCHERS
+
+  sl.registerFactory(() => VoucherBloc(
+    getAllVoucherUc: sl(),
+    createVoucherUc: sl(),
+    updateVoucherUc: sl(),
+    deleteVoucherUc: sl(),
+  ));
+
+  sl.registerLazySingleton(() => GetAllVoucherUc(sl()));
+  sl.registerLazySingleton(() => CreateVoucherUc(sl()));
+  sl.registerLazySingleton(() => UpdateVoucherUc(sl()));
+  sl.registerLazySingleton(() => DeleteVoucherUc(sl()));
+
+  sl.registerLazySingleton<VoucherRepository>(
+        () => VoucherRepositoryImpl(
+      voucherDataSource: sl(),
+      networkInfo: sl(),
+    ),
+  );
+
+  sl.registerLazySingleton<VoucherDataSource>(
+        () => VoucherDataSourceImpl(
+      dioClient: sl(),
+    ),
+  );
+
   sl.registerLazySingleton<ImageUploadService>(() => ImageUploadService(sl()));
 
   //BLOCs
@@ -350,11 +390,16 @@ Future<void> init() async {
       addDestinationUseCase: sl(),
       updateDestinationUseCase: sl(),
       deleteDestinationUseCase: sl(),
+      getWeatherUseCase: sl(),
     ),
   );
+
   sl.registerFactory(
     () => DestinationDetailBloc(getDetailDestinationUseCase: sl()),
   );
+
+  // ---  BLOC WEATHER ---
+  sl.registerFactory(() => WeatherBloc(getWeatherUseCase: sl()));
 
   sl.registerFactory(
     () => ProvinceBloc(

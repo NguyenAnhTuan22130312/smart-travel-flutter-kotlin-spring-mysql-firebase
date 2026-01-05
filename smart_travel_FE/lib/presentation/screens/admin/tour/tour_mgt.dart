@@ -11,6 +11,8 @@ import 'package:flutter_quill/flutter_quill.dart';
   import 'package:smart_travel/presentation/blocs/adminTour/tour_detail_bloc.dart';
   import 'package:smart_travel/presentation/blocs/adminTour/tour_detail_event.dart';
   import 'package:smart_travel/presentation/blocs/adminTour/tour_detail_state.dart';
+import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
+import 'package:smart_travel/presentation/blocs/auth/auth_state.dart';
 import 'package:smart_travel/presentation/screens/admin/tour/tour_create_model.dart';
   import 'package:smart_travel/presentation/screens/admin/tour/tour_edit_modal.dart';
   import 'package:smart_travel/presentation/theme/app_colors.dart';
@@ -77,7 +79,76 @@ import 'package:smart_travel/presentation/screens/admin/tour/tour_create_model.d
       super.initState();
       context.read<AdminTourBloc>().add(LoadAdminTours());
     }
-  
+
+    // ⭐ 1. Kiểm tra User có phải là Admin Tour không
+    // Bạn hãy thay đổi chuỗi "ADMINTOUR" thành role thực tế trong DB của bạn
+    bool _isStrictTourAdmin() {
+      final authState = context.read<AuthBloc>().state;
+      String? role;
+
+      if (authState is LoginSuccess) {
+        role = authState.response.role;
+      } else if (authState is AdminAuthenticated) {
+        role = authState.role; // Tùy vào state Auth của bạn
+      }
+
+      // Cho phép nếu là ADMIN tổng hoặc ADMINTOUR chuyên trách
+      return role == "ADMINTOUR";
+    }
+
+    // 2. Hàm xử lý logic chặn
+    void _handleStrictAction(VoidCallback action, {bool fromModal = false}) {
+      if (_isStrictTourAdmin()) {
+        action(); // Đủ quyền -> Thực hiện hành động
+      } else {
+        if (fromModal) {
+          _showForbiddenDialog();
+        } else {
+          _showForbiddenSnackBar();
+        }// Thiếu quyền -> Báo lỗi
+      }
+    }
+
+    void _showForbiddenDialog() {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange),
+              SizedBox(width: 10),
+              Text("Hạn chế quyền"),
+            ],
+          ),
+          content: const Text("Bạn không có quyền thực hiện thao tác này! Chỉ có quản lý Tour mới có quyền thực hiện thao tác này."),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text("Đã hiểu"),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // 3. Hiển thị thông báo
+    void _showForbiddenSnackBar() {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.lock_outline, color: Colors.white),
+              SizedBox(width: 10),
+              Expanded(child: Text('Bạn không có quyền thực hiện thao tác này! Chỉ có quản lý Tour mới có quyền thực hiện thao tác này')),
+            ],
+          ),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    }
+
     // ============================ UI ============================
   
     @override
@@ -101,7 +172,7 @@ import 'package:smart_travel/presentation/screens/admin/tour/tour_create_model.d
         floatingActionButton: FloatingActionButton(
           backgroundColor: AppColors.green,
           elevation: 4,
-          onPressed: () {
+          onPressed: () => _handleStrictAction(() {
             showDialog(
               context: context,
               builder: (_) => BlocProvider.value(
@@ -109,7 +180,7 @@ import 'package:smart_travel/presentation/screens/admin/tour/tour_create_model.d
                 child: const CreateTourModal(),
               ),
             );
-          },
+          }),
           child: const Icon(Icons.add, color: Colors.white, size: 28),
         ),
       );
@@ -372,7 +443,7 @@ import 'package:smart_travel/presentation/screens/admin/tour/tour_create_model.d
         ),
         builder: (_) {
           return BlocProvider.value(
-            value: detailBloc, // ⭐ QUAN TRỌNG: truyền bloc vào bottom sheet
+            value: detailBloc, // QUAN TRỌNG: truyền bloc vào bottom sheet
             child: DraggableScrollableSheet(
               expand: false,
               initialChildSize: 0.85,
@@ -597,10 +668,10 @@ import 'package:smart_travel/presentation/screens/admin/tour/tour_create_model.d
                                       child: OutlinedButton.icon(
                                         icon: const Icon(Icons.edit),
                                         label: const Text('Cập nhật'),
-                                        onPressed: () {
-                                          Navigator.pop(context); // đóng detail
+                                        onPressed: () => _handleStrictAction(() {
+                                          Navigator.pop(context); // Đóng detail
                                           _openEditTourModal(tour.id);
-                                        },
+                                        }, fromModal: true),
                                       ),
                                     ),
                                     const SizedBox(width: 12),
@@ -609,13 +680,15 @@ import 'package:smart_travel/presentation/screens/admin/tour/tour_create_model.d
                                         style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                                         icon: const Icon(Icons.delete),
                                         label: const Text('Xoá'),
-                                        onPressed: () {
+                                        onPressed: () => _handleStrictAction(() {
+                                          // Lưu ý: Không pop ở đây để người dùng vẫn thấy dialog xoá
+                                          // Dialog xoá sẽ đè lên Detail, ok không sao cả.
                                           _confirmDeleteTour(
                                             context: context,
                                             tourId: tour.id,
                                             tourName: tour.name,
                                           );
-                                        },
+                                        }, fromModal: true),
                                       ),
                                     ),
                                   ],
@@ -783,15 +856,17 @@ import 'package:smart_travel/presentation/screens/admin/tour/tour_create_model.d
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         icon: const Icon(Icons.more_vert, color: Colors.grey),
         onSelected: (value) {
-          if (value == 'edit') {
-            _openEditTourModal(tourModel.id);
-          } else if (value == 'delete') {
-            _confirmDeleteTour(
-              context: context,
-              tourId: tourModel.id,
-              tourName: tourModel.name,
-            );
-          }
+          _handleStrictAction(() {
+            if (value == 'edit') {
+              _openEditTourModal(tourModel.id);
+            } else if (value == 'delete') {
+              _confirmDeleteTour(
+                context: context,
+                tourId: tourModel.id,
+                tourName: tourModel.name,
+              );
+            }
+          });
         },
         itemBuilder: (context) => [
           const PopupMenuItem(
@@ -799,8 +874,11 @@ import 'package:smart_travel/presentation/screens/admin/tour/tour_create_model.d
             child: Row(
               children: [
                 Icon(Icons.edit_outlined, size: 20, color: Colors.blue),
-                SizedBox(width: 10),
-                Text("Chỉnh sửa"),
+                SizedBox(width: 5),
+                Text(
+                  "Cập nhật",
+                  style: TextStyle(fontSize: 14, color: Colors.blue),
+                ),
               ],
             ),
           ),
@@ -809,8 +887,11 @@ import 'package:smart_travel/presentation/screens/admin/tour/tour_create_model.d
             child: Row(
               children: [
                 Icon(Icons.delete_outline, size: 20, color: Colors.red),
-                SizedBox(width: 10),
-                Text("Xoá", style: TextStyle(color: Colors.red)),
+                SizedBox(width: 5),
+                Text(
+                  "Xóa",
+                  style: TextStyle(fontSize: 14, color: Colors.red),
+                ),
               ],
             ),
           ),

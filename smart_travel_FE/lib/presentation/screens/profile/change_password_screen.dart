@@ -73,6 +73,21 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               ..showSnackBar(snackBar);
             Navigator.pop(context);
           } else if (state is ProfileError) {
+            // Check if error is related to token expiration
+            if (state.message.toLowerCase().contains('unauthorized') ||
+                state.message.toLowerCase().contains('401') ||
+                state.message.toLowerCase().contains(
+                  'phiên đăng nhập hết hạn',
+                ) ||
+                state.message.toLowerCase().contains('token')) {
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/login',
+                (route) => false,
+              );
+              return;
+            }
+
             final snackBar = SnackBar(
               elevation: 0,
               behavior: SnackBarBehavior.floating,

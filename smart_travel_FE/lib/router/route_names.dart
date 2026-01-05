@@ -8,6 +8,7 @@ class RouteNames {
   static const String adminTours = '/admin/tours';
   static const String adminTourDetail = 'admin/tours/';
   static const String adminBanner = '/admin/banner';
+  static const String adminVoucher = '/admin/voucher';
 
   /// USER
   static const String splashScreen = '/';
@@ -40,4 +41,7 @@ class RouteNames {
   static const String userLevel = '/profile/level';
 
   static const String myInvoices = '/my-invoices';
+
+  static const String myFriend = '/my-friend';
+
 }

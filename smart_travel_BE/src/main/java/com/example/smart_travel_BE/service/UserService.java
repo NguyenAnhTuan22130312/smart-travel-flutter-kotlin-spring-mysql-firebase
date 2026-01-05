@@ -341,8 +341,13 @@ public class UserService {
      */
     @Transactional
     public UserDetailResponse updateUser(Long userId, UpdateUserAdminRequest request) {
+        User currentAdmin = getCurrentUser();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        // Validate permissions
+        com.example.smart_travel_BE.util.AdminPermissionValidator.validateHasWritePermission(currentAdmin);
+        com.example.smart_travel_BE.util.AdminPermissionValidator.validateCanModifyUser(currentAdmin, user);
 
         if (request.getFullName() != null && !request.getFullName().trim().isEmpty()) {
             user.setFullName(request.getFullName());
@@ -357,6 +362,8 @@ public class UserService {
         }
 
         if (request.getRole() != null && !request.getRole().trim().isEmpty()) {
+            // Validate can change role
+            com.example.smart_travel_BE.util.AdminPermissionValidator.validateCanChangeRole(currentAdmin, user, request.getRole());
             user.setRole(request.getRole());
         }
 
@@ -372,8 +379,13 @@ public class UserService {
      */
     @Transactional
     public void lockUser(Long userId) {
+        User currentAdmin = getCurrentUser();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        // Validate permissions
+        com.example.smart_travel_BE.util.AdminPermissionValidator.validateHasWritePermission(currentAdmin);
+        com.example.smart_travel_BE.util.AdminPermissionValidator.validateCanModifyUser(currentAdmin, user);
 
         if (!user.getIsActive()) {
             throw new AppException(ErrorCode.USER_ALREADY_LOCKED);
@@ -389,8 +401,13 @@ public class UserService {
      */
     @Transactional
     public void unlockUser(Long userId) {
+        User currentAdmin = getCurrentUser();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        // Validate permissions
+        com.example.smart_travel_BE.util.AdminPermissionValidator.validateHasWritePermission(currentAdmin);
+        com.example.smart_travel_BE.util.AdminPermissionValidator.validateCanModifyUser(currentAdmin, user);
 
         if (user.getIsActive()) {
             throw new AppException(ErrorCode.USER_ALREADY_UNLOCKED);
@@ -406,6 +423,16 @@ public class UserService {
      */
     @Transactional
     public UserDetailResponse createUser(CreateUserRequest request) {
+        User currentAdmin = getCurrentUser();
+        
+        // Validate write permission
+        com.example.smart_travel_BE.util.AdminPermissionValidator.validateHasWritePermission(currentAdmin);
+        
+        // ADMIN chỉ được tạo USER role (không được tạo ADMIN/ADMINTOUR/ADMINHOTEL)
+        if (!"USER".equals(request.getRole())) {
+            throw new AppException(ErrorCode.CANNOT_CHANGE_ADMIN_ROLE);
+        }
+        
         // Kiểm tra email đã tồn tại chưa
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new AppException(ErrorCode.EMAIL_EXISTED);

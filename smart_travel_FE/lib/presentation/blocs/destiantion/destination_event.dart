@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:smart_travel/domain/entities/destinations.dart';
 import 'package:smart_travel/domain/params/destination_add_params.dart';
 import 'package:smart_travel/domain/params/destination_update_params.dart';
+import 'package:smart_travel/domain/params/get_weather_params.dart';
 
 abstract class DestinationEvent extends Equatable {
   @override

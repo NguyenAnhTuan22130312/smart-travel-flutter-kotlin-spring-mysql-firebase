@@ -4,13 +4,11 @@ import com.example.smart_travel_BE.dto.tour.response.*;
 import com.example.smart_travel_BE.entity.Tour;
 import com.example.smart_travel_BE.entity.TourImage;
 import com.example.smart_travel_BE.entity.TourSchedule;
+import com.example.smart_travel_BE.entity.User;
 import com.example.smart_travel_BE.exception.AppException;
 import com.example.smart_travel_BE.mapper.TourMapper;
 import com.example.smart_travel_BE.dto.tour.request.*;
-import com.example.smart_travel_BE.repository.DestinationRepository;
-import com.example.smart_travel_BE.repository.TourImageRepository;
-import com.example.smart_travel_BE.repository.TourRepository;
-import com.example.smart_travel_BE.repository.TourScheduleRepository;
+import com.example.smart_travel_BE.repository.*;
 import com.example.smart_travel_BE.specification.TourSpecification;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -19,6 +17,7 @@ import com.google.api.gax.rpc.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,6 +44,8 @@ public class TourService {
     private final ObjectMapper objectMapper = new ObjectMapper();
     @Autowired
     private DestinationRepository destinationRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     /**
      * Lấy danh sách tour (phân trang)
@@ -233,6 +234,10 @@ public class TourService {
      */
     @Transactional
     public TourDetailResponse createTour(CreateTourRequest req) {
+        String currentUserEmail = getCurrentUserEmail();
+
+        User owner = userRepository.findByEmail(currentUserEmail).orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người quản lý!"));
+
         Tour tour = new Tour();
         tour.setName(req.getName());
         tour.setDescription(req.getDescription());
@@ -242,6 +247,7 @@ public class TourService {
         tour.setMinPeople(req.getMinPeople());
         tour.setMaxPeople(req.getMaxPeople());
         tour.setIsActive(true);
+        tour.setOwner(owner);
 
         tour.setDestination(
                 destinationRepository.findById(req.getDestinationId())
@@ -484,6 +490,19 @@ public class TourService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    // Hàm bổ trợ lấy Email người dùng đang đăng nhập
+    private String getCurrentUserEmail() {
+        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("Người dùng chưa xác thực!");
+        }
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof User) {
+            return ((User) principal).getEmail();
+        }
+        return authentication.getName();
     }
 
 }

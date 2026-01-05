@@ -14,6 +14,7 @@ import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
 import 'package:smart_travel/presentation/blocs/province/provicne_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/province/province_bloc.dart';
+import 'package:smart_travel/presentation/blocs/weather/weather_bloc.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_screen.dart';
 import 'package:smart_travel/presentation/screens/splash/splash_screen.dart';
 import 'package:smart_travel/router/app_router.dart';
@@ -70,6 +71,8 @@ class _MyAppState extends State<MyApp> {
         BlocProvider(create: (_) => di.sl<ProfileBloc>()..add(LoadSettings())),
         BlocProvider(create: (_) => di.sl<BannerBloc>()),
         BlocProvider(create: (_) => di.sl<FavoriteBloc>()),
+        BlocProvider(create: (_) => di.sl<WeatherBloc>()),
+
       ],
       child: BlocListener<ProfileBloc, ProfileState>(
         listener: (context, state) {

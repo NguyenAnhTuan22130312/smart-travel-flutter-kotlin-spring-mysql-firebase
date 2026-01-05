@@ -27,7 +27,9 @@ public class AdminUserController {
 
     /**
      * Lấy danh sách users với pagination và tìm kiếm
+     * ADMIN, ADMINTOUR, ADMINHOTEL có thể xem
      */
+    @PreAuthorize("hasAnyRole('ADMIN', 'ADMINTOUR', 'ADMINHOTEL')")
     @GetMapping
     public ResponseEntity<APIResponse<PageResponse<UserSummaryResponse>>> getAllUsers(
             @Valid @ModelAttribute UserListRequest request) {
@@ -57,7 +59,9 @@ public class AdminUserController {
 
     /**
      * Xem chi tiết thông tin user
+     * ADMIN, ADMINTOUR, ADMINHOTEL có thể xem
      */
+    @PreAuthorize("hasAnyRole('ADMIN', 'ADMINTOUR', 'ADMINHOTEL')")
     @GetMapping("/{id}")
     public ResponseEntity<APIResponse<UserDetailResponse>> getUserDetail(@PathVariable Long id) {
         UserDetailResponse response = userService.getUserDetail(id);
@@ -71,7 +75,9 @@ public class AdminUserController {
 
     /**
      * Chỉnh sửa thông tin user cơ bản
+     * Chỉ ADMIN - Service layer sẽ validate thêm
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<APIResponse<UserDetailResponse>> updateUser(
             @PathVariable Long id,
@@ -87,7 +93,9 @@ public class AdminUserController {
 
     /**
      * Khóa tài khoản user
+     * Chỉ ADMIN - Service layer sẽ validate thêm
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/lock")
     public ResponseEntity<APIResponse<Void>> lockUser(@PathVariable Long id) {
         userService.lockUser(id);
@@ -100,7 +108,9 @@ public class AdminUserController {
 
     /**
      * Mở khóa tài khoản user
+     * Chỉ ADMIN - Service layer sẽ validate thêm
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/unlock")
     public ResponseEntity<APIResponse<Void>> unlockUser(@PathVariable Long id) {
         userService.unlockUser(id);

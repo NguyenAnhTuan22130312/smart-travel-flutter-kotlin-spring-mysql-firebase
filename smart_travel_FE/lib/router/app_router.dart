@@ -16,6 +16,7 @@ import 'package:smart_travel/presentation/screens/admin/tour/tour_mgt.dart';
 import 'package:smart_travel/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:smart_travel/presentation/screens/auth/login_screen.dart';
 import 'package:smart_travel/presentation/screens/auth/register_screen.dart';
+import 'package:smart_travel/presentation/screens/chat/group_chat_screen.dart';
 import 'package:smart_travel/presentation/screens/destination/detail_destination_screen.dart';
 import 'package:smart_travel/presentation/screens/explore/explore_screen.dart';
 import 'package:smart_travel/presentation/screens/home/home_screen.dart';
@@ -32,7 +33,10 @@ import 'package:smart_travel/presentation/screens/splash/splash_screen.dart';
 import 'package:smart_travel/router/route_names.dart';
 import 'package:smart_travel/presentation/screens/tour/tour_detail_screen.dart';
 import '../injection_container.dart' as di;
+import '../presentation/blocs/admin_voucher/voucher_bloc.dart';
+import '../presentation/blocs/admin_voucher/voucher_event.dart';
 import '../presentation/screens/invoice/my_invoices_screen.dart';
+import 'package:smart_travel/presentation/screens/admin/voucher/voucher_management_screen.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -77,6 +81,16 @@ class AppRouter {
       case RouteNames.adminDestination:
         return MaterialPageRoute(
           builder: (_) => const DestinationManagementScreen(),
+        );
+
+      case RouteNames.adminVoucher:
+        return MaterialPageRoute(
+          // Vì bên trong VoucherManagementScreen bạn đã bọc BlocProvider rồi
+          // nên ở đây chỉ cần gọi màn hình là được.
+          builder: (_) => BlocProvider(
+            create: (_) => di.sl<VoucherBloc>()..add(LoadAllVoucher()),
+            child: const VoucherManagementScreen(),
+          ),
         );
 
       case RouteNames.provinceDetail:
@@ -150,6 +164,17 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => const MyInvoicesScreen(),
         );
+      case RouteNames.myFriend:
+        final args = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+          builder: (_) => GroupChatScreen(
+            groupId: args['groupId'],
+            currentUserId: args['userId'],
+            currentUserName: args['userName'],
+            currentUserAvatar: args['avatar'],
+          ),
+        );
+
       default:
         return MaterialPageRoute(
           builder:

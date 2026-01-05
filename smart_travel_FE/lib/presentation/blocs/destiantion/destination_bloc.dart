@@ -9,6 +9,7 @@ import 'package:smart_travel/domain/usecases/destination/filter_destinations_by_
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_featured_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_all_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/get_detail_destination_use_case.dart';
+import 'package:smart_travel/domain/usecases/destination/get_weather_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/update_destination_use_case.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_state.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_event.dart';
@@ -21,10 +22,12 @@ class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
   final AddDestinationUseCase addDestinationUseCase;
   final UpdateDestinationUseCase updateDestinationUseCase;
   final DeleteDestinationUseCase deleteDestinationUseCase;
+  final GetWeatherUseCase getWeatherUseCase;
 
   DestinationBloc({required this.destinationFeaturedUseCase,
     required this.filterByCategoryUseCase, required this.getAllDestinationUseCase,
-    required this.addDestinationUseCase, required this.updateDestinationUseCase, required this.deleteDestinationUseCase})
+    required this.addDestinationUseCase, required this.updateDestinationUseCase, required this.deleteDestinationUseCase,
+    required this.getWeatherUseCase})
       : super(FeaturedDestinationInitial()) {
     on<LoadAllDestinations>(_onLoadAllDestinations);
     on<FilterDestinationsByCategory>(_onFilterDestinationsByCategory);
@@ -33,6 +36,7 @@ class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
     on<AddDestinationEvent> (_onAddDestinationEvent);
     on<UpdateDestinationEvent> (_onUpdateDestinationEvent);
     on<DeleteDestinationEvent> (_onDeleteDestinationEvent);
+
   }
 
 
