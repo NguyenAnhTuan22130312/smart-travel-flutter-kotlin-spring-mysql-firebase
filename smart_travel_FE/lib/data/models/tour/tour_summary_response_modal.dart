@@ -29,7 +29,7 @@ class TourSummaryResponse {
           ? (json['averageRating'] as num).toDouble()
           : null,
       reviewCount: json['reviewCount'] as int?,
-      images: json['thumbnail'] as String?,
+      images: (json['images'] ?? json['thumbnail']) as String?,
     );
   }
 
