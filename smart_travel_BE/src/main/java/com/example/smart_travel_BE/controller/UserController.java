@@ -9,7 +9,9 @@ import com.example.smart_travel_BE.dto.user.response.APIResponse;
 import com.example.smart_travel_BE.dto.user.response.ProfileResponse;
 import com.example.smart_travel_BE.dto.user.response.SettingsResponse;
 import com.example.smart_travel_BE.dto.user.response.LevelResponse;
+import com.example.smart_travel_BE.entity.UserProfile;
 import com.example.smart_travel_BE.exception.AppException;
+import com.example.smart_travel_BE.repository.UserProfileRepository;
 import com.example.smart_travel_BE.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final UserProfileRepository userProfileRepository;
 
     /**
      * Lấy thông tin profile của user hiện tại
@@ -206,6 +209,15 @@ public class UserController {
                             .build()
             );
         }
+    }
+
+    // API lấy Profile (chứa điểm) dựa trên User ID
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<?> getProfileByUserId(@PathVariable Long userId) {
+        UserProfile profile = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Chưa có hồ sơ cho User ID: " + userId));
+
+        return ResponseEntity.ok(profile);
     }
 
     /**

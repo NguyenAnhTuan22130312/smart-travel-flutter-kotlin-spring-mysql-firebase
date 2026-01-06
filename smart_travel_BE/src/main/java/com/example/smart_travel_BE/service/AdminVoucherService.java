@@ -36,6 +36,9 @@ public class AdminVoucherService {
         voucher.setExpiryDate(request.getExpiryDate());
         voucher.setIsActive(request.getIsActive());
         voucher.setUsageLimit(request.getUsageLimit());
+        voucher.setPointsRequired(request.getPointsRequired()); // Lưu điểm cần đổi
+        voucher.setDescription(request.getDescription());
+        voucher.setImageUrl(request.getImageUrl());
 
         return voucherRepository.save(voucher);
     }
@@ -54,6 +57,9 @@ public class AdminVoucherService {
         voucher.setExpiryDate(request.getExpiryDate());
         voucher.setIsActive(request.getIsActive());
         voucher.setUsageLimit(request.getUsageLimit());
+        voucher.setPointsRequired(request.getPointsRequired()); // Lưu điểm cần đổi
+        voucher.setDescription(request.getDescription());
+        voucher.setImageUrl(request.getImageUrl());
 
         return voucherRepository.save(voucher);
     }

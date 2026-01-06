@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dio/dio.dart'; 
+import 'package:dio/dio.dart';
 import 'package:smart_travel/domain/entities/province.dart';
+import 'package:smart_travel/domain/entities/voucher.dart'; // Import Voucher Entity
 import 'package:smart_travel/presentation/blocs/booking/booking_bloc.dart';
 import 'package:smart_travel/presentation/blocs/booking/booking_event.dart';
 import 'package:smart_travel/presentation/blocs/booking/booking_state.dart';
@@ -11,7 +12,10 @@ import 'package:smart_travel/presentation/widgets/common/custom_button.dart';
 import 'package:smart_travel/presentation/screens/payment/payment_screen.dart';
 import 'package:smart_travel/injection_container.dart' as di;
 import 'package:smart_travel/presentation/screens/booking/booking_args.dart';
-
+import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
+import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
+// Import file Modal mới
+import 'voucher_selection_modal.dart';
 
 class BookingScreen extends StatefulWidget {
   final BookingArgs args;
@@ -39,7 +43,85 @@ class _BookingScreenState extends State<BookingScreen> {
   bool _isCheckingVoucher = false; // Loading khi check
   bool _isVoucherApplied = false; // Đã áp dụng chưa
 
-  // HÀM GỌI API CHECK MÃ
+  // --- LOGIC MỚI: MỞ MODAL & CẢNH BÁO TIỀN ÂM ---
+  void _openVoucherModal() async {
+    // 1. Lấy user ID từ Profile Bloc (như đã làm trước đó)
+    final profileState = context.read<ProfileBloc>().state;
+    int? userId;
+    if (profileState is ProfileLoaded) userId = profileState.user.id;
+    else if (profileState is ProfileUpdateSuccess) userId = profileState.user.id;
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Vui lòng đăng nhập để dùng voucher"), backgroundColor: Colors.red));
+      return;
+    }
+
+    // 2. Mở Modal chọn Voucher
+    final Voucher? result = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => VoucherSelectionModal(userId: userId!),
+    );
+
+    if (result != null) {
+      // --- TÍNH TOÁN TỔNG TIỀN HIỆN TẠI ĐỂ SO SÁNH ---
+      double currentTotal = 0;
+      if (widget.args.bookingType == 'TOUR') {
+        currentTotal = widget.args.price * _numberOfPeople;
+      } else {
+        int nights = 1;
+        if (_dateRange != null) {
+          nights = _dateRange!.end.difference(_dateRange!.start).inDays;
+          if (nights < 1) nights = 1;
+        }
+        currentTotal = widget.args.price * _numberOfRooms * nights;
+      }
+
+      // --- KIỂM TRA: NẾU VOUCHER > TỔNG TIỀN ---
+      if (result.discountAmount > currentTotal) {
+        // Hiện cảnh báo xác nhận
+        bool? confirm = await showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text("Lưu ý", style: TextStyle(color: Colors.orange)),
+            content: Text(
+              "Voucher giảm ${NumberFormat('#,###').format(result.discountAmount)}đ lớn hơn giá trị đơn hàng (${NumberFormat('#,###').format(currentTotal)}đ).\n\n"
+                  "Nếu áp dụng, bạn sẽ KHÔNG được hoàn lại phần tiền thừa.\nBạn có chắc chắn muốn dùng?",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false), // Hủy
+                child: const Text("Chọn mã khác", style: TextStyle(color: Colors.grey)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+                onPressed: () => Navigator.pop(ctx, true), // Đồng ý chịu lỗ
+                child: const Text("Vẫn dùng", style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        );
+
+        // Nếu người dùng chọn "Hủy" hoặc bấm ra ngoài -> Không áp dụng
+        if (confirm != true) return;
+      }
+
+      // --- ÁP DỤNG VOUCHER (Nếu hợp lệ hoặc người dùng đã đồng ý) ---
+      setState(() {
+        _couponController.text = result.code;
+        _discountAmount = result.discountAmount.toDouble();
+        _isVoucherApplied = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Đã áp dụng mã: ${result.code}"), backgroundColor: Colors.green),
+      );
+    }
+  }
+
+
+  // HÀM GỌI API CHECK MÃ (Giữ nguyên logic cũ của bạn)
   Future<void> _checkCoupon() async {
     final code = _couponController.text.trim();
     if (code.isEmpty) return;
@@ -79,7 +161,7 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
-  // --- HÀM CHỌN NGÀY ---
+  // --- (Các hàm chọn ngày, modal số lượng... GIỮ NGUYÊN) ---
   Future<void> _handleDateSelection(BuildContext context) async {
     if (widget.args.bookingType == 'TOUR') {
       final DateTime? picked = await showDatePicker(
@@ -118,7 +200,6 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  // --- MODAL CHỌN SỐ LƯỢNG ---
   void _showQuantityModal(BuildContext context, String title, int currentValue, Function(int) onChanged) {
     showModalBottomSheet(
       context: context,
@@ -204,7 +285,7 @@ class _BookingScreenState extends State<BookingScreen> {
     final bool isTour = widget.args.bookingType == 'TOUR';
     final formatter = NumberFormat('#,###');
 
-    // 1. Tính TỔNG TIỀN GỐC
+    // ... (Phần tính toán giá GIỮ NGUYÊN)
     double totalPrice = 0;
     if (isTour) {
       totalPrice = widget.args.price * _numberOfPeople;
@@ -217,7 +298,6 @@ class _BookingScreenState extends State<BookingScreen> {
       totalPrice = widget.args.price * _numberOfRooms * nights;
     }
 
-    // 2. Tính TIỀN SAU KHI GIẢM
     double finalPrice = totalPrice - _discountAmount;
     if (finalPrice < 0) finalPrice = 0;
 
@@ -228,7 +308,7 @@ class _BookingScreenState extends State<BookingScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- ẢNH ---
+              // ... (Phần Ảnh & Thông tin GIỮ NGUYÊN)
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: Image.network(
@@ -239,11 +319,9 @@ class _BookingScreenState extends State<BookingScreen> {
                     child: const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
                   ),
                 ),
-
               ),
               const SizedBox(height: 24),
 
-              // Tên & Giá
               Text(widget.args.name, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textGray)),
               const SizedBox(height: 8),
               _buildInfoRow(
@@ -253,12 +331,9 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
 
               const SizedBox(height: 24),
-
               Text('Chi tiết đặt chỗ', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textGray)),
               const SizedBox(height: 16),
 
-
-              // --- SỐ LƯỢNG NGƯỜI ---
               _buildInfoRow(
                 icon: Icons.date_range,
                 title: isTour ? 'Ngày khởi hành' : 'Thời gian lưu trú',
@@ -281,7 +356,6 @@ class _BookingScreenState extends State<BookingScreen> {
                 const SizedBox(height: 16),
               ],
 
-              // --- SỐ LƯỢNG PHÒNG (Chỉ Hotel) ---
               if (!isTour) ...[
                 _buildInfoRow(
                   icon: Icons.bedroom_parent_outlined,
@@ -293,19 +367,25 @@ class _BookingScreenState extends State<BookingScreen> {
                 const SizedBox(height: 16),
               ],
 
-              // --- UI MÃ GIẢM GIÁ (Thêm mới) ---
+              // --- UI MÃ GIẢM GIÁ (ĐÃ UPDATE NÚT CHỌN) ---
               Row(
                 children: [
                   Expanded(
                     child: TextFormField(
                       controller: _couponController,
-                      enabled: !_isVoucherApplied, // Khóa nếu đã áp dụng
+                      enabled: !_isVoucherApplied,
                       decoration: InputDecoration(
                         labelText: 'Mã giảm giá',
                         filled: true,
                         fillColor: Colors.grey.shade100,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        // Nút mở Modal
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.confirmation_number_outlined, color: Colors.orange),
+                          tooltip: "Chọn Voucher của bạn",
+                          onPressed: _isVoucherApplied ? null : _openVoucherModal,
+                        ),
                       ),
                     ),
                   ),
@@ -331,14 +411,11 @@ class _BookingScreenState extends State<BookingScreen> {
 
               const SizedBox(height: 32),
 
-              // --- CHI TIẾT GIÁ ---
+              // ... (Phần Giá & Button GIỮ NGUYÊN)
               _buildPriceDetailRow('Tạm tính', '${formatter.format(totalPrice)} VND'),
               const SizedBox(height: 8),
-
-              // Dòng giảm giá (chỉ hiện khi có giảm)
               if (_discountAmount > 0)
                 _buildPriceDetailRow('Giảm giá', '- ${formatter.format(_discountAmount)} VND', color: Colors.green),
-
               const SizedBox(height: 16),
               const Divider(),
               const SizedBox(height: 16),
@@ -346,13 +423,10 @@ class _BookingScreenState extends State<BookingScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Tổng cộng:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textGray)),
-                  // Hiển thị giá cuối cùng
                   Text('${formatter.format(finalPrice)} VND', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary)),
                 ],
               ),
               const SizedBox(height: 24),
-
-              // --- NÚT THANH TOÁN ---
               PrimaryButton(
                 text: 'Tiến hành Thanh toán',
                 isLoading: state is BookingLoading,
@@ -361,7 +435,6 @@ class _BookingScreenState extends State<BookingScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Vui lòng chọn ngày lưu trú")));
                     return;
                   }
-
                   context.read<BookingBloc>().add(
                     CreateBookingSubmitted(
                       bookingType: widget.args.bookingType,
@@ -381,7 +454,6 @@ class _BookingScreenState extends State<BookingScreen> {
           ),
         ),
 
-        // Loading Overlay
         if (state is BookingLoading)
           Container(
             color: Colors.black.withOpacity(0.5),
