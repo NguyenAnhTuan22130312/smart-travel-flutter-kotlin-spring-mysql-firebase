@@ -20,8 +20,8 @@ public class BookingService {
     private final TourRepository tourRepository;
     private final HotelRepository hotelRepository;
     private final VoucherRepository voucherRepository;
-    private final RoomTypeRepository roomTypeRepository; // Cần inject repo này
-
+    private final RoomTypeRepository roomTypeRepository;
+    private final UserVoucherRepository userVoucherRepository;
     @Transactional
     public BookingResponse createBooking(BookingRequest request, User currentUser) {
         Booking booking = new Booking();
@@ -132,6 +132,13 @@ public class BookingService {
                     // Trừ số lượng voucher
                     voucher.setUsageLimit(voucher.getUsageLimit() - 1);
                     voucherRepository.save(voucher);
+                    UserVoucher userVoucher = userVoucherRepository
+                            .findValidVoucher(currentUser.getId(), request.getCouponCode())
+                            .orElseThrow(() -> new RuntimeException("Mã giảm giá không hợp lệ hoặc bạn đã sử dụng rồi!"));
+
+                    // Đánh dấu là ĐÃ SỬ DỤNG
+                    userVoucher.setIsUsed(true);
+                    userVoucherRepository.save(userVoucher);
 
                     booking.setCouponCode(request.getCouponCode());
                 } else {

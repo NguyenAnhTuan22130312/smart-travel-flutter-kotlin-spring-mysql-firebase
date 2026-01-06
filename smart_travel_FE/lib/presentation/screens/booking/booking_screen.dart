@@ -43,55 +43,83 @@ class _BookingScreenState extends State<BookingScreen> {
   bool _isCheckingVoucher = false; // Loading khi check
   bool _isVoucherApplied = false; // Đã áp dụng chưa
 
+  // --- LOGIC MỚI: MỞ MODAL & CẢNH BÁO TIỀN ÂM ---
   void _openVoucherModal() async {
-    // 1. Lấy state hiện tại của ProfileBloc
+    // 1. Lấy user ID từ Profile Bloc (như đã làm trước đó)
     final profileState = context.read<ProfileBloc>().state;
     int? userId;
+    if (profileState is ProfileLoaded) userId = profileState.user.id;
+    else if (profileState is ProfileUpdateSuccess) userId = profileState.user.id;
 
-    // Kiểm tra xem đã load được thông tin user chưa
-    if (profileState is ProfileLoaded) {
-      userId = profileState.user.id;
-    } else if (profileState is ProfileUpdateSuccess) {
-      userId = profileState.user.id;
-    }
-
-    // Nếu chưa có ID (chưa đăng nhập hoặc chưa load profile)
     if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Không tìm thấy thông tin người dùng. Vui lòng thử lại sau!"),
-          backgroundColor: Colors.red,
-        ),
-      );
-      // Có thể kích hoạt load lại profile nếu cần:
-      // context.read<ProfileBloc>().add(LoadProfile());
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Vui lòng đăng nhập để dùng voucher"), backgroundColor: Colors.red));
       return;
     }
 
-    // 2. Gọi Modal với userId thật
+    // 2. Mở Modal chọn Voucher
     final Voucher? result = await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => VoucherSelectionModal(
-        userId: userId!, // Truyền ID thật vào đây
-      ),
+      builder: (context) => VoucherSelectionModal(userId: userId!),
     );
 
-    // 3. Xử lý kết quả trả về
     if (result != null) {
+      // --- TÍNH TOÁN TỔNG TIỀN HIỆN TẠI ĐỂ SO SÁNH ---
+      double currentTotal = 0;
+      if (widget.args.bookingType == 'TOUR') {
+        currentTotal = widget.args.price * _numberOfPeople;
+      } else {
+        int nights = 1;
+        if (_dateRange != null) {
+          nights = _dateRange!.end.difference(_dateRange!.start).inDays;
+          if (nights < 1) nights = 1;
+        }
+        currentTotal = widget.args.price * _numberOfRooms * nights;
+      }
+
+      // --- KIỂM TRA: NẾU VOUCHER > TỔNG TIỀN ---
+      if (result.discountAmount > currentTotal) {
+        // Hiện cảnh báo xác nhận
+        bool? confirm = await showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text("Lưu ý", style: TextStyle(color: Colors.orange)),
+            content: Text(
+              "Voucher giảm ${NumberFormat('#,###').format(result.discountAmount)}đ lớn hơn giá trị đơn hàng (${NumberFormat('#,###').format(currentTotal)}đ).\n\n"
+                  "Nếu áp dụng, bạn sẽ KHÔNG được hoàn lại phần tiền thừa.\nBạn có chắc chắn muốn dùng?",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false), // Hủy
+                child: const Text("Chọn mã khác", style: TextStyle(color: Colors.grey)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+                onPressed: () => Navigator.pop(ctx, true), // Đồng ý chịu lỗ
+                child: const Text("Vẫn dùng", style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        );
+
+        // Nếu người dùng chọn "Hủy" hoặc bấm ra ngoài -> Không áp dụng
+        if (confirm != true) return;
+      }
+
+      // --- ÁP DỤNG VOUCHER (Nếu hợp lệ hoặc người dùng đã đồng ý) ---
       setState(() {
         _couponController.text = result.code;
-        // Ép kiểu về double cho an toàn
         _discountAmount = result.discountAmount.toDouble();
         _isVoucherApplied = true;
       });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Đã áp dụng mã: ${result.code}"), backgroundColor: Colors.green),
       );
     }
   }
-  // ----------------------------------------
+
 
   // HÀM GỌI API CHECK MÃ (Giữ nguyên logic cũ của bạn)
   Future<void> _checkCoupon() async {
