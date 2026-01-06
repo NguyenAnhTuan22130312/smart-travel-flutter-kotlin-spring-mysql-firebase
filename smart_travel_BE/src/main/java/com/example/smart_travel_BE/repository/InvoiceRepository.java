@@ -125,21 +125,23 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     );
 
     @Query("""
-    SELECT b FROM Booking b
-    LEFT JOIN FETCH b.invoice i
-    LEFT JOIN FETCH b.roomType rt
-    LEFT JOIN Hotel h ON b.hotelId = h.id
-    LEFT JOIN Tour t ON b.tourId = t.id
-    WHERE 1 = 1
-      AND (:invoiceNumber IS NULL OR :invoiceNumber = '' OR i.invoiceNumber = :invoiceNumber)
-      AND (:status IS NULL OR :status = '' OR b.status = :status)
-      AND (
-        :role = 'ADMIN'
-        OR (:role = 'ADMINHOTEL' AND h.owner.id = :currentUserId)
-        OR (:role = 'ADMINTOUR' AND t.owner.id = :currentUserId)
-      )
-    ORDER BY b.createdAt DESC
-    """)
+SELECT b FROM Booking b
+LEFT JOIN FETCH b.invoice i
+LEFT JOIN FETCH b.roomType rt
+LEFT JOIN Hotel h ON b.hotelId = h.id
+LEFT JOIN Tour t ON b.tourId = t.id
+WHERE 1 = 1
+  AND (:invoiceNumber IS NULL OR :invoiceNumber = '' 
+       OR LOWER(i.invoiceNumber) LIKE LOWER(CONCAT('%', :invoiceNumber, '%')))
+       
+  AND (:status IS NULL OR :status = '' OR b.status = :status)
+  AND (
+    :role = 'ADMIN'
+    OR (:role = 'ADMINHOTEL' AND h.owner.id = :currentUserId)
+    OR (:role = 'ADMINTOUR' AND t.owner.id = :currentUserId)
+  )
+ORDER BY b.createdAt DESC
+""")
     List<Booking> findAdminInvoices(
             @Param("currentUserId") Long currentUserId,
             @Param("role") String role,

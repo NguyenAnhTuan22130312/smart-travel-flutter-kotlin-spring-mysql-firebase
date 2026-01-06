@@ -83,5 +83,5 @@ public class Tour {
 
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TourImage> images = new ArrayList<>();
-    
+
 }
