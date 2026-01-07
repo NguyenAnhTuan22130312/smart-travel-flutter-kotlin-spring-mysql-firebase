@@ -162,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // Chưa đăng nhập / chưa load xong
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Vui lòng đăng nhập')));
+      ).showSnackBar(const SnackBar(content: Text('Vui lòng đăng nhập để sử dụng tính năng này!')));
       return;
     }
     //ĐÃ ĐĂNG NHẬP
@@ -182,6 +182,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Hàm mở danh sách Audio
   void _showAudioGuideBottomSheet() {
+    final profileState = context.read<ProfileBloc>().state;
+    //CHƯA ĐĂNG NHẬP
+    if (profileState is! ProfileLoaded) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Vui lòng đăng nhập để sử dụng tính năng này!')));
+      return;
+    }
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
