@@ -82,7 +82,39 @@ class AdminInvoiceDetailScreen extends StatelessWidget {
               return const Center(child: CircularProgressIndicator(color: AppColors.primary));
             }
             if (state is AdminInvoiceDetailError) {
-              return Center(child: Text(state.message));
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline, size: 80, color: Colors.red[400]),
+                      const SizedBox(height: 24),
+                      Text(
+                        state.message,
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        "Vui lòng kiểm tra lại mã QR hoặc liên hệ quản trị viên",
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 32),
+                      ElevatedButton.icon(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.arrow_back),
+                        label: const Text("Quay lại"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             }
             if (state is AdminInvoiceDetailLoaded) {
               final d = state.detail;

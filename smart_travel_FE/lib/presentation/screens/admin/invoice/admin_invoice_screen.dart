@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/injection_container.dart' as di;
 import 'package:smart_travel/presentation/blocs/admin_invoice/admin_invoice_bloc.dart';
+import 'package:smart_travel/presentation/screens/admin/invoice/qr_scanner_screen.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
 import 'package:smart_travel/presentation/widgets/invoice/admin_invoice_card.dart';
 
@@ -108,11 +109,21 @@ class _AdminInvoiceScreenState extends State<AdminInvoiceScreen> {
                 ),
                 const SizedBox(width: 16),
                 GestureDetector(
-                  onTap: () {
-                    // TODO: Mở camera quét QR
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Mở camera quét QR (sắp hoàn thiện)")),
+                  onTap: () async {
+                    final bookingId = await Navigator.push<int>(
+                      context,
+                      MaterialPageRoute(builder: (_) => const QRScannerScreen()),
                     );
+
+                    if (bookingId != null && mounted) {
+                      // Mở chi tiết, nhưng nếu lỗi thì Bloc sẽ xử lý
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AdminInvoiceDetailScreen(bookingId: bookingId),
+                        ),
+                      );
+                    }
                   },
                   child: Icon(
                     Icons.qr_code_scanner,
