@@ -42,7 +42,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           if (state is ForgotPasswordSuccess) {
             final snackBar = SnackBar(
               elevation: 0,
-              behavior: SnackBarBehavior.floating,
+              behavior: SnackBarBehavior.fixed,
               backgroundColor: Colors.transparent,
               content: AwesomeSnackbarContent(
                 title: 'Thành công',
@@ -57,7 +57,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           } else if (state is AuthError) {
             final snackBar = SnackBar(
               elevation: 0,
-              behavior: SnackBarBehavior.floating,
+              behavior: SnackBarBehavior.fixed,
               backgroundColor: Colors.transparent,
               content: AwesomeSnackbarContent(
                 title: 'Lỗi',
