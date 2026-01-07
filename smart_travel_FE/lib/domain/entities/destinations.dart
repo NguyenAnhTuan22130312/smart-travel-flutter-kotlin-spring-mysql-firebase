@@ -23,6 +23,8 @@ class DestinationEntity {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String? imageUrl ;
+  final String? audioScript;
+  final int? experienceReward;
 
   final List<DestinationImage>? destinationImage;
   final List<Hotel>? hotels;
@@ -49,6 +51,8 @@ class DestinationEntity {
     this.createdAt,
     this.updatedAt,
     this.imageUrl,
+    this.audioScript,
+    this.experienceReward,
     this.destinationImage,
     this.hotels,
     this.tours,

@@ -84,12 +84,18 @@ class UserLevel extends Equatable {
   final int experiencePoints;
   final int? nextLevelAt;
   final double progressPercentage;
+  final bool isLevelUp;
+  final int earnedExp;
+  final DateTime serverTime;
 
-  const UserLevel({
+  const UserLevel( {
     required this.currentLevel,
     required this.experiencePoints,
     this.nextLevelAt,
     required this.progressPercentage,
+    this.isLevelUp = false,
+    required this.earnedExp,
+    required this.serverTime,
   });
 
   @override
@@ -98,6 +104,9 @@ class UserLevel extends Equatable {
     experiencePoints,
     nextLevelAt,
     progressPercentage,
+    isLevelUp,
+    earnedExp,
+    serverTime
   ];
 }
 

@@ -214,16 +214,37 @@ public class UserService {
 
         UserProfile userProfile = getOrCreateUserProfile(currentUser);
 
+        // 1. LẤY LEVEL CŨ: Trước khi cập nhật điểm và tính toán lại
+        String oldLevel = userProfile.getCurrentLevel();
+
+        // 2. Cập nhật điểm EXP mới
         if (request.getExperiencePoints() != null) {
             userProfile.setExperiencePoints(request.getExperiencePoints());
         }
-        LevelInfo levelInfo = calculateLevel(userProfile.getExperiencePoints());
-        userProfile.setCurrentLevel(levelInfo.levelName());
 
+        // 3. Tính toán thông tin Level mới dựa trên điểm vừa cập nhật
+        LevelInfo levelInfo = calculateLevel(userProfile.getExperiencePoints());
+        String newLevel = levelInfo.levelName();
+
+        // Cập nhật level mới vào profile
+        userProfile.setCurrentLevel(newLevel);
         userProfileRepository.save(userProfile);
 
-        log.info("Level updated for user: {} - level {}", currentUser.getEmail(), levelInfo.levelName());
-        return buildLevelResponse(userProfile, levelInfo);
+        // 4. SO SÁNH: Nếu tên level thay đổi thì isLevelUp = true
+        // Ví dụ: "Đồng" -> "Bạc" là true. "Bạc" -> "Bạc" là false.
+        boolean isLevelUp = !newLevel.equalsIgnoreCase(oldLevel);
+
+        log.info("Level updated for user: {} - level {} (Thăng hạng: {})",
+                currentUser.getEmail(), newLevel, isLevelUp);
+
+        // 5. Trả về Response kèm theo flag isLevelUp
+        return LevelResponse.builder()
+                .currentLevel(newLevel)
+                .experiencePoints(userProfile.getExperiencePoints())
+                .nextLevelAt(levelInfo.nextLevelAt())
+                .progressPercentage(levelInfo.progress())
+                .isLevelUp(isLevelUp) // <--- Trả về cho Flutter
+                .build();
     }
 
     /**
@@ -573,15 +594,16 @@ public class UserService {
      */
     private LevelResponse buildLevelResponse(UserProfile userProfile) {
         LevelInfo levelInfo = calculateLevel(userProfile.getExperiencePoints());
-        return buildLevelResponse(userProfile, levelInfo);
+        return buildLevelResponse(userProfile, levelInfo, false);
     }
 
-    private LevelResponse buildLevelResponse(UserProfile userProfile, LevelInfo levelInfo) {
+    private LevelResponse buildLevelResponse(UserProfile userProfile, LevelInfo levelInfo, boolean isLevelUp) {
         return LevelResponse.builder()
                 .currentLevel(levelInfo.levelName())
                 .experiencePoints(userProfile.getExperiencePoints())
                 .nextLevelAt(levelInfo.nextLevelAt())
                 .progressPercentage(levelInfo.progress())
+                .isLevelUp(isLevelUp)
                 .build();
     }
 

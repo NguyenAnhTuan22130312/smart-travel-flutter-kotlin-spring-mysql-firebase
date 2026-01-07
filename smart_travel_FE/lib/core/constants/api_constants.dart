@@ -29,6 +29,7 @@ class ApiConstants {
   static const String addDestination = '/destination';
   static const String updateDestination = '/destination/';
   static const String deleteDestination = '/destination/';
+  static const String completeVoice = '/destination/';
 
   //Province
   static const String provinceAll = '/province/all';

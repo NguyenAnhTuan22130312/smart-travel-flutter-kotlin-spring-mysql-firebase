@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:smart_travel/data/models/user/user_level_model.dart';
 import 'package:smart_travel/domain/entities/destinations.dart';
 import 'package:smart_travel/domain/entities/weather.dart';
 
@@ -82,13 +83,27 @@ class DeleteDestinationError extends DestinationState{
   DeleteDestinationError(this.message);
 }
 
+class CompleteVoiceLoading extends DestinationState {}
 
+class CompleteVoiceSuccess extends FilterDestinationLoaded {
+  final int destinationId;
+  final UserLevelModel levelData;
 
+  // Kế thừa 'destinations' từ FilterDestinationLoaded
+  CompleteVoiceSuccess({
+    required List<DestinationEntity> destinations,
+    required this.levelData,
+    required this.destinationId
+  }) : super(destinations);
 
+  @override
+  List<Object?> get props => [destinations, destinationId, levelData];
+}
 
+class CompleteVoiceError extends DestinationState {
+  final String message;
+  const CompleteVoiceError(this.message);
 
-
-
-
-
-
+  @override
+  List<Object?> get props => [message];
+}
