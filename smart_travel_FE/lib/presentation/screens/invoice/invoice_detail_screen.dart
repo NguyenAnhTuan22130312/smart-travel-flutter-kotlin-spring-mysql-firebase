@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/injection_container.dart' as di;
 import 'package:smart_travel/presentation/blocs/invoice/detail_bloc.dart';
+import 'package:smart_travel/presentation/screens/invoice/qr_display_screen.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
 import '../../../router/route_names.dart';
 import 'cancel_booking_screen.dart';
@@ -714,7 +715,16 @@ class InvoiceDetailScreen extends StatelessWidget {
                               Expanded(
                                 child: ElevatedButton(
                                   onPressed: () {
-                                    // Xuất phiếu
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => QRDisplayScreen(
+                                          invoiceNumber: detail.invoiceNumber, // d là biến detail của bạn
+                                          bookingId: detail.bookingId,
+                                          itemName: detail.serviceName ?? "Đơn hàng",
+                                        ),
+                                      ),
+                                    );
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.primary,

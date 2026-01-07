@@ -36,7 +36,18 @@ class AdminInvoiceDetailBloc extends Bloc<AdminInvoiceDetailEvent, AdminInvoiceD
         final detail = await getDetailUseCase(bookingId: event.bookingId);
         emit(AdminInvoiceDetailLoaded(detail));
       } catch (e) {
-        emit(AdminInvoiceDetailError(e.toString()));
+        String errorMsg = "Không tải được chi tiết đơn hàng";
+
+        // Xử lý lỗi từ API cụ thể
+        if (e.toString().contains("code") || e.toString().contains("msg")) {
+          errorMsg = "Đơn hàng này không thuộc quyền quản lý của bạn";
+        } else if (e.toString().contains("404") || e.toString().contains("not found")) {
+          errorMsg = "Không tìm thấy đơn hàng";
+        } else {
+          errorMsg = e.toString().replaceAll("Exception: ", "");
+        }
+
+        emit(AdminInvoiceDetailError(errorMsg));
       }
     });
   }
