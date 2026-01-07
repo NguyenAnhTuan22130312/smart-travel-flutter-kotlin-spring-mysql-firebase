@@ -1,5 +1,7 @@
 import 'package:smart_travel/core/network/dio_client.dart';
 import '../../../../core/constants/api_constants.dart';
+import '../../models/admin/admin_invoice_detail_model.dart';
+import '../../models/admin/admin_invoice_model.dart';
 import '../../models/invoice/invoice_detail_model.dart';
 import '../../models/invoice/invoice_model.dart';
 
@@ -11,6 +13,16 @@ abstract class InvoiceRemoteDataSource {
   Future<List<InvoiceModel>> searchActiveInvoices({required String keyword});
   Future<void> cancelBooking({required int bookingId, required String reason});
   Future<InvoiceDetailModel> getInvoiceDetail({required int bookingId});
+  Future<List<AdminInvoiceModel>> getAdminInvoices({
+    String? status,
+    String? invoiceNumber,
+  });
+
+  Future<AdminInvoiceDetailModel> getAdminInvoiceDetail({required int bookingId});
+  Future<void> adminCheckIn({required int bookingId, int? numberOfRooms});
+  Future<void> adminCheckOut({required int bookingId});
+  Future<void> adminApproveRefund({required int bookingId});
+  Future<void> adminCancelOrder({required int bookingId, required String cancelMessage});
 }
 
 class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
@@ -127,5 +139,81 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
     } else {
       throw Exception(response.data['msg'] ?? 'Failed to load invoice detail');
     }
+  }
+  @override
+  Future<List<AdminInvoiceModel>> getAdminInvoices({
+    String? status,
+    String? invoiceNumber,
+  }) async {
+    final StringBuffer urlBuffer = StringBuffer(ApiConstants.adminGetInvoice);
+
+    final List<String> queryParts = [];
+
+    if (status != null && status.isNotEmpty) {
+      queryParts.add('status=$status');
+    }
+
+    if (invoiceNumber != null && invoiceNumber.isNotEmpty) {
+      queryParts.add('invoiceNumber=${Uri.encodeComponent(invoiceNumber)}');
+    }
+
+    if (queryParts.isNotEmpty) {
+      urlBuffer.write('?${queryParts.join('&')}');
+    }
+
+    final String url = urlBuffer.toString();
+
+    final response = await dioClient.get(url);
+
+    if (response.data['code'] == 1000) {
+      final List<dynamic> dataList = response.data['data'];
+      return dataList.map((json) => AdminInvoiceModel.fromJson(json as Map<String, dynamic>)).toList();
+    } else {
+      throw Exception(response.data['msg'] ?? 'Failed to load admin invoices');
+    }
+  }
+
+  @override
+  Future<AdminInvoiceDetailModel> getAdminInvoiceDetail({required int bookingId}) async {
+    final response = await dioClient.get('${ApiConstants.adminGetDetailInvoice}$bookingId');
+
+    if (response.data['code'] == 1000) {
+      return AdminInvoiceDetailModel.fromJson(response.data['data']);
+    } else {
+      throw Exception(response.data['msg'] ?? 'Failed to load invoice detail');
+    }
+  }
+
+  @override
+  Future<void> adminCheckIn({required int bookingId, int? numberOfRooms}) async {
+    final response = await dioClient.post(
+      ApiConstants.adminCheckIn,
+      data: {
+        "bookingId": bookingId,
+        if (numberOfRooms != null) "numberOfRooms": numberOfRooms,
+      },
+    );
+    if (response.data['code'] != 1000) throw Exception(response.data['msg']);
+  }
+
+  @override
+  Future<void> adminCheckOut({required int bookingId}) async {
+    final response = await dioClient.post(ApiConstants.adminCheckOut, data: {"bookingId": bookingId});
+    if (response.data['code'] != 1000) throw Exception(response.data['msg']);
+  }
+
+  @override
+  Future<void> adminApproveRefund({required int bookingId}) async {
+    final response = await dioClient.post(ApiConstants.adminApproveRefund, data: {"bookingId": bookingId});
+    if (response.data['code'] != 1000) throw Exception(response.data['msg']);
+  }
+
+  @override
+  Future<void> adminCancelOrder({required int bookingId, required String cancelMessage}) async {
+    final response = await dioClient.post(
+      ApiConstants.adminCancelOrder,
+      data: {"bookingId": bookingId, "cancelMessage": cancelMessage},
+    );
+    if (response.data['code'] != 1000) throw Exception(response.data['msg']);
   }
 }

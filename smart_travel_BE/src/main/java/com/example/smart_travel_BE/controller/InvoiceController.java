@@ -2,8 +2,10 @@
 
 package com.example.smart_travel_BE.controller;
 
-import com.example.smart_travel_BE.dto.invoice.request.RefundRequest;
+import com.example.smart_travel_BE.dto.invoice.request.*;
 import com.example.smart_travel_BE.dto.invoice.response.ActiveInvoiceResponse;
+import com.example.smart_travel_BE.dto.invoice.response.AdminInvoiceDetailResponse;
+import com.example.smart_travel_BE.dto.invoice.response.AdminInvoiceResponse;
 import com.example.smart_travel_BE.dto.invoice.response.InvoiceDetailResponse;
 import com.example.smart_travel_BE.dto.user.response.APIResponse;
 import com.example.smart_travel_BE.service.InvoiceService;
@@ -138,6 +140,71 @@ public class InvoiceController {
                 .code(1000)
                 .msg("Lấy lịch sử giao dịch thành công")
                 .data(result)
+                .build();
+    }
+
+    @GetMapping("/admin-get-invoices")
+    public APIResponse<List<AdminInvoiceResponse>> getAdminInvoices(
+            @RequestParam(required = false) String invoiceNumber,
+            @RequestParam(required = false) String status) {
+
+        List<AdminInvoiceResponse> invoices = invoiceService.getAdminInvoices(invoiceNumber, status);
+
+        return APIResponse.<List<AdminInvoiceResponse>>builder()
+                .code(1000)
+                .msg("Lấy danh sách đơn hàng thành công")
+                .data(invoices)
+                .build();
+    }
+
+    @GetMapping("/admin-get-detail-invoice/{bookingId}")
+    public APIResponse<AdminInvoiceDetailResponse> getAdminInvoiceDetail(@PathVariable Long bookingId) {
+        AdminInvoiceDetailResponse detail = invoiceService.getAdminInvoiceDetail(bookingId);
+
+        return APIResponse.<AdminInvoiceDetailResponse>builder()
+                .code(1000)
+                .msg("Lấy chi tiết đơn hàng thành công")
+                .data(detail)
+                .build();
+    }
+
+    @PostMapping("/admin/approve-refund")
+    public APIResponse<Void> approveRefund(@Valid @RequestBody RefundApprovalRequest request) {
+        invoiceService.approveRefund(request);
+
+        return APIResponse.<Void>builder()
+                .code(1000)
+                .msg("Duyệt hoàn tiền thành công. Đơn hàng đã được chuyển sang trạng thái REFUNDED.")
+                .build();
+    }
+
+    @PostMapping("/admin/check-in")
+    public APIResponse<Void> checkIn(@Valid @RequestBody CheckInRequest request) {
+        invoiceService.checkIn(request);
+
+        return APIResponse.<Void>builder()
+                .code(1000)
+                .msg("Check-in thành công. Đơn hàng đã được chuyển sang trạng thái CHECKED và cập nhật số phòng.")
+                .build();
+    }
+
+    @PostMapping("/admin/check-out")
+    public APIResponse<Void> checkOut(@Valid @RequestBody CheckOutRequest request) {
+        invoiceService.checkOut(request);
+
+        return APIResponse.<Void>builder()
+                .code(1000)
+                .msg("Check-out thành công. Đơn hàng đã được chuyển sang trạng thái COMPLETED.")
+                .build();
+    }
+
+    @PostMapping("/admin/cancel-order")
+    public APIResponse<Void> cancelOrder(@Valid @RequestBody CancelOrderRequest request) {
+        invoiceService.cancelOrder(request);
+
+        return APIResponse.<Void>builder()
+                .code(1000)
+                .msg("Hủy đơn hàng thành công. Đơn đã được chuyển sang trạng thái CANCELLED.")
                 .build();
     }
 }

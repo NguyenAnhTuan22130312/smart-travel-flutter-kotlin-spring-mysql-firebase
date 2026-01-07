@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../screens/invoice/cancel_booking_screen.dart';
 import '../../screens/invoice/invoice_detail_screen.dart';
+import '../../screens/invoice/qr_display_screen.dart';
 import '../../theme/app_colors.dart';
 
 class InvoiceStatusCard extends StatelessWidget {
@@ -100,8 +101,15 @@ class InvoiceStatusCard extends StatelessWidget {
         );
         break;
       case 'export':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Xuất phiếu thanh toán (PDF)")),
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => QRDisplayScreen(
+              invoiceNumber: invoiceNumber,
+              bookingId: bookingId,
+              itemName: itemName,
+            ),
+          ),
         );
         break;
     }

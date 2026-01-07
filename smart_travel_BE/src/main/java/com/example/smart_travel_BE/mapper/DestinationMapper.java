@@ -77,9 +77,11 @@ public interface DestinationMapper {
     @AfterMapping
     default void mapTourImage(Tour tour, @MappingTarget TourSummaryResponse response) {
         if (tour.getImages() != null && !tour.getImages().isEmpty()) {
-            response.setImages(List.of(tour.getImages().get(0).getImageUrl()).toString());
+            // SỬA LẠI: Lấy trực tiếp chuỗi URL của ảnh đầu tiên
+            // Không dùng List.of(...).toString() nữa
+            response.setImages(tour.getImages().get(0).getImageUrl());
         } else {
-            response.setImages(String.valueOf(new ArrayList<>()));
+            response.setImages(null); // Hoặc để "" tùy bạn
         }
     }
 

@@ -33,8 +33,10 @@ import 'package:smart_travel/presentation/screens/splash/splash_screen.dart';
 import 'package:smart_travel/router/route_names.dart';
 import 'package:smart_travel/presentation/screens/tour/tour_detail_screen.dart';
 import '../injection_container.dart' as di;
+import '../presentation/blocs/admin_invoice/admin_invoice_bloc.dart';
 import '../presentation/blocs/admin_voucher/voucher_bloc.dart';
 import '../presentation/blocs/admin_voucher/voucher_event.dart';
+import '../presentation/screens/admin/invoice/admin_invoice_screen.dart';
 import '../presentation/screens/invoice/my_invoices_screen.dart';
 import 'package:smart_travel/presentation/screens/admin/voucher/voucher_management_screen.dart';
 
@@ -69,6 +71,13 @@ class AppRouter {
               BlocProvider(create: (_) => di.sl<AdminTourDetailBloc>()),
             ],
             child: const AdminTourManagementScreen(),
+          ),
+        );
+      case RouteNames.adminInvoices:
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => di.sl<AdminInvoiceBloc>()..add(LoadAdminInvoices()),
+            child: const AdminInvoiceScreen(),
           ),
         );
     /// USER

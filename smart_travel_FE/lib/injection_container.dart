@@ -69,6 +69,8 @@ import 'package:smart_travel/domain/usecases/user/create_user_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/update_user_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/lock_user_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/unlock_user_usecase.dart';
+import 'package:smart_travel/presentation/blocs/admin_invoice/admin_invoice_bloc.dart';
+import 'package:smart_travel/presentation/blocs/admin_invoice/admin_invoice_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/admin_user/admin_user_bloc.dart';
 import 'package:smart_travel/presentation/blocs/admin_voucher/voucher_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
@@ -139,9 +141,15 @@ import 'data/repositories/voucher_repository_impl.dart';
 import 'domain/repositories/review_repository.dart';
 import 'domain/repositories/reviewhtd_repository.dart';
 import 'domain/repositories/voucher_repository.dart';
+import 'domain/usecases/invoice/admin_approve_refund_usecase.dart';
+import 'domain/usecases/invoice/admin_cancel_order_usecase.dart';
+import 'domain/usecases/invoice/admin_check_in_usecase.dart';
+import 'domain/usecases/invoice/admin_check_out_usecase.dart';
 import 'domain/usecases/invoice/cancel_booking_usecase.dart';
 import 'domain/usecases/invoice/get_active_invoices_usecase.dart';
 import 'domain/repositories/invoice_repository.dart';
+import 'domain/usecases/invoice/get_admin_invoice_detail_usecase.dart';
+import 'domain/usecases/invoice/get_admin_invoices_usecase.dart';
 import 'domain/usecases/invoice/get_invoice_detail_usecase.dart';
 import 'domain/usecases/invoice/get_refunded_invoices_usecase.dart';
 import 'domain/usecases/invoice/get_reviewable_invoices_usecase.dart';
@@ -626,5 +634,38 @@ Future<void> init() async {
   // ReviewHtd Bloc
   sl.registerFactory<ReviewHtdBloc>(
         () => ReviewHtdBloc(sl<GetReviewHtdUseCase>()),
+  );
+
+  sl.registerLazySingleton<GetAdminInvoicesUseCase>(
+        () => GetAdminInvoicesUseCase(sl<InvoiceRepository>()),
+  );
+
+  sl.registerFactory<AdminInvoiceBloc>(
+        () => AdminInvoiceBloc(sl<GetAdminInvoicesUseCase>()),
+  );
+
+  sl.registerLazySingleton<GetAdminInvoiceDetailUseCase>(
+        () => GetAdminInvoiceDetailUseCase(sl<InvoiceRepository>()),
+  );
+
+  sl.registerFactory<AdminInvoiceDetailBloc>(
+        () => AdminInvoiceDetailBloc(sl<GetAdminInvoiceDetailUseCase>()),
+  );
+
+
+  sl.registerLazySingleton<AdminCheckInUseCase>(
+        () => AdminCheckInUseCase(sl<InvoiceRepository>()),
+  );
+
+  sl.registerLazySingleton<AdminCheckOutUseCase>(
+        () => AdminCheckOutUseCase(sl<InvoiceRepository>()),
+  );
+
+  sl.registerLazySingleton<AdminApproveRefundUseCase>(
+        () => AdminApproveRefundUseCase(sl<InvoiceRepository>()),
+  );
+
+  sl.registerLazySingleton<AdminCancelOrderUseCase>(
+        () => AdminCancelOrderUseCase(sl<InvoiceRepository>()),
   );
 }

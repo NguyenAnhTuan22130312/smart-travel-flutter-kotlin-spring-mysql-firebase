@@ -40,10 +40,10 @@ class AdminDashboardScreen extends StatelessWidget {
       'color': Colors.teal,
     },
     {
-      'id': 'admin/bookings',
-      'icon': Icons.calendar_month,
-      'label': 'Lịch Đặt',
-      'color': Colors.red,
+      'id': 'admin/invoices',
+      'icon': Icons.receipt_long,
+      'label': 'Quản lý đơn hàng',
+      'color': Colors.blue,
     },
     {
       'id': 'admin/voucher',

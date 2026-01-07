@@ -1,3 +1,5 @@
+import '../../domain/entities/admin_invoice.dart';
+import '../../domain/entities/admin_invoice_detail.dart';
 import '../../domain/entities/invoice.dart';
 import '../../domain/entities/invoice_detail.dart';
 import '../../domain/repositories/invoice_repository.dart';
@@ -47,5 +49,43 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
   Future<InvoiceDetail> getInvoiceDetail({required int bookingId}) async {
     final model = await remoteDataSource.getInvoiceDetail(bookingId: bookingId);
     return model.toEntity();
+  }
+
+  @override
+  Future<List<AdminInvoice>> getAdminInvoices({
+    String? status,
+    String? invoiceNumber,
+  }) async {
+    final models = await remoteDataSource.getAdminInvoices(
+      status: status,
+      invoiceNumber: invoiceNumber,
+    );
+    return models.map((m) => m.toEntity()).toList();
+  }
+
+  @override
+  Future<AdminInvoiceDetail> getAdminInvoiceDetail({required int bookingId}) async {
+    final model = await remoteDataSource.getAdminInvoiceDetail(bookingId: bookingId);
+    return model.toEntity();
+  }
+
+  @override
+  Future<void> adminCheckIn({required int bookingId, int? numberOfRooms}) async {
+    await remoteDataSource.adminCheckIn(bookingId: bookingId, numberOfRooms: numberOfRooms);
+  }
+
+  @override
+  Future<void> adminCheckOut({required int bookingId}) async {
+    await remoteDataSource.adminCheckOut(bookingId: bookingId);
+  }
+
+  @override
+  Future<void> adminApproveRefund({required int bookingId}) async {
+    await remoteDataSource.adminApproveRefund(bookingId: bookingId);
+  }
+
+  @override
+  Future<void> adminCancelOrder({required int bookingId, required String cancelMessage}) async {
+    await remoteDataSource.adminCancelOrder(bookingId: bookingId, cancelMessage: cancelMessage);
   }
 }

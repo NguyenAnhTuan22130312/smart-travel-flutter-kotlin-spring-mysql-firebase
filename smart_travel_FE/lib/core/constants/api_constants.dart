@@ -1,5 +1,7 @@
 class ApiConstants {
-  static const String baseUrl = 'http://10.0.2.2:8080/api/v1';
+  // static const String baseUrl = 'http://10.0.2.2:8080/api/v1';
+  static const String baseUrl = 'http://171.227.91.66:8080/api/v1';
+
   //Auth
   static const String register = '/auth/register';
   static const String verifyEmail = '/auth/verify-email';
@@ -75,6 +77,14 @@ class ApiConstants {
   static const String invoiceRefundedSearch = '/invoices/refunded/search';
   static const String invoiceHistory = '/invoices/history';
   static const String invoiceRefund = '/invoices/refund';
+
+  static const String adminGetInvoice = '/invoices/admin-get-invoices';
+  static const String adminGetDetailInvoice = '/invoices/admin-get-detail-invoice/';
+  static const String adminApproveRefund = '/invoices/admin/approve-refund';
+  static const String adminCheckIn = '/invoices/admin/check-in';
+  static const String adminCheckOut = '/invoices/admin/check-out';
+  static const String adminCancelOrder = '/invoices/admin/cancel-order';
+
 
   //Banner
   static const String getAllBanner = '/banners';
