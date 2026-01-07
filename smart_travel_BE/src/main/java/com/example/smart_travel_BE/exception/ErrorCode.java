@@ -121,7 +121,9 @@ public enum ErrorCode {
     CANNOT_CHANGE_ADMIN_ROLE(1091, "Không thể thay đổi role của ADMINTOUR/ADMINHOTEL", HttpStatus.FORBIDDEN),
     NO_WRITE_PERMISSION(1092, "Bạn chỉ có quyền xem, không có quyền chỉnh sửa", HttpStatus.FORBIDDEN),
     CANNOT_MODIFY_HIGHER_ROLE(1093, "Không thể chỉnh sửa tài khoản có role cao hơn hoặc bằng bạn", HttpStatus.FORBIDDEN),
+    COOLDOWN_ACTIVE(1009, "Vui lòng đợi 3 phút để tiếp tục nhận EXP tại địa điểm này", HttpStatus.BAD_REQUEST),
     REVIEW_SPAM_DETECTED(1019,"spam it thoi", HttpStatus.BAD_REQUEST), DESTINATION_NOT_FOUND(1019,  "khong thay destination" ,HttpStatus.NOT_FOUND );
+
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
         this.message = message;

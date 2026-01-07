@@ -11,6 +11,7 @@ import 'package:smart_travel/data/models/destination/destination_response_modal.
 import 'package:smart_travel/data/models/destination/destination_upate_request.dart';
 import 'package:smart_travel/data/models/destination/destinations-featured-response-modal.dart';
 import 'package:smart_travel/data/models/destination/weather_data_model.dart';
+import 'package:smart_travel/data/models/user/user_level_model.dart';
 import 'package:smart_travel/domain/params/destination_update_params.dart';
 
 abstract class DestinationDataSource {
@@ -39,6 +40,8 @@ abstract class DestinationDataSource {
   ///Lấy thời tiết
   Future<WeatherDataModel> weather(double latitude, double longitude);
 
+  // Voice
+  Future<UserLevelModel> completeVoice(int destinationId);
 }
 class DestinationDataSourceImpl implements DestinationDataSource{
   final DioClient client;
@@ -300,4 +303,27 @@ class DestinationDataSourceImpl implements DestinationDataSource{
       throw ServerException(e.message ?? 'Lỗi khi lấy thông tin thời tiết');
     }
   }
+
+  @override
+  Future<UserLevelModel> completeVoice(int destinationId) async {
+    try {
+      // Gọi đến API: /api/destinations/{id}/voice-complete
+      final response = await client.post(
+        '${ApiConstants.completeVoice}$destinationId/voice-complete',
+      );
+
+      // Dùng lại ApiResponseModel của bạn để parse
+      final apiResponse = ApiResponseModel<UserLevelModel>.fromJson(
+        response.data,
+            (data) => UserLevelModel.fromJson(data),
+      );
+
+      return apiResponse.data!;
+    } on DioException catch (e) {
+      throw ServerException(e.message ?? 'Lỗi khi hoàn thành nghe thuyết minh');
+    } catch (e) {
+      throw ServerException('Lỗi không xác định: ${e.toString()}');
+    }
+  }
+
 }

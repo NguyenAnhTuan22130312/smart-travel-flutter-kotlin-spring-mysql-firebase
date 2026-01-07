@@ -6,6 +6,7 @@ import 'package:smart_travel/data/data_sources/remote/destination_data_source.da
 import 'package:smart_travel/data/models/destination/destination_add_request.dart';
 import 'package:smart_travel/data/models/destination/destination_upate_request.dart';
 import 'package:smart_travel/data/models/destination/destinations-featured-response-modal.dart';
+import 'package:smart_travel/data/models/user/user_level_model.dart';
 import 'package:smart_travel/domain/entities/destinations.dart';
 import 'package:smart_travel/domain/entities/weather.dart';
 import 'package:smart_travel/domain/params/destination_add_params.dart';
@@ -237,6 +238,16 @@ class DestinationRepositoryImpl extends DestinationRepository {
       return Left(NetworkFailure(e.message));
     } catch (e) {
       return Left(ServerFailure('Lỗi không mong muốn: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserLevelModel>> completeVoice(int id) async {
+    try {
+      final result = await destinationDataSource.completeVoice(id);
+      return Right(result);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
     }
   }
 }

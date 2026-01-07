@@ -8,6 +8,7 @@ import com.example.smart_travel_BE.dto.destination.response.DestinationFeaturedR
 import com.example.smart_travel_BE.dto.destination.response.DestinationImageResponse;
 import com.example.smart_travel_BE.dto.destination.response.DestinationResponse;
 import com.example.smart_travel_BE.dto.user.response.APIResponse;
+import com.example.smart_travel_BE.dto.user.response.LevelResponse;
 import com.example.smart_travel_BE.exception.AppException;
 import com.example.smart_travel_BE.service.DestinationService;
 import jakarta.validation.Valid;
@@ -17,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -189,5 +191,14 @@ public class DestinationsController {
         }
 
     }
-
+    @PostMapping("/{id}/voice-complete")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<APIResponse<LevelResponse>> completeVoice(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                APIResponse.<LevelResponse>builder()
+                        .data(destinationService.completeVoiceGuide(id))
+                        .msg("Chúc mừng bạn đã hoàn thành bài thuyết minh!")
+                        .build()
+        );
+    }
 }

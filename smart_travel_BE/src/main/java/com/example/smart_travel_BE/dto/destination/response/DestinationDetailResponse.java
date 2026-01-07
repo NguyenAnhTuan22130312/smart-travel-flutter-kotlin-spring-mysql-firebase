@@ -47,4 +47,7 @@ public class DestinationDetailResponse {
     // Đánh giá người dùng
     private List<ReviewResponse> reviews;
 
+    private String audioScript;
+    private Long experienceReward;
+
 }

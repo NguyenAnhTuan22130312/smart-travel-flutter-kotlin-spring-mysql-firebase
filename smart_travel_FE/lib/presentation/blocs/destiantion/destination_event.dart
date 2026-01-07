@@ -62,3 +62,10 @@ class DeleteDestinationEvent extends DestinationEvent{
   final int destinationId;
   DeleteDestinationEvent(this.destinationId);
 }
+
+class CompleteVoiceEvent extends DestinationEvent {
+  final int destinationId;
+  CompleteVoiceEvent(this.destinationId);
+  @override
+  List<Object?> get props => [destinationId];
+}

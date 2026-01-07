@@ -21,7 +21,10 @@ class DestinationResponseModal {
   final bool isFeatured;
   final double entryFee;
   final String imageUrl;
+  final String? audioScript;
+  final int? experienceReward;
   final List<DestinationImageResponse>? destinationImage;
+
   const DestinationResponseModal({
     required this.id,
     required this.name,
@@ -40,6 +43,8 @@ class DestinationResponseModal {
     required this.entryFee,
     required this.imageUrl,
     required this.destinationImage ,
+    required this.audioScript,
+    required this.experienceReward
   });
 
   /// Hàm chuyển từ JSON sang model
@@ -68,6 +73,8 @@ class DestinationResponseModal {
           .map((e) => DestinationImageResponse.fromJson(e))
           .toList()
           : [],
+      audioScript: json['audio_script'] ?? json['audioScript'],
+      experienceReward: json['experience_reward'] ?? json['experienceReward'],
     );
   }
   DestinationEntity toEntity() {
@@ -91,6 +98,8 @@ class DestinationResponseModal {
       entryFee: entryFee,
       imageUrl: imageUrl,
       destinationImage : destinationImage?.map((d) => d.toEntity()).toList(),
+      audioScript: audioScript,
+      experienceReward: experienceReward,
     );
   }
   // Helper: Parse chuỗi openingHours → Map

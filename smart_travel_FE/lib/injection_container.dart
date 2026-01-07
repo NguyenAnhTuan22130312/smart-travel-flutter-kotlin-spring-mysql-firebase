@@ -33,6 +33,7 @@ import 'package:smart_travel/domain/usecases/banner/create_banner_uc.dart';
 import 'package:smart_travel/domain/usecases/banner/delete_banner_uc.dart';
 import 'package:smart_travel/domain/usecases/banner/get_all_banner_use_case.dart';
 import 'package:smart_travel/domain/usecases/banner/update_banner_uc.dart';
+import 'package:smart_travel/domain/usecases/destination/CompleteVoiceUseCase.dart';
 import 'package:smart_travel/domain/usecases/destination/add_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/delete_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/filter_destinations_by_category_use_case.dart';
@@ -75,7 +76,6 @@ import 'package:smart_travel/presentation/blocs/banner/banner_bloc.dart';
 import 'package:smart_travel/presentation/blocs/chat/chat_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_bloc.dart';
-import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
 import 'package:smart_travel/presentation/blocs/favorite/favorite_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
@@ -293,6 +293,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpdateDestinationUseCase(sl()));
   sl.registerLazySingleton(() => DeleteDestinationUseCase(sl()));
   sl.registerLazySingleton(() => GetWeatherUseCase(sl()));
+  sl.registerLazySingleton(() => CompleteVoiceUseCase(sl()));
 
   sl.registerLazySingleton(() => GetAllProvinceUseCase(sl()));
   sl.registerLazySingleton(() => ProvinceDetailUseCase(sl()));
@@ -391,6 +392,7 @@ Future<void> init() async {
       updateDestinationUseCase: sl(),
       deleteDestinationUseCase: sl(),
       getWeatherUseCase: sl(),
+      completeVoiceUseCase: sl(),
     ),
   );
 

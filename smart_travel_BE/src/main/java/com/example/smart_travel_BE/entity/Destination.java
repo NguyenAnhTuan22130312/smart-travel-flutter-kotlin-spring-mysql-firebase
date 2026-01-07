@@ -90,4 +90,10 @@ public class Destination {
     @OneToMany(mappedBy = "destination", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Tour> tours = new ArrayList<>();
 
+    @Column(name = "audio_script", columnDefinition = "TEXT")
+    private String audioScript;
+
+    @Column(name = "experience_reward")
+    private Long experienceReward = 50L; // Mặc định mỗi lần nghe xong tặng 50 EXP
+
 }

@@ -11,8 +11,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LevelResponse {
     private String currentLevel;
-    private Long experiencePoints;
+    private Long experiencePoints; // Đây là TỔNG ĐIỂM mới
     private Long nextLevelAt;
     private Double progressPercentage;
+    private Boolean isLevelUp;
+    private Long earnedExp; //  Số điểm vừa nhận được (20-50)
+    private java.time.LocalDateTime serverTime;
 }
 
