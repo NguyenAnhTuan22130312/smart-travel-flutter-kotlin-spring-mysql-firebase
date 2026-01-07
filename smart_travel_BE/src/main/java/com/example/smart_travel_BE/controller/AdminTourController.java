@@ -26,8 +26,6 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1/admin/tours")
 @RequiredArgsConstructor
-@Slf4j
-@PreAuthorize("hasRole('ADMIN')")
 public class AdminTourController {
 
     private final TourService adminTourService;

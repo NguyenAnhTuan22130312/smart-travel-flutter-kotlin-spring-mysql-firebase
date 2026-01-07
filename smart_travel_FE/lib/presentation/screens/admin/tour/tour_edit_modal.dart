@@ -13,6 +13,7 @@ import 'package:smart_travel/presentation/blocs/adminTour/tour_state.dart';
 import 'package:smart_travel/presentation/blocs/adminTour/tour_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/adminTour/tour_detail_event.dart';
 import 'package:smart_travel/presentation/blocs/adminTour/tour_detail_state.dart';
+import 'package:smart_travel/presentation/theme/app_colors.dart';
 
 class AdminTourUpdateModal extends StatefulWidget {
   final AdminTourModel tour;
@@ -25,6 +26,22 @@ class AdminTourUpdateModal extends StatefulWidget {
 
 class _AdminTourUpdateModalState extends State<AdminTourUpdateModal> {
   final _formKey = GlobalKey<FormState>();
+
+  // Colors & Styles
+  final Color primaryColor = const Color(0xFF0066CC); // Màu chủ đạo (Xanh dương)
+  final InputDecorationTheme inputTheme = InputDecorationTheme(
+    filled: true,
+    fillColor: Colors.grey[100],
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide.none,
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFF0066CC), width: 1.5),
+    ),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+  );
 
   // ===== BASIC =====
   late TextEditingController nameCtrl;
@@ -102,7 +119,7 @@ class _AdminTourUpdateModalState extends State<AdminTourUpdateModal> {
     if (excludedCtrls.isEmpty) excludedCtrls.add(TextEditingController());
   }
 
-  // ================= IMAGE =================
+  // ================= ACTION: PICK IMAGES =================
   Future<void> _pickImages() async {
     final picker = ImagePicker();
     final files = await picker.pickMultiImage();
@@ -113,30 +130,40 @@ class _AdminTourUpdateModalState extends State<AdminTourUpdateModal> {
     }
   }
 
-  // ================= SUBMIT =================
+  // ================= ACTION: SUBMIT =================
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
 
     final description = quillCtrl.document.toPlainText().trim();
     if (description.isEmpty) {
-      _toast('Mô tả không được để trống');
+      _showErrorSnackBar('Mô tả không được để trống');
       return;
     }
 
     if (schedules.any((s) => s.title.text.trim().isEmpty)) {
-      _toast('Tiêu đề lịch trình không được để trống');
+      _showErrorSnackBar('Tiêu đề lịch trình các ngày không được để trống');
       return;
     }
 
+    // DATA PREPARATION
     final data = {
       "name": nameCtrl.text.trim(),
-      "pricePerPerson": double.parse(priceCtrl.text),
-      "durationDays": int.parse(daysCtrl.text),
+      "pricePerPerson": double.tryParse(priceCtrl.text) ?? 0,
+      "durationDays": int.tryParse(daysCtrl.text) ?? 1,
       "durationNights": int.tryParse(nightsCtrl.text) ?? 0,
       "minPeople": int.tryParse(minPeopleCtrl.text) ?? 0,
       "maxPeople": int.tryParse(maxPeopleCtrl.text) ?? 0,
       "description": description,
       "isActive": isActive,
+
+      // --- QUAN TRỌNG: Gửi lại danh sách ảnh cũ để BE không xóa nhầm ---
+      "images": widget.tour.images.map((img) => {
+        "id": img.id,
+        "imageUrl": img.imageUrl,
+        "isPrimary": img.isPrimary,
+        "displayOrder": img.displayOrder,
+      }).toList(),
+
       "schedules": List.generate(schedules.length, (i) {
         final s = schedules[i];
         return {
@@ -151,123 +178,172 @@ class _AdminTourUpdateModalState extends State<AdminTourUpdateModal> {
       "excluded": excludedCtrls.map((e) => e.text).where((e) => e.isNotEmpty).toList(),
     };
 
+    // CALL BLOC
     context.read<AdminTourDetailBloc>().add(
       UpdateAdminTourDetail(widget.tour.id, data),
     );
   }
 
-  // ================= UI =================
+  // ================= UI BUILD =================
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AdminTourDetailBloc, AdminTourDetailState>(
-      listener: (context, state) {
-        if (state is AdminTourUpdateSuccess) {
-          Navigator.pop(context, true);
-          context.read<AdminTourBloc>().add(LoadAdminTours());
-        }
-        if (state is AdminTourDetailError) {
-          _toast(state.message ?? 'Cập nhật thất bại');
-        }
-      },
-      child: Dialog(
-        insetPadding: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _header(),
-                const SizedBox(height: 16),
-
-                _section('Thông tin cơ bản'),
-                _field(
-                  'Tên tour',
-                  nameCtrl,
-                  icon: Icons.tour,
-                  validator: (v) => requiredText(v, 'Tên tour'),
-                ),
-                _field(
-                  'Giá / người',
-                  priceCtrl,
-                  keyboard: TextInputType.number,
-                  icon: Icons.attach_money,
-                  validator: (v) => requiredDouble(v, 'Giá / người', min: 1),
-                ),
-
-                Row(children: [
-                  Expanded(
-                    child: _field(
-                      'Số ngày',
-                      daysCtrl,
-                      keyboard: TextInputType.number,
-                      icon: Icons.calendar_today,
-                      validator: (v) => requiredInt(v, 'Số ngày', min: 1),
+    // Sử dụng Theme cục bộ để áp dụng style cho Input
+    return Theme(
+      data: Theme.of(context).copyWith(
+        inputDecorationTheme: inputTheme,
+        colorScheme: ColorScheme.fromSeed(seedColor: primaryColor),
+      ),
+      child: BlocListener<AdminTourDetailBloc, AdminTourDetailState>(
+        listener: (context, state) {
+          if (state is AdminTourUpdateSuccess) {
+            _showSuccessDialog(); // HIỂN THỊ DIALOG THÀNH CÔNG ĐẸP
+          }
+          if (state is AdminTourDetailError) {
+            _showErrorSnackBar(state.message ?? 'Cập nhật thất bại');
+          }
+        },
+        child: Scaffold(
+          backgroundColor: Colors.grey[50], // Nền sáng
+          appBar: AppBar(
+            flexibleSpace: Container(
+              decoration: BoxDecoration(gradient: AppColors.mainGradient),
+            ),
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.close, color: Colors.black),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: const Text('Cập nhật Tour', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            centerTitle: true,
+            // ĐÃ XÓA ACTION NÚT LƯU Ở ĐÂY THEO YÊU CẦU
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionContainer(
+                    title: 'Thông tin chung',
+                    icon: Icons.info_outline,
+                    child: Column(
+                      children: [
+                        _buildTextField('Tên tour', nameCtrl, validator: (v) => requiredText(v, 'Tên tour')),
+                        const SizedBox(height: 12),
+                        _buildTextField('Giá / người (VND)', priceCtrl, keyboard: TextInputType.number, validator: (v) => requiredDouble(v, 'Giá', min: 1000)),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(child: _buildTextField('Số ngày', daysCtrl, keyboard: TextInputType.number)),
+                            const SizedBox(width: 12),
+                            Expanded(child: _buildTextField('Số đêm', nightsCtrl, keyboard: TextInputType.number, required: false)),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(child: _buildTextField('Min khách', minPeopleCtrl, keyboard: TextInputType.number)),
+                            const SizedBox(width: 12),
+                            Expanded(child: _buildTextField('Max khách', maxPeopleCtrl, keyboard: TextInputType.number, validator: (v) => validateMaxPeople(v, minPeopleCtrl))),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text('Đang hoạt động (Active)', style: TextStyle(fontWeight: FontWeight.w500)),
+                          activeColor: primaryColor,
+                          value: isActive,
+                          onChanged: (v) => setState(() => isActive = v),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _field('Số đêm', nightsCtrl,
-                        keyboard: TextInputType.number,
-                        required: false),
+
+                  const SizedBox(height: 16),
+                  _buildSectionContainer(
+                    title: 'Thư viện ảnh',
+                    icon: Icons.image_outlined,
+                    child: _buildImageSection(),
                   ),
-                ]),
 
-                _field(
-                  'Số khách tối thiểu',
-                  minPeopleCtrl,
-                  keyboard: TextInputType.number,
-                  validator: (v) => requiredInt(v, 'Số khách tối thiểu', min: 1),
-                ),
-
-                _field(
-                  'Số khách tối đa',
-                  maxPeopleCtrl,
-                  keyboard: TextInputType.number,
-                  validator: (v) => validateMaxPeople(v, minPeopleCtrl),
-                ),
-
-                SwitchListTile(
-                  title: const Text('Hoạt động'),
-                  value: isActive,
-                  onChanged: (v) => setState(() => isActive = v),
-                ),
-
-                const Divider(),
-
-                _section('Mô tả chi tiết'),
-                QuillSimpleToolbar(
-                  controller: quillCtrl,
-                  configurations: const QuillSimpleToolbarConfigurations(),
-                ),
-                Container(
-                  height: 200,
-                  decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
-                  child: QuillEditor(
-                    controller: quillCtrl,
-                    scrollController: ScrollController(),
-                    focusNode: FocusNode(),
-                    configurations: const QuillEditorConfigurations(
-                      padding: EdgeInsets.all(12),
+                  const SizedBox(height: 16),
+                  _buildSectionContainer(
+                    title: 'Mô tả chi tiết',
+                    icon: Icons.description_outlined,
+                    child: Column(
+                      children: [
+                        QuillSimpleToolbar(
+                          controller: quillCtrl,
+                          configurations: const QuillSimpleToolbarConfigurations(
+                            showFontFamily: false,
+                            showFontSize: false,
+                          ),
+                        ),
+                        Container(
+                          height: 200,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.white,
+                          ),
+                          child: QuillEditor.basic(
+                            controller: quillCtrl,
+                            configurations: const QuillEditorConfigurations(
+                              padding: EdgeInsets.all(12),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
 
-                const Divider(),
-                _imageSection(),
+                  const SizedBox(height: 16),
+                  _buildSectionContainer(
+                    title: 'Lịch trình tour',
+                    icon: Icons.calendar_month_outlined,
+                    child: _buildScheduleSection(),
+                  ),
 
-                const Divider(),
-                _scheduleSection(),
+                  const SizedBox(height: 16),
+                  _buildSectionContainer(
+                    title: 'Dịch vụ bao gồm (Included)',
+                    icon: Icons.check_circle_outline,
+                    child: _buildDynamicList(includedCtrls, 'Ví dụ: Vé máy bay, Ăn sáng...'),
+                  ),
 
-                const Divider(),
-                _listEditor('Included', includedCtrls),
-                _listEditor('Excluded', excludedCtrls),
+                  const SizedBox(height: 16),
+                  _buildSectionContainer(
+                    title: 'Không bao gồm (Excluded)',
+                    icon: Icons.cancel_outlined,
+                    child: _buildDynamicList(excludedCtrls, 'Ví dụ: Thuế VAT, Tiền TIP...'),
+                  ),
 
-                const SizedBox(height: 20),
-                _actions(),
-              ],
+                  const SizedBox(height: 40), // Bottom padding
+
+                  // ================= NÚT LƯU DUY NHẤT Ở CUỐI =================
+                  BlocBuilder<AdminTourDetailBloc, AdminTourDetailState>(
+                    builder: (context, state) {
+                      final loading = state is AdminTourUpdateLoading;
+                      return SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: loading ? null : _submit,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryColor,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 2,
+                          ),
+                          child: loading
+                              ? const CircularProgressIndicator(color: Colors.white)
+                              : const Text('CẬP NHẬT TOÀN BỘ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -275,250 +351,303 @@ class _AdminTourUpdateModalState extends State<AdminTourUpdateModal> {
     );
   }
 
-  // ================= HELPERS =================
+  // ================= CUSTOM WIDGETS =================
 
-  Widget _header() => Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      const Text('Cập nhật Tour',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-      IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
-    ],
-  );
-
-  Widget _section(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: Text(text, style: const TextStyle(fontWeight: FontWeight.w600)),
-  );
-
-  Widget _field(
-      String label,
-      TextEditingController ctrl, {
-        bool required = true,
-        TextInputType keyboard = TextInputType.text,
-        IconData? icon,
-        String? Function(String?)? validator,
-      }) =>
-      Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: TextFormField(
-          controller: ctrl,
-          keyboardType: keyboard,
-          validator: validator ??
-              (required ? (v) => v == null || v.isEmpty ? 'Vui lòng nhập $label' : null : null),
-          decoration: InputDecoration(
-            labelText: label,
-            prefixIcon: icon != null ? Icon(icon) : null,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+  Widget _buildSectionContainer({required String title, required IconData icon, required Widget child}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: primaryColor, size: 20),
+              const SizedBox(width: 8),
+              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+            ],
           ),
-        ),
-      );
+          const Divider(height: 24),
+          child,
+        ],
+      ),
+    );
+  }
 
-  Widget _imageSection() {
+  Widget _buildTextField(String label, TextEditingController ctrl,
+      {bool required = true, TextInputType keyboard = TextInputType.text, String? Function(String?)? validator}) {
+    return TextFormField(
+      controller: ctrl,
+      keyboardType: keyboard,
+      validator: validator ?? (required ? (v) => v == null || v.isEmpty ? 'Nhập $label' : null : null),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: Colors.grey[600]),
+      ),
+    );
+  }
+
+  Widget _buildImageSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _section('Ảnh tour'),
-        Row(
-          children: [
-            IconButton(
-              onPressed: _pickImages,
-              icon: const Icon(Icons.add_photo_alternate),
+        InkWell(
+          onTap: _pickImages,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              border: Border.all(color: primaryColor, style: BorderStyle.solid),
+              borderRadius: BorderRadius.circular(12),
+              color: primaryColor.withOpacity(0.05),
             ),
-            const Text('Thêm ảnh mới'),
-          ],
+            child: Column(
+              children: [
+                Icon(Icons.add_photo_alternate_outlined, color: primaryColor, size: 30),
+                const SizedBox(height: 4),
+                Text('Tải thêm ảnh từ thiết bị', style: TextStyle(color: primaryColor, fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
         ),
-
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
+        if (widget.tour.images.isEmpty && newImages.isEmpty)
+          const Center(child: Text('Chưa có hình ảnh nào', style: TextStyle(color: Colors.grey))),
 
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: 12,
+          runSpacing: 12,
           children: [
-
-            // ===== OLD IMAGES (SERVER) =====
+            // --- ẢNH CŨ (SERVER) ---
             ...widget.tour.images.map((img) {
               final isPrimary = img.isPrimary == true;
-
               return Stack(
+                clipBehavior: Clip.none,
                 children: [
                   GestureDetector(
                     onTap: () {
-                      context.read<AdminTourDetailBloc>().add(
-                        SetPrimaryAdminTourImage(
-                          tourId: widget.tour.id,
-                          imageId: img.id,
-                        ),
-                      );
+                      _showErrorSnackBar("Vui lòng chọn ảnh chính trong danh sách chi tiết");
                     },
                     child: Container(
+                      width: 100,
+                      height: 100,
                       decoration: BoxDecoration(
-                        border: Border.all(
-                          color: isPrimary ? Colors.green : Colors.grey,
-                          width: isPrimary ? 3 : 1,
-                        ),
                         borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Image.network(
-                        img.imageUrl,
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.cover,
+                        border: isPrimary ? Border.all(color: Colors.green, width: 3) : Border.all(color: Colors.grey[300]!),
+                        image: DecorationImage(image: NetworkImage(img.imageUrl), fit: BoxFit.cover),
                       ),
                     ),
                   ),
-
-                  // PRIMARY BADGE
                   if (isPrimary)
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        color: Colors.green.withOpacity(0.8),
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                        child: const Text(
-                          'PRIMARY',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                  // DELETE (nếu có event)
+                    Positioned(bottom: 0, left: 0, right: 0, child: Container(color: Colors.green, padding: const EdgeInsets.all(2), child: const Text('ẢNH BÌA', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
                   Positioned(
-                    right: 0,
-                    top: 0,
-                    child: GestureDetector(
+                    top: -5,
+                    right: -5,
+                    child: InkWell(
                       onTap: () {
-                        context.read<AdminTourDetailBloc>().add(
-                          DeleteAdminTourImage(
-                            tourId: widget.tour.id,
-                            imageId: img.id,
-                          ),
-                        );
+                        _showErrorSnackBar("Tính năng xóa ảnh đang được cập nhật");
                       },
-                      child: const Icon(
-                        Icons.close,
-                        color: Colors.red,
-                        size: 18,
-                      ),
+                      child: Container(padding: const EdgeInsets.all(4), decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle), child: const Icon(Icons.close, size: 14, color: Colors.white)),
                     ),
                   ),
                 ],
               );
             }),
-
-            // ===== NEW IMAGES (LOCAL) =====
+            // --- ẢNH MỚI (LOCAL) ---
             ...newImages.map((file) {
               return Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  Image.file(
-                    file,
+                  Container(
                     width: 100,
                     height: 100,
-                    fit: BoxFit.cover,
-                  ),
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: GestureDetector(
-                      onTap: () => setState(() => newImages.remove(file)),
-                      child: const Icon(
-                        Icons.close,
-                        color: Colors.red,
-                        size: 18,
-                      ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: primaryColor, width: 2),
+                      image: DecorationImage(image: FileImage(file), fit: BoxFit.cover),
                     ),
                   ),
+                  Positioned(top: -5, right: -5, child: InkWell(onTap: () => setState(() => newImages.remove(file)), child: Container(padding: const EdgeInsets.all(4), decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle), child: const Icon(Icons.close, size: 14, color: Colors.white)))),
                 ],
               );
             }),
           ],
+        )
+      ],
+    );
+  }
+
+  Widget _buildScheduleSection() {
+    return Column(
+      children: [
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: schedules.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          itemBuilder: (context, i) {
+            final s = schedules[i];
+            return Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[200]!),
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.white,
+              ),
+              child: ExpansionTile(
+                title: Text('Ngày ${i + 1}: ${s.title.text.isNotEmpty ? s.title.text : "(Chưa có tiêu đề)"}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                childrenPadding: const EdgeInsets.all(16),
+                expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildTextField('Tiêu đề ngày', s.title),
+                  const SizedBox(height: 8),
+                  _buildTextField('Hoạt động chính', s.activities, required: false),
+                  const SizedBox(height: 8),
+                  Row(children: [
+                    Expanded(child: _buildTextField('Chỗ ở', s.accommodation, required: false)),
+                    const SizedBox(width: 8),
+                    Expanded(child: _buildTextField('Bữa ăn', s.meals, required: false)),
+                  ]),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: () => setState(() => schedules.removeAt(i)),
+                      icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                      label: const Text('Xóa ngày này', style: TextStyle(color: Colors.red)),
+                    ),
+                  )
+                ],
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () => setState(() => schedules.add(_ScheduleItem())),
+            icon: const Icon(Icons.add),
+            label: const Text('Thêm ngày lịch trình'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              side: BorderSide(color: primaryColor),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
         ),
       ],
     );
   }
 
-  Widget _scheduleSection() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _section('Lịch trình'),
-      ...List.generate(schedules.length, (i) {
-        final s = schedules[i];
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(children: [
-              Text('Ngày ${i + 1}', style: const TextStyle(fontWeight: FontWeight.bold)),
-              _field('Tiêu đề', s.title),
-              _field('Hoạt động', s.activities, required: false),
-              _field('Chỗ ở', s.accommodation, required: false),
-              _field('Bữa ăn', s.meals, required: false),
-              if (schedules.length > 1)
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => setState(() => schedules.removeAt(i)),
+  Widget _buildDynamicList(List<TextEditingController> ctrls, String hint) {
+    return Column(
+      children: [
+        ...List.generate(ctrls.length, (i) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: ctrls[i],
+                    decoration: InputDecoration(hintText: hint, contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
                   ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                  onPressed: () => setState(() => ctrls.removeAt(i)),
                 )
-            ]),
+              ],
+            ),
+          );
+        }),
+        TextButton.icon(
+          onPressed: () => setState(() => ctrls.add(TextEditingController())),
+          icon: Icon(Icons.add, color: primaryColor),
+          label: Text('Thêm dòng mới', style: TextStyle(color: primaryColor)),
+        )
+      ],
+    );
+  }
+
+  // ================= FEEDBACK DIALOG =================
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon thành công
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: Colors.green[50], shape: BoxShape.circle),
+                  child: const Icon(Icons.check_circle, color: Colors.green, size: 60),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Cập nhật thành công!',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
+                ),
+                const SizedBox(height: 12),
+                Text.rich(
+                  TextSpan(
+                    text: 'Tour ',
+                    style: const TextStyle(color: Colors.grey, fontSize: 16),
+                    children: [
+                      TextSpan(text: nameCtrl.text, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+                      const TextSpan(text: ' đã được lưu vào hệ thống.'),
+                    ],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Đóng Dialog
+                      Navigator.of(context).pop(true); // Đóng Modal cập nhật
+                      context.read<AdminTourBloc>().add(LoadAdminTours()); // Load lại danh sách
+                    },
+                    child: const Text('HOÀN TẤT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
-      }),
-      TextButton.icon(
-        onPressed: () => setState(() => schedules.add(_ScheduleItem())),
-        icon: const Icon(Icons.add),
-        label: const Text('Thêm ngày'),
-      ),
-    ],
-  );
-
-  Widget _listEditor(String title, List<TextEditingController> ctrls) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _section(title),
-      ...List.generate(ctrls.length, (i) {
-        return Row(children: [
-          Expanded(child: _field('$title ${i + 1}', ctrls[i], required: false)),
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: ctrls.length > 1 ? () => setState(() => ctrls.removeAt(i)) : null,
-          )
-        ]);
-      }),
-      TextButton.icon(
-        onPressed: () => setState(() => ctrls.add(TextEditingController())),
-        icon: const Icon(Icons.add),
-        label: const Text('Thêm'),
-      )
-    ],
-  );
-
-  Widget _actions() => Row(children: [
-    Expanded(
-        child: OutlinedButton(onPressed: () => Navigator.pop(context), child: const Text('Hủy'))),
-    const SizedBox(width: 12),
-    BlocBuilder<AdminTourDetailBloc, AdminTourDetailState>(
-      builder: (context, state) {
-        final loading = state is AdminTourUpdateLoading;
-        return ElevatedButton(
-          onPressed: loading ? null : _submit,
-          child: loading
-              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-              : const Text('Cập nhật'),
-        );
       },
-    )
-  ]);
+    );
+  }
 
-  void _toast(String msg) =>
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  void _showErrorSnackBar(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(children: [const Icon(Icons.error_outline, color: Colors.white), const SizedBox(width: 8), Expanded(child: Text(msg))]),
+        backgroundColor: Colors.red[700],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
 }
 
 // ===== PRIVATE =====
@@ -595,4 +724,3 @@ String? validateMaxPeople(
 
   return null;
 }
-

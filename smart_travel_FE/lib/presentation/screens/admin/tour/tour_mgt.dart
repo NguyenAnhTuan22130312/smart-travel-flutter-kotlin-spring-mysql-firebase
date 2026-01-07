@@ -1,21 +1,21 @@
-  import 'dart:convert';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
-  import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
-  import 'package:smart_travel/data/models/tour/admin_tour_model.dart';
-  import 'package:smart_travel/domain/entities/tour.dart';
-  import 'package:smart_travel/presentation/blocs/adminTour/tour_bloc.dart';
-  import 'package:smart_travel/presentation/blocs/adminTour/tour_event.dart';
-  import 'package:smart_travel/presentation/blocs/adminTour/tour_state.dart';
-  import 'package:smart_travel/presentation/blocs/adminTour/tour_detail_bloc.dart';
-  import 'package:smart_travel/presentation/blocs/adminTour/tour_detail_event.dart';
-  import 'package:smart_travel/presentation/blocs/adminTour/tour_detail_state.dart';
+import 'package:smart_travel/data/models/tour/admin_tour_model.dart';
+import 'package:smart_travel/domain/entities/tour.dart';
+import 'package:smart_travel/presentation/blocs/adminTour/tour_bloc.dart';
+import 'package:smart_travel/presentation/blocs/adminTour/tour_event.dart';
+import 'package:smart_travel/presentation/blocs/adminTour/tour_state.dart';
+import 'package:smart_travel/presentation/blocs/adminTour/tour_detail_bloc.dart';
+import 'package:smart_travel/presentation/blocs/adminTour/tour_detail_event.dart';
+import 'package:smart_travel/presentation/blocs/adminTour/tour_detail_state.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_bloc.dart';
 import 'package:smart_travel/presentation/blocs/auth/auth_state.dart';
 import 'package:smart_travel/presentation/screens/admin/tour/tour_create_model.dart';
-  import 'package:smart_travel/presentation/screens/admin/tour/tour_edit_modal.dart';
-  import 'package:smart_travel/presentation/theme/app_colors.dart';
+import 'package:smart_travel/presentation/screens/admin/tour/tour_edit_modal.dart';
+import 'package:smart_travel/presentation/theme/app_colors.dart';
   
   class AdminTourManagementScreen extends StatefulWidget {
     const AdminTourManagementScreen({super.key});
@@ -730,9 +730,37 @@ import 'package:smart_travel/presentation/screens/admin/tour/tour_create_model.d
 
       // nếu update thành công thì reload list
       if (result == true) {
+        // 1. Load lại danh sách
         context.read<AdminTourBloc>().add(LoadAdminTours());
+
+        // 2. Hiện SnackBar màu xanh lá (Green) chữ trắng
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cập nhật tour thành công')),
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white), // Icon tích v
+                SizedBox(width: 5),
+                Text(
+                  'Cập nhật Tour thành công!',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            // Màu nền xanh
+            behavior: SnackBarBehavior.floating,
+            // Kiểu nổi (không dính sát đáy)
+            margin: const EdgeInsets.all(5),
+            // Cách lề 1 chút cho đẹp
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10), // Bo góc hình chữ nhật
+            ),
+            duration: const Duration(seconds: 2), // Tự tắt sau 2s
+          ),
         );
       }
     }
@@ -916,5 +944,4 @@ import 'package:smart_travel/presentation/screens/admin/tour/tour_create_model.d
         return raw;
       }
     }
-
   }
