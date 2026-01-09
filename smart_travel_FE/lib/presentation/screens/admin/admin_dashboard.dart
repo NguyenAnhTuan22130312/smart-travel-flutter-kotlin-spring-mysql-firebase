@@ -63,6 +63,12 @@ class AdminDashboardScreen extends StatelessWidget {
       'label': 'Banner',
       'color': Colors.amberAccent,
     },
+    {
+      'id': 'admin/audio',
+      'icon': Icons.audio_file,
+      'label': 'audio',
+      'color': Colors.deepPurpleAccent,
+    },
   ];
 
   @override

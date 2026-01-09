@@ -1,5 +1,6 @@
 package com.example.smart_travel_BE.controller;
 
+import com.example.smart_travel_BE.dto.audio.AudioUpdateRequest;
 import com.example.smart_travel_BE.dto.destination.request.DestinationCreateRequest;
 import com.example.smart_travel_BE.dto.destination.request.DestinationImageUploadRequest;
 import com.example.smart_travel_BE.dto.destination.request.DestinationUpdateRequest;
@@ -36,7 +37,7 @@ public class DestinationsController {
      * Lấy danh sách địa điểm
      */
     @GetMapping("/destination-all")
-    public ResponseEntity<APIResponse<List<DestinationDetailResponse>>>getAllDestinations(){
+    public ResponseEntity<APIResponse<List<DestinationDetailResponse>>> getAllDestinations() {
         return ResponseEntity.status(HttpStatus.OK).body(
                 APIResponse.<List<DestinationDetailResponse>>builder()
                         .data(destinationService.getAllDestinations())
@@ -48,11 +49,11 @@ public class DestinationsController {
      * Lấy danh sách địa điểm nổi bật
      */
     @GetMapping("/destination-featured")
-    public ResponseEntity<APIResponse<List<DestinationDetailResponse>>>getAllDestinationsFeatured(){
+    public ResponseEntity<APIResponse<List<DestinationDetailResponse>>> getAllDestinationsFeatured() {
         return ResponseEntity.status(HttpStatus.OK).body(
-                 APIResponse.<List<DestinationDetailResponse>>builder()
-                         .data(destinationService.getAllDestinationsFeatured())
-                         .build()
+                APIResponse.<List<DestinationDetailResponse>>builder()
+                        .data(destinationService.getAllDestinationsFeatured())
+                        .build()
         );
     }
 
@@ -61,7 +62,7 @@ public class DestinationsController {
      * Lấy danh sách địa điểm
      */
     @GetMapping("/destination-filter")
-    public ResponseEntity<APIResponse<List<DestinationDetailResponse>>>filterDestinationsByCategory(@RequestParam String category){
+    public ResponseEntity<APIResponse<List<DestinationDetailResponse>>> filterDestinationsByCategory(@RequestParam String category) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 APIResponse.<List<DestinationDetailResponse>>builder()
                         .data(destinationService.filterDestinationsByCategory(category))
@@ -73,7 +74,7 @@ public class DestinationsController {
      * xem chi tiết địa điểm
      */
     @GetMapping("/detail/{id}")
-    public ResponseEntity<APIResponse<DestinationDetailResponse>>getDestinationDetail(@PathVariable("id") long id){
+    public ResponseEntity<APIResponse<DestinationDetailResponse>> getDestinationDetail(@PathVariable("id") long id) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 APIResponse.<DestinationDetailResponse>builder()
                         .data(destinationService.getDestinationDetail(id))
@@ -117,7 +118,7 @@ public class DestinationsController {
     @DeleteMapping("/{id}")
     public ResponseEntity<APIResponse<Void>> delete(@PathVariable Long id) {
 
-        try{
+        try {
             destinationService.deleteDestination(id);
             return ResponseEntity.status(HttpStatus.OK).body(
                     APIResponse.<Void>builder()
@@ -125,7 +126,7 @@ public class DestinationsController {
                             .build()
             );
 
-        }catch (AppException e){
+        } catch (AppException e) {
             return ResponseEntity.status(HttpStatus.OK).body(
                     APIResponse.<Void>builder()
                             .msg("Xóa thất bại")
@@ -134,11 +135,12 @@ public class DestinationsController {
         }
 
     }
+
     //Khôi phục địa điểm
     @PutMapping("/restore/{id}")
     public ResponseEntity<APIResponse<Void>> restoreDestination(@PathVariable Long id) {
 
-        try{
+        try {
             destinationService.restoreDestination(id);
             return ResponseEntity.status(HttpStatus.OK).body(
                     APIResponse.<Void>builder()
@@ -146,7 +148,7 @@ public class DestinationsController {
                             .build()
             );
 
-        }catch (AppException e){
+        } catch (AppException e) {
             return ResponseEntity.status(HttpStatus.OK).body(
                     APIResponse.<Void>builder()
                             .msg("Khôi phục thất bại")
@@ -160,7 +162,7 @@ public class DestinationsController {
     @PostMapping(value = "/{id}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<APIResponse<DestinationImageResponse>> uploadImage(
             @PathVariable Long id,
-            @Valid @RequestPart("request") DestinationImageUploadRequest request, @RequestPart(value = "imageFiles", required = false)  MultipartFile file) {
+            @Valid @RequestPart("request") DestinationImageUploadRequest request, @RequestPart(value = "imageFiles", required = false) MultipartFile file) {
 
         return ResponseEntity.ok(
                 APIResponse.<DestinationImageResponse>builder()
@@ -170,19 +172,19 @@ public class DestinationsController {
     }
 
     //Xóa ảnh
-    @DeleteMapping( "/{destinationId}/{imageId}/images")
+    @DeleteMapping("/{destinationId}/{imageId}/images")
     public ResponseEntity<APIResponse<Void>> deleteDestinationImage(
             @PathVariable Long destinationId,
             @PathVariable Long imageId) {
 
-        try{
+        try {
             destinationService.deleteDestinationImage(destinationId, imageId);
             return ResponseEntity.ok(
                     APIResponse.<Void>builder()
                             .msg("Xóa hình thành công")
-                        .build()
-        );
-        }catch (AppException e){
+                            .build()
+            );
+        } catch (AppException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                     APIResponse.<Void>builder()
                             .msg("thất bại")
@@ -191,6 +193,7 @@ public class DestinationsController {
         }
 
     }
+
     @PostMapping("/{id}/voice-complete")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<APIResponse<LevelResponse>> completeVoice(@PathVariable Long id) {
@@ -198,6 +201,45 @@ public class DestinationsController {
                 APIResponse.<LevelResponse>builder()
                         .data(destinationService.completeVoiceGuide(id))
                         .msg("Chúc mừng bạn đã hoàn thành bài thuyết minh!")
+                        .build()
+        );
+    }
+
+    @PostMapping("/{id}/audio-script")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<APIResponse<DestinationResponse>> addAudioScript(
+            @PathVariable Long id,
+            @RequestBody AudioUpdateRequest request) {
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                APIResponse.<DestinationResponse>builder()
+                        .data(destinationService.addAudioScript(id, request.getAudioScript()))
+                        .msg("Thêm nội dung thuyết minh thành công!")
+                        .build()
+        );
+    }
+
+    @PutMapping("/{id}/audio-script")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<APIResponse<DestinationResponse>> updateAudioScript(
+            @PathVariable Long id,
+            @RequestBody AudioUpdateRequest request) {
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                APIResponse.<DestinationResponse>builder()
+                        .data(destinationService.updateAudioScript(id, request.getAudioScript()))
+                        .msg("Cập nhật nội dung thuyết minh thành công!")
+                        .build()
+        );
+    }
+
+    @DeleteMapping("/{id}/audio-script")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<APIResponse<DestinationResponse>> deleteAudioScript(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                APIResponse.<DestinationResponse>builder()
+                        .data(destinationService.deleteAudioScript(id))
+                        .msg("Đã xóa nội dung thuyết minh thành công!")
                         .build()
         );
     }

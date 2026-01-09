@@ -108,6 +108,7 @@ public enum ErrorCode {
     FILE_TYPE_NOT_SUPPORTED(1115, "Chỉ hỗ trợ JPG, PNG, WebP, GIF", HttpStatus.BAD_REQUEST),
     IMAGE_UPLOAD_FAILED_ERROR(1116, "Upload ảnh thất bại", HttpStatus.INTERNAL_SERVER_ERROR),
     IMAGE_NOT_FOUND(1117, "Hình ảnh không tồn tài", HttpStatus.NOT_FOUND),
+    AUDIO_ALREADY_EXISTS(1118, "Địa điểm này đã có nội dung thuyết minh, vui lòng sử dụng chức năng chỉnh sửa", HttpStatus.BAD_REQUEST),
 
     ///BANNER
     BANNER_NAME_BLANK(1080, "Tên banner không được để trống", HttpStatus.BAD_REQUEST),

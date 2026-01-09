@@ -14,12 +14,14 @@ class UserLevelModel extends UserLevel {
   factory UserLevelModel.fromJson(Map<String, dynamic> json) {
     return UserLevelModel(
       currentLevel: json['currentLevel'] as String,
-      experiencePoints: json['experiencePoints'] as int,
+      experiencePoints: (json['experiencePoints'] as num?)?.toInt() ?? 0,
       nextLevelAt: json['nextLevelAt'] as int?,
-      progressPercentage: (json['progressPercentage'] as num).toDouble(),
+      progressPercentage: (json['progressPercentage'] as num?)?.toDouble() ?? 0.0,
       isLevelUp: json['isLevelUp'] ?? false,
-      earnedExp: json['earnedExp'] as int,
-      serverTime: DateTime.parse(json['serverTime']),
+      earnedExp: (json['earnedExp'] as num?)?.toInt() ?? 0,
+      serverTime: json['serverTime'] != null
+          ? DateTime.parse(json['serverTime'])
+          : DateTime.now(),
     );
   }
 
