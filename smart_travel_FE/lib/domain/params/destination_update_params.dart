@@ -14,8 +14,23 @@ class DestinationUpdateParams {
   final bool? isFeatured;
   final List<File>? image;
   final List<int> imagesToDelete;
+  final String? audioScript;
 
-  DestinationUpdateParams({required this.name, required this.provinceId, required this.description, required this.category, required this.latitude, required this.longitude, required this.address, required this.entryFee, required this.openingHours, required this.isFeatured,
-    required this.image, required this.destinationId, this.imagesToDelete = const []});
 
+  DestinationUpdateParams({
+    required this.destinationId, // Chỉ giữ lại ID là bắt buộc
+    this.name,
+    this.provinceId,
+    this.description,
+    this.category,
+    this.latitude,
+    this.longitude,
+    this.address,
+    this.entryFee,
+    this.openingHours,
+    this.isFeatured,
+    this.image,
+    this.audioScript, // THÊM DÒNG NÀY
+    this.imagesToDelete = const [],
+  });
 }

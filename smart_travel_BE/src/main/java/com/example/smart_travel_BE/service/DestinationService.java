@@ -371,6 +371,7 @@ public class DestinationService {
         log.info("Total images after update = {}", keptImages.size());
     }
 
+    // voice guide
     @Transactional
     public LevelResponse completeVoiceGuide(Long destinationId) {
         // 1. Lấy thông tin User và Profile
@@ -429,4 +430,62 @@ public class DestinationService {
         return response;
     }
 
+    // ADMIN AUDIO GUIDE
+    @Transactional
+    public DestinationResponse updateAudioScript(Long destinationId, String newAudioScript) {
+        // 1. Kiểm tra địa điểm có tồn tại không
+        Destination destination = destinationRepository.findById(destinationId)
+                .orElseThrow(() -> new AppException(ErrorCode.DESTINATION_NOT_EXISTED));
+
+        // 2. Cập nhật nội dung thuyết minh
+        // Nếu newAudioScript là null hoặc rỗng, có thể hiểu là Admin muốn xóa audio
+        destination.setAudioScript(newAudioScript);
+
+        // 3. Lưu vào database
+        destinationRepository.save(destination);
+
+        log.info("Admin đã cập nhật Audio Script cho địa điểm: {} (ID: {})",
+                destination.getName(), destinationId);
+
+        // 4. Trả về kết quả (map qua DTO)
+        return destinationMapper.toDestinationResponse(destination);
+    }
+
+    // ADMIN ADD AUDIO GUIDE
+    @Transactional
+    public DestinationResponse addAudioScript(Long destinationId, String audioScript) {
+        Destination destination = destinationRepository.findById(destinationId)
+                .orElseThrow(() -> new AppException(ErrorCode.DESTINATION_NOT_EXISTED));
+
+        // Kiểm tra nếu đã có audio rồi thì báo lỗi hoặc yêu cầu dùng chức năng Update
+        if (destination.getAudioScript() != null && !destination.getAudioScript().isEmpty()) {
+            throw new AppException(ErrorCode.AUDIO_ALREADY_EXISTS); // Bạn cần định nghĩa thêm ErrorCode này
+        }
+
+        destination.setAudioScript(audioScript);
+        destinationRepository.save(destination);
+
+        log.info("Admin đã thêm mới Audio cho: {}", destination.getName());
+        return destinationMapper.toDestinationResponse(destination);
+    }
+
+    // ADMIN DELETE AUDIO GUIDE
+    @Transactional
+    public DestinationResponse deleteAudioScript(Long destinationId) {
+        // 1. Kiểm tra địa điểm có tồn tại không
+        Destination destination = destinationRepository.findById(destinationId)
+                .orElseThrow(() -> new AppException(ErrorCode.DESTINATION_NOT_EXISTED));
+
+        // 2. Xóa nội dung thuyết minh (đặt về null)
+        destination.setAudioScript(null);
+
+        // 3. Lưu vào database
+        destinationRepository.saveAndFlush(destination);
+
+        log.info("Admin đã xóa Audio Script của địa điểm: {} (ID: {})",
+                destination.getName(), destinationId);
+
+        // 4. Trả về kết quả đã cập nhật
+        return destinationMapper.toDestinationResponse(destination);
+    }
 }
