@@ -145,6 +145,7 @@ import 'data/repositories/review_repository_impl.dart';
 import 'data/repositories/reviewhtd_repository_impl.dart';
 
 import 'data/repositories/voucher_repository_impl.dart';
+import 'domain/repositories/comparison_repository.dart';
 import 'domain/repositories/review_repository.dart';
 import 'domain/repositories/reviewhtd_repository.dart';
 import 'domain/repositories/voucher_repository.dart';
@@ -168,6 +169,8 @@ import 'domain/usecases/voucher/create_voucher_uc.dart';
 import 'domain/usecases/voucher/delete_voucher_uc.dart';
 import 'domain/usecases/voucher/get_all_voucher_uc.dart';
 import 'domain/usecases/voucher/update_voucher_uc.dart';
+import 'package:smart_travel/presentation/blocs/comparison/comparison_bloc.dart';
+
 
 final sl = GetIt.instance;
 
@@ -253,6 +256,17 @@ Future<void> init() async {
       networkInfo: sl(),
     ),
   );
+
+  sl.registerLazySingleton(() => ComparisonRepository(sl()));
+
+  // 2. Bloc
+  // Bloc này cần 3 cái repo: ComparisonRepo, TourRepo, HotelRepo
+  // Đảm bảo TourRepository và HotelRepository ĐÃ ĐƯỢC đăng ký ở đâu đó phía trên rồi nhé
+  sl.registerFactory(() => ComparisonBloc(
+    comparisonRepository: sl(),
+    tourRepository: sl(),
+    hotelRepository: sl(),
+  ));
 
   sl.registerLazySingleton<ProvinceRepository>(
     () => ProvinceRepositoryImpl(provinceDataSource: sl(), networkInfo: sl()),

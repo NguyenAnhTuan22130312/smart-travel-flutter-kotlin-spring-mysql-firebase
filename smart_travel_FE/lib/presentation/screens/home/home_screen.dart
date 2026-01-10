@@ -29,6 +29,8 @@ import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
 
+import '../../widgets/comparison/comparison_selection_sheet.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
@@ -115,6 +117,24 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.end, // Đẩy các nút xuống góc dưới
         children: [
           // NÚT TRÒN AUDIO MỚI
+
+          SizedBox(
+            width: 56,
+            height: 56,
+            child: FloatingActionButton(
+              heroTag: "compare_fab",
+              backgroundColor: const Color(0x9651FDDB), // Màu cam cho nổi bật hoặc dùng màu theme
+              elevation: 0,
+              shape: const CircleBorder(),
+              onPressed: () {
+                _showComparisonBottomSheet(); // Hàm gọi sheet
+              },
+              child: const Icon(Icons.compare_arrows_rounded, color: Colors.white, size: 30),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+
           SizedBox(
             width: 56,
             height: 56,
@@ -151,6 +171,20 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: _selectedIndex,
         onTap: _onNavItemTapped,
       ),
+    );
+  }
+
+  void _showComparisonBottomSheet() {
+    /* Lưu ý: Nếu cần check login thì uncomment đoạn này
+     final profileState = context.read<ProfileBloc>().state;
+     if (profileState is! ProfileLoaded) { ... }
+  */
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const ComparisonSelectionSheet(),
     );
   }
 
