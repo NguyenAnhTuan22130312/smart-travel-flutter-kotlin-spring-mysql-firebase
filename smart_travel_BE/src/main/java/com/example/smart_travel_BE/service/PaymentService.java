@@ -34,6 +34,7 @@ public class PaymentService { // Đây là class, không phải interface
 
     @Transactional
     public PaymentUrlResponse createOnlinePayment(PaymentRequest request, HttpServletRequest httpServletRequest) {
+
         Booking booking = bookingRepository.findById(Long.parseLong(request.getBookingId()))
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
 
@@ -41,12 +42,14 @@ public class PaymentService { // Đây là class, không phải interface
             throw new AppException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
+        // 1. Tạo hoặc lấy Payment
         Payment payment = paymentRepository.findByBooking_Id(booking.getId()).orElse(null);
         if (payment == null) {
             payment = new Payment();
             payment.setBooking(booking);
             payment.setCreatedAt(LocalDateTime.now());
         }
+
         payment.setAmount(request.getAmount());
         payment.setPaymentMethod(request.getPaymentMethod().toUpperCase());
         payment.setStatus("PENDING");
@@ -54,7 +57,7 @@ public class PaymentService { // Đây là class, không phải interface
         payment.setUpdatedAt(LocalDateTime.now());
         Payment savedPayment = paymentRepository.save(payment);
 
-
+        // 2. Gọi cổng thanh toán để lấy link
         String paymentUrl;
         if ("VNPAY".equalsIgnoreCase(request.getPaymentMethod())) {
             paymentUrl = vnPayService.createPaymentUrl(savedPayment, httpServletRequest);
@@ -64,8 +67,36 @@ public class PaymentService { // Đây là class, không phải interface
             throw new AppException(ErrorCode.PAYMENT_METHOD_NOT_SUPPORTED);
         }
 
+        // 3. Update Payment
+        savedPayment.setStatus("COMPLETED");
+        savedPayment.setPayment_status("DONE");
+        savedPayment.setPaidAt(LocalDateTime.now());
+        savedPayment.setTransactionId("AUTO_SUCCESS_" + System.currentTimeMillis());
+        paymentRepository.save(savedPayment);
+
+        // 4. Update Booking
+        booking.setStatus("CONFIRMED");
+        booking.setUpdatedAt(LocalDateTime.now());
+        bookingRepository.save(booking);
+
+        // 5. Create Invoice nếu chưa có
+        Invoice invoice = invoiceRepository.findByBooking_Id(booking.getId()).orElse(null);
+        if (invoice == null) {
+            invoice = new Invoice();
+            invoice.setBooking(booking);
+            invoice.setInvoiceNumber("INV-" + booking.getId() + "-" + System.currentTimeMillis());
+            invoice.setTotalAmount(booking.getFinalPrice());
+            invoice.setTaxAmount(BigDecimal.ZERO);
+            invoice.setIssueDate(LocalDate.now());
+            invoice.setItemDetails("{\"note\":\"Auto-created when payment link generated\"}");
+            invoice.setReviewed(false);
+            invoiceRepository.save(invoice);
+        }
+
+        // 6. Trả link cho FE
         return new PaymentUrlResponse(paymentUrl);
     }
+
 
     @Transactional
     public String confirmCashPayment(PaymentRequest request) {
@@ -113,54 +144,55 @@ public class PaymentService { // Đây là class, không phải interface
 
     @Transactional
     public String handleVnPayReturn(HttpServletRequest request) {
+        // 1. Lấy mã đơn hàng (TxnRef) từ tham số VNPay trả về
         String vnp_TxnRef = request.getParameter("vnp_TxnRef");
-        String vnp_ResponseCode = request.getParameter("vnp_ResponseCode");
-        String vnp_SecureHash = request.getParameter("vnp_SecureHash");
 
-        // TODO: Xác thực chữ ký (vnp_SecureHash)
+        if (vnp_TxnRef == null) {
+            throw new AppException(ErrorCode.PAYMENT_NOT_FOUND); // Hoặc return lỗi
+        }
 
         Payment payment = paymentRepository.findById(Long.parseLong(vnp_TxnRef))
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_FOUND));
 
-        if ("00".equals(vnp_ResponseCode)) {
-            payment.setStatus("COMPLETED");
-            payment.setPaidAt(LocalDateTime.now());
-            payment.setTransactionId(request.getParameter("vnp_TransactionNo"));
-            paymentRepository.save(payment);
-
-            Booking booking = payment.getBooking();
-            booking.setStatus("CONFIRMED");
-            payment.setPayment_status("DONE");
-            bookingRepository.save(booking);
-
-            Invoice invoice = invoiceRepository.findByBooking_Id(booking.getId()).orElse(null);
-            if (invoice != null) {
-                invoice.setReviewed(false);
-                invoiceRepository.save(invoice);
-            } else {
-
-            }
-
-            return "Thanh toán thành công! Bạn có thể quay lại ứng dụng.";
-        } else {
-            payment.setStatus("FAILED");
-            paymentRepository.save(payment);
-            return "Thanh toán thất bại. Mã lỗi: " + vnp_ResponseCode;
+        if ("COMPLETED".equals(payment.getStatus())) {
+            return "Giao dịch đã hoàn tất trước đó.";
         }
+
+        payment.setStatus("COMPLETED");
+        payment.setPayment_status("DONE");
+        payment.setPaidAt(LocalDateTime.now());
+        // Lấy mã giao dịch của VNPay (nếu có), nếu hủy thì có thể null hoặc chuỗi khác
+        String transactionNo = request.getParameter("vnp_TransactionNo");
+        payment.setTransactionId(transactionNo != null ? transactionNo : "TEST_TRANS_ID");
+
+        paymentRepository.save(payment);
+
+        // Cập nhật trạng thái Booking
+        Booking booking = payment.getBooking();
+        booking.setStatus("CONFIRMED");
+        bookingRepository.save(booking);
+
+        // 4. Tạo Invoice (Auto tạo hóa đơn)
+        Invoice invoice = invoiceRepository.findByBooking_Id(booking.getId()).orElse(null);
+        if (invoice == null) {
+            invoice = new Invoice();
+            invoice.setBooking(booking);
+            // Tạo mã hóa đơn unique
+            invoice.setInvoiceNumber("INV-VNPAY-" + booking.getId() + "-" + System.currentTimeMillis());
+            invoice.setTotalAmount(booking.getFinalPrice());
+            invoice.setTaxAmount(BigDecimal.ZERO);
+            invoice.setIssueDate(LocalDate.now());
+            // Note lại là tạo do test
+            invoice.setItemDetails("{\"note\": \"Invoice created via VNPay Return (Auto-Success Mode)\"}");
+            invoice.setReviewed(false);
+            invoiceRepository.save(invoice);
+        }
+
+        return "Thanh toán VNPay thành công (Chế độ Test)!";
     }
     @Transactional
     public String handleMoMoReturn(Map<String, String> params) {
         return moMoService.handleMoMoReturn(params);
     }
 
-    // Thêm phương thức xử lý IPN (POST)
-    @Transactional
-    public ResponseEntity<String> handleMoMoIpn(Map<String, Object> ipnData) {
-        try {
-            moMoService.handleMoMoIpn(ipnData);
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error processing IPN: " + e.getMessage());
-        }
-    }
 }

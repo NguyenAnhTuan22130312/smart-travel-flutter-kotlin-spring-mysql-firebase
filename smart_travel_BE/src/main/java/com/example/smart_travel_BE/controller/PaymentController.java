@@ -6,12 +6,14 @@ import com.example.smart_travel_BE.dto.user.response.PaymentUrlResponse;
 import com.example.smart_travel_BE.exception.AppException;
 import com.example.smart_travel_BE.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.Map;
 
 @RestController
@@ -61,21 +63,30 @@ public class PaymentController {
         }
     }
 
+
     @GetMapping("/vnpay-return")
-    public ResponseEntity<String> vnpayReturn(HttpServletRequest request) {
+    public void vnpayReturn(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
-            String message = paymentService.handleVnPayReturn(request);
-            return ResponseEntity.ok(message);
-        } catch (AppException e) {
-            log.error("Lỗi khi xử lý VNPay return: {}", e.getMessage());
-            return ResponseEntity.status(e.getErrorCode().getStatusCode()).body(e.getMessage());
+            // 1. Logic Auto Success (như bạn đã viết)
+            String resultMsg = paymentService.handleVnPayReturn(request);
+
+            // Lấy ra bookingId để trả về cho App biết đơn nào
+            String vnp_TxnRef = request.getParameter("vnp_TxnRef"); // Đây là paymentId
+
+            String deepLink = "smarttravel://payment-result?status=success&paymentId=" + vnp_TxnRef;
+
+            response.sendRedirect(deepLink);
+
+        } catch (Exception e) {
+            // Dù lỗi cũng redirect về App nhưng báo fail
+            response.sendRedirect("smarttravel://payment-result?status=failed&msg=" + e.getMessage());
         }
     }
 
     @GetMapping("/momo-return")
     public ResponseEntity<String> momoReturn(@RequestParam Map<String, String> params) {
+        log.info("---- KHÁCH HÀNG ĐÃ QUAY VỀ TỪ MOMO ----");
         try {
-            // MoMo Redirect/Return thường dùng GET và các tham số là @RequestParam
             String message = paymentService.handleMoMoReturn(params);
             return ResponseEntity.ok(message);
         } catch (AppException e) {
@@ -89,7 +100,7 @@ public class PaymentController {
         // MoMo IPN là Server-to-Server, sử dụng POST và gửi JSON body
         try {
             log.info("MoMo IPN received: {}", ipnData);
-            return paymentService.handleMoMoIpn(ipnData);
+            return null;
         } catch (Exception e) {
             log.error("Lỗi khi xử lý MoMo IPN: {}", e.getMessage());
             // Trả về lỗi 500 để MoMo có thể thử lại
