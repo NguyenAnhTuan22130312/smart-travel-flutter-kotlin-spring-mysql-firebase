@@ -52,7 +52,7 @@ deepseek:
 
 ai:
   service:
-    url: https://2d9d0da9787d.ngrok-free.app/predict-type
+    url: https://6e968361ce99.ngrok-free.app/predict-type
 
 
 

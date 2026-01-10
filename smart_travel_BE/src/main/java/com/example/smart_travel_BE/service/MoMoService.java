@@ -12,6 +12,7 @@ import com.example.smart_travel_BE.repository.PaymentRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -118,102 +119,47 @@ public class MoMoService {
     /**
      * Xử lý khi người dùng thanh toán xong và quay lại App (Redirect)
      */
+    // Trong MoMoService.java
+    @Transactional
     public String handleMoMoReturn(Map<String, String> params) {
         String orderId = params.get("orderId");
-        String resultCode = params.get("resultCode");
 
-        if (orderId == null || resultCode == null) {
-            return "Dữ liệu trả về không hợp lệ.";
-        }
-
-        long paymentId;
-        try {
-            paymentId = Long.parseLong(orderId.split("_")[0]);
-        } catch (Exception e) {
-            return "Lỗi xử lý mã đơn hàng.";
-        }
-        // --------------------------------------
-
+        // 1. Parse ID
+        long paymentId = Long.parseLong(orderId.split("_")[0]);
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_FOUND));
 
+        // 2. CHECK QUAN TRỌNG: Nếu đơn hàng đã xong rồi thì dừng luôn
+        // Để tránh việc IPN và Redirect cùng chạy gây lỗi trùng Invoice
         if ("COMPLETED".equals(payment.getStatus())) {
-            return "Giao dịch đã được xử lý trước đó.";
+            return "Giao dịch đã hoàn tất trước đó.";
         }
 
-        if ("0".equals(resultCode)) {
-            payment.setStatus("COMPLETED");
-            payment.setPaidAt(LocalDateTime.now());
-            // MoMo trả về transId, lưu lại để đối soát
-            if(params.containsKey("transId")) {
-                payment.setTransactionId(params.get("transId"));
-            }
-            paymentRepository.save(payment);
+        // 3. Nếu chưa xong -> Cập nhật Payment
+        payment.setStatus("COMPLETED");
+        payment.setPayment_status("DONE");
+        payment.setPaidAt(LocalDateTime.now());
+        payment.setTransactionId(params.get("transId"));
+        paymentRepository.save(payment);
 
-            Booking booking = payment.getBooking();
-            booking.setStatus("CONFIRMED");
-            bookingRepository.save(booking);
+        // 4. Cập nhật Booking
+        Booking booking = payment.getBooking();
+        booking.setStatus("CONFIRMED");
+        bookingRepository.save(booking);
 
-            Invoice invoice = invoiceRepository.findByBooking_Id(booking.getId()).orElse(null);
-            if (invoice != null) {
-                invoice.setReviewed(false);
-                invoiceRepository.save(invoice);
-            } else {
-                // Nếu chưa có (Data cũ): TẠO MỚI BÙ VÀO
-                invoice = new Invoice();
-                invoice.setBooking(booking);
-                invoice.setInvoiceNumber("INV-MOMO-" + booking.getId() + "-" + System.currentTimeMillis());
-                invoice.setTotalAmount(booking.getFinalPrice());
-                invoice.setTaxAmount(BigDecimal.ZERO);
-                invoice.setIssueDate(LocalDate.now());
-                invoice.setItemDetails("{\"note\": \"Invoice created automatically via MoMo\"}");
-                invoice.setReviewed(false);
-                invoiceRepository.save(invoice);
-            }
+        // 5. TẠO INVOICE (Đây là cái bạn đang cần)
+        Invoice invoice = new Invoice();
+        invoice.setBooking(booking);
+        invoice.setInvoiceNumber("INV-" + booking.getId() + "-" + System.currentTimeMillis());
+        invoice.setTotalAmount(booking.getFinalPrice());
+        invoice.setIssueDate(LocalDate.now());
 
-            return "Thanh toán thành công! Bạn có thể quay lại ứng dụng.";
-        } else {
-            payment.setStatus("FAILED");
-            paymentRepository.save(payment);
-            return "Thanh toán thất bại. Mã lỗi MoMo: " + resultCode;
-        }
+        invoiceRepository.save(invoice);
+
+        return "Success";
     }
-
+}
     /**
      * Xử lý IPN (Server gọi Server)
      */
-    public void handleMoMoIpn(Map<String, Object> ipnData) {
-        String orderId = (String) ipnData.get("orderId");
-        String resultCode = String.valueOf(ipnData.get("resultCode"));
-        String transId = (String) ipnData.get("transId");
 
-        // Tách lấy Payment ID gốc
-        long paymentId;
-        try {
-            paymentId = Long.parseLong(orderId.split("_")[0]);
-        } catch (Exception e) {
-            System.out.println("Lỗi parse OrderID IPN: " + orderId);
-            return;
-        }
-
-        Payment payment = paymentRepository.findById(paymentId).orElse(null);
-        if (payment == null) return;
-
-        // Nếu đã hoàn thành thì bỏ qua
-        if ("COMPLETED".equals(payment.getStatus())) return;
-
-        if ("0".equals(resultCode)) {
-            payment.setStatus("COMPLETED");
-            payment.setPaidAt(LocalDateTime.now());
-            payment.setTransactionId(transId);
-            paymentRepository.save(payment);
-
-            Booking booking = payment.getBooking();
-            booking.setStatus("CONFIRMED");
-            bookingRepository.save(booking);
-        } else {
-            payment.setStatus("FAILED");
-            paymentRepository.save(payment);
-        }
-    }
-}
