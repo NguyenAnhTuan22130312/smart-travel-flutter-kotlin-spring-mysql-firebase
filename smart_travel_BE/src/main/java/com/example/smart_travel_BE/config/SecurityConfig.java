@@ -88,6 +88,8 @@ public class SecurityConfig {
             "/api/v1/admin/vouchers/**",
             "/api/v1/rewards/**",
             "/api/v1/users/user/**",
+            //Compare
+            "/api/v1/compare/**",
     };
     CustomAuthEntryPoint customAuthEntryPoint;
     UserHeaderAuthenticationFilter userHeaderAuthenticationFilter;

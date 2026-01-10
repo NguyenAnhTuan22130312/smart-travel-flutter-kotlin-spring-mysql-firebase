@@ -75,7 +75,7 @@ public class PaymentService { // Đây là class, không phải interface
         paymentRepository.save(savedPayment);
 
         // 4. Update Booking
-        booking.setStatus("CONFIRMED");
+        booking.setStatus("ACTIVE");
         booking.setUpdatedAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
