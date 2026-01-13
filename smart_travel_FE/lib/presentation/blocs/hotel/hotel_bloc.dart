@@ -96,10 +96,42 @@ class HotelBloc extends Bloc<HotelEvent, HotelState> {
 
         // 2. CHỈ KHI XONG TẤT CẢ MỚI BÁO THÀNH CÔNG
         emit(HotelOperationSuccess("Tạo khách sạn và tải ảnh thành công!"));
+        final checkPageResult = await getHotelsUseCase(
+          GetHotelsParams(
+            keyword: _lastLoadEvent.keyword,
+            destinationId: _lastLoadEvent.destinationId,
+            city: _lastLoadEvent.city,
+            minPrice: _lastLoadEvent.minPrice,
+            maxPrice: _lastLoadEvent.maxPrice,
+            minStars: _lastLoadEvent.minStars,
+            maxStars: _lastLoadEvent.maxStars,
+            page: 0,
+            size: _lastLoadEvent.size,
+          ),
+        );
+        int targetPage = 0;
+
+        checkPageResult.fold(
+                (l) => targetPage = 0, // Nếu lỗi thì về trang 0
+                (pageData) {
+              // Trang cuối cùng = Tổng số trang - 1
+              targetPage = pageData.totalPages > 0 ? pageData.totalPages - 1 : 0;
+            }
+        );
 
         // 3. Reload data (Có thể để delay ngắn trước khi add event load)
-        await Future.delayed(const Duration(milliseconds: 500));
-        add(_lastLoadEvent);
+        add(LoadHotelsEvent(
+            keyword: _lastLoadEvent.keyword,
+            destinationId: _lastLoadEvent.destinationId,
+            city: _lastLoadEvent.city,
+            minPrice: _lastLoadEvent.minPrice,
+            maxPrice: _lastLoadEvent.maxPrice,
+            minStars: _lastLoadEvent.minStars,
+            maxStars: _lastLoadEvent.maxStars,
+            page: targetPage,
+            sortBy: 'id',
+            sortDir: 'asc'
+        ));
       },
     );
   }
