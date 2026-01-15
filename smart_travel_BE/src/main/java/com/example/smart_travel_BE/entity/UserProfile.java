@@ -2,8 +2,13 @@ package com.example.smart_travel_BE.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Entity
 @Table(name = "user_profiles")
@@ -64,6 +69,19 @@ public class UserProfile {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @ElementCollection
+    @CollectionTable(name = "user_listened_destinations", joinColumns = @JoinColumn(name = "user_profile_id"))
+    @Column(name = "destination_id")
+    private Set<Long> listenedDestinationIds = new HashSet<>();
+
+    @Builder.Default
+    @ElementCollection
+    @CollectionTable(name = "user_destination_cooldowns",
+            joinColumns = @JoinColumn(name = "user_profile_id"))
+    @MapKeyColumn(name = "destination_id")
+    @Column(name = "last_earned_at")
+    private Map<Long, LocalDateTime> lastEarnedAt = new HashMap<>();
 
     @PrePersist
     @PreUpdate

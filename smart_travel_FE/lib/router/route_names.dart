@@ -10,6 +10,7 @@ class RouteNames {
   static const String adminBanner = '/admin/banner';
   static const String adminVoucher = '/admin/voucher';
   static const String adminInvoices = '/admin/invoices';
+  static const String adminAudio = '/admin/audio';
 
   /// USER
   static const String splashScreen = '/';

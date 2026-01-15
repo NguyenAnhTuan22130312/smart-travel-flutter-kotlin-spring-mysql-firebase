@@ -28,7 +28,7 @@ public class BookingService {
         booking.setUser(currentUser);
         booking.setStartDate(request.getStartDate());
         booking.setNumberOfPeople(request.getNumberOfPeople());
-        booking.setStatus("PENDING");
+        booking.setStatus("ACTIVE");
         booking.setCreatedAt(LocalDateTime.now());
         booking.setUpdatedAt(LocalDateTime.now()); // Thêm dòng này để không null
 
@@ -65,7 +65,7 @@ public class BookingService {
             booking.setBookingType("HOTEL");
             booking.setTourId(null);
             booking.setHotelId(hotel.getId());
-            booking.setNumberOfRooms(request.getNumberOfRooms());
+            booking.setNumberOfRooms(0);
             booking.setEndDate(request.getEndDate());
 
             // Tính số đêm

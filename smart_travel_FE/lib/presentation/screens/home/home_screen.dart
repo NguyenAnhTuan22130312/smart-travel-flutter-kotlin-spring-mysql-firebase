@@ -12,6 +12,7 @@ import 'package:smart_travel/presentation/blocs/province/province_state.dart';
 import 'package:smart_travel/presentation/widgets/category/custom_category.dart';
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
 import 'package:smart_travel/presentation/widgets/common/refreshable_scroll_view.dart';
+import 'package:smart_travel/presentation/widgets/destination/AudioListSheet.dart';
 import 'package:smart_travel/presentation/widgets/destination/destination_card.dart';
 import 'package:smart_travel/presentation/widgets/destination/share_to_group_bottom_sheet.dart';
 import 'package:smart_travel/presentation/widgets/home/home_banner_slider.dart';
@@ -27,6 +28,8 @@ import 'package:smart_travel/router/route_names.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
+
+import '../../widgets/comparison/comparison_selection_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -45,13 +48,14 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     context.read<ProfileBloc>().add(LoadProfile());
   }
+
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
 
-void _onNavItemTapped(int index) {
+  void _onNavItemTapped(int index) {
     // Nếu ấn vào tab đang đứng thì không làm gì
     if (index == _selectedIndex) return;
 
@@ -66,16 +70,22 @@ void _onNavItemTapped(int index) {
         Navigator.pushReplacementNamed(context, RouteNames.explore);
         break;
 
-      case 2: // Tour 
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const TourListScreen()));
+      case 2: // Tour
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const TourListScreen()),
+        );
         break;
 
-      case 3: // Khách sạn 
+      case 3: // Khách sạn
         Navigator.pushNamed(context, RouteNames.hotelList);
         break;
 
       case 4: // AI Chat
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatScreen()));
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AIChatScreen()),
+        );
         break;
 
       case 5: // Profile
@@ -90,32 +100,72 @@ void _onNavItemTapped(int index) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: RefreshableScrollView(
-            slivers: [
-              _buildAppBar(),
-              _buildSearchBar(),
-              const HomeBannerSlider(),
-              _buildAIChatBanner(),
-              const CustomCategory(),
-              _buildDestinationsListByCategory(),
-              _buildFeaturedDestinations(),
-              _buildPopularProvinces(),
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
-            ],
+        slivers: [
+          _buildAppBar(),
+          _buildSearchBar(),
+          const HomeBannerSlider(),
+          _buildAIChatBanner(),
+          const CustomCategory(),
+          _buildDestinationsListByCategory(),
+          _buildFeaturedDestinations(),
+          _buildPopularProvinces(),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+        ],
+      ),
+
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end, // Đẩy các nút xuống góc dưới
+        children: [
+          // NÚT TRÒN AUDIO MỚI
+
+          SizedBox(
+            width: 56,
+            height: 56,
+            child: FloatingActionButton(
+              heroTag: "compare_fab",
+              backgroundColor: const Color(0x9651FDDB), // Màu cam cho nổi bật hoặc dùng màu theme
+              elevation: 0,
+              shape: const CircleBorder(),
+              onPressed: () {
+                _showComparisonBottomSheet(); // Hàm gọi sheet
+              },
+              child: const Icon(Icons.compare_arrows_rounded, color: Colors.white, size: 30),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+
+          SizedBox(
+            width: 56,
+            height: 56,
+            child: FloatingActionButton(
+              heroTag: "audio_fab",
+              backgroundColor: const Color(0x9651FDDB),
+              elevation: 0,
+              shape: const CircleBorder(),
+              onPressed: () {
+                _showAudioGuideBottomSheet();
+              },
+              child: const Icon(Icons.headset_rounded, color: Colors.white),
+            ),
           ),
 
-      floatingActionButton: SizedBox(
-        width: 56,
-        height: 56,
-        child: FloatingActionButton(
-          backgroundColor: const Color(0x9651FDDB),
-          elevation: 0,
-          shape: const CircleBorder(),
-          onPressed: () {
-            _showShareToGroupDialog();
-
-          },
-          child: const Icon(Icons.people),
-        ),
+          const SizedBox(height: 12), // Khoảng cách giữa 2 nút
+          SizedBox(
+            width: 56,
+            height: 56,
+            child: FloatingActionButton(
+              heroTag: "people_fab",
+              backgroundColor: const Color(0x9651FDDB),
+              elevation: 0,
+              shape: const CircleBorder(),
+              onPressed: () {
+                _showShareToGroupDialog();
+              },
+              child: const Icon(Icons.people, color: Colors.white),
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: AppBottomNavigationWithIndicator(
         currentIndex: _selectedIndex,
@@ -124,16 +174,29 @@ void _onNavItemTapped(int index) {
     );
   }
 
+  void _showComparisonBottomSheet() {
+    /* Lưu ý: Nếu cần check login thì uncomment đoạn này
+     final profileState = context.read<ProfileBloc>().state;
+     if (profileState is! ProfileLoaded) { ... }
+  */
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const ComparisonSelectionSheet(),
+    );
+  }
+
   /// Dialog chọn nhóm để chia sẻ
-  void _showShareToGroupDialog(
-      ) {
+  void _showShareToGroupDialog() {
     final profileState = context.read<ProfileBloc>().state;
     //CHƯA ĐĂNG NHẬP
     if (profileState is! ProfileLoaded) {
       // Chưa đăng nhập / chưa load xong
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng đăng nhập')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Vui lòng đăng nhập để sử dụng tính năng này!')));
       return;
     }
     //ĐÃ ĐĂNG NHẬP
@@ -141,12 +204,31 @@ void _onNavItemTapped(int index) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ShareToGroupScreen(
-          currentUserId: user.id.toString(),
-          currentUserName: user.fullName,
-          currentUserAvatar: user.avatarUrl,
-        ),
+        builder:
+            (_) => ShareToGroupScreen(
+              currentUserId: user.id.toString(),
+              currentUserName: user.fullName,
+              currentUserAvatar: user.avatarUrl,
+            ),
       ),
+    );
+  }
+
+  // Hàm mở danh sách Audio
+  void _showAudioGuideBottomSheet() {
+    final profileState = context.read<ProfileBloc>().state;
+    //CHƯA ĐĂNG NHẬP
+    if (profileState is! ProfileLoaded) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Vui lòng đăng nhập để sử dụng tính năng này!')));
+      return;
+    }
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const AudioListSheet(),
     );
   }
 
@@ -168,9 +250,7 @@ void _onNavItemTapped(int index) {
           elevation: 0,
           automaticallyImplyLeading: false,
           flexibleSpace: Container(
-            decoration: const BoxDecoration(
-              gradient: AppColors.mainGradient,
-            ),
+            decoration: const BoxDecoration(gradient: AppColors.mainGradient),
           ),
           title: GestureDetector(
             onTap: () {
@@ -181,12 +261,14 @@ void _onNavItemTapped(int index) {
                 CircleAvatar(
                   radius: 20,
                   backgroundColor: Colors.white,
-                  backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty
-                      ? NetworkImage(avatarUrl)
-                      : null,
-                  child: avatarUrl == null || avatarUrl.isEmpty
-                      ? Icon(Icons.person, color: AppColors.primary)
-                      : null,
+                  backgroundImage:
+                      avatarUrl != null && avatarUrl.isNotEmpty
+                          ? NetworkImage(avatarUrl)
+                          : null,
+                  child:
+                      avatarUrl == null || avatarUrl.isEmpty
+                          ? Icon(Icons.person, color: AppColors.primary)
+                          : null,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -259,7 +341,7 @@ void _onNavItemTapped(int index) {
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(
-                  Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.05
+                  Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.05,
                 ),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
@@ -290,16 +372,15 @@ void _onNavItemTapped(int index) {
               // TODO: Navigate to search screen
             },
             onChanged: (value) {
-              context.read<DestinationBloc>().add(SearchDestinationEvent(
-                  value
-              ));
+              context.read<DestinationBloc>().add(
+                SearchDestinationEvent(value),
+              );
             },
           ),
         ),
       ),
     );
   }
-
 
   // AI Chat Banner - liên quan đến tính năng AI chatbot
   Widget _buildAIChatBanner() {
@@ -314,9 +395,7 @@ void _onNavItemTapped(int index) {
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           padding: const EdgeInsets.all(16),
-          decoration: const BoxDecoration(
-              gradient: AppColors.mainGradient,
-          ),
+          decoration: const BoxDecoration(gradient: AppColors.mainGradient),
           child: Row(
             children: [
               Container(
@@ -364,7 +443,6 @@ void _onNavItemTapped(int index) {
     );
   }
 
-
   //NEW: Hiển thị danh sách destinations được lọc theo category
   Widget _buildDestinationsListByCategory() {
     return BlocBuilder<DestinationBloc, DestinationState>(
@@ -387,10 +465,7 @@ void _onNavItemTapped(int index) {
                   padding: const EdgeInsets.all(16),
                   child: Text(
                     AppLocalizations.of(context)!.noDestinations,
-                    style: TextStyle(
-                      color: AppColors.textGray,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: AppColors.textGray, fontSize: 14),
                   ),
                 ),
               ),
@@ -406,7 +481,7 @@ void _onNavItemTapped(int index) {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                       Text(
+                      Text(
                         '${AppLocalizations.of(context)!.travelDestinations} (${destinations.length})',
                         style: TextStyle(
                           fontSize: 18,
@@ -416,7 +491,9 @@ void _onNavItemTapped(int index) {
                       ),
                       TextButton(
                         onPressed: () {
-                          context.read<DestinationBloc>().add(LoadAllDestinations(loadAll: true));
+                          context.read<DestinationBloc>().add(
+                            LoadAllDestinations(loadAll: true),
+                          );
                         },
                         child: Text(
                           AppLocalizations.of(context)!.seeAll,
@@ -440,7 +517,9 @@ void _onNavItemTapped(int index) {
                     itemBuilder: (context, index) {
                       final destination = destinations[index];
                       return Padding(
-                        padding: EdgeInsets.only(right: index == destinations.length - 1 ? 0 : 12),
+                        padding: EdgeInsets.only(
+                          right: index == destinations.length - 1 ? 0 : 12,
+                        ),
                         child: DestinationCart(destination),
                       );
                     },
@@ -481,15 +560,17 @@ void _onNavItemTapped(int index) {
               ),
             ),
           );
-        }
-        else if (state is FilterDestinationLoaded) {
-          final featuredDestinations = state.destinations.where((d)=>d.isFeatured==true).toList();
+        } else if (state is FilterDestinationLoaded) {
+          final featuredDestinations =
+              state.destinations.where((d) => d.isFeatured == true).toList();
           if (featuredDestinations.isEmpty) {
             return SliverToBoxAdapter(
               child: Center(
                 child: Padding(
                   padding: EdgeInsets.all(16),
-                  child: Text(AppLocalizations.of(context)!.noFeaturedDestinations),
+                  child: Text(
+                    AppLocalizations.of(context)!.noFeaturedDestinations,
+                  ),
                 ),
               ),
             );
@@ -503,7 +584,7 @@ void _onNavItemTapped(int index) {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                       Text(
+                      Text(
                         '${AppLocalizations.of(context)!.featuredDestinations} (${featuredDestinations.length})',
                         style: TextStyle(
                           fontSize: 18,
@@ -513,7 +594,9 @@ void _onNavItemTapped(int index) {
                       ),
                       TextButton(
                         onPressed: () {
-                          context.read<DestinationBloc>().add(LoadAllDestinations(loadAll: true));
+                          context.read<DestinationBloc>().add(
+                            LoadAllDestinations(loadAll: true),
+                          );
                         },
                         child: Text(
                           AppLocalizations.of(context)!.seeAll,
@@ -536,7 +619,10 @@ void _onNavItemTapped(int index) {
                     itemBuilder: (context, index) {
                       final destination = featuredDestinations[index];
                       return Padding(
-                        padding: EdgeInsets.only(right: index == featuredDestinations.length - 1 ? 0 : 12),
+                        padding: EdgeInsets.only(
+                          right:
+                              index == featuredDestinations.length - 1 ? 0 : 12,
+                        ),
                         child: DestinationCart(destination),
                       );
                     },
@@ -554,105 +640,105 @@ void _onNavItemTapped(int index) {
               ),
             ),
           );
-        }
-        else {
+        } else {
           return const SliverToBoxAdapter(child: SizedBox.shrink());
         }
       },
     );
   }
 
-
   // Popular Provinces - từ bảng provinces với is_popular = true
   Widget _buildPopularProvinces() {
     return BlocBuilder<ProvinceBloc, ProvinceState>(
-        builder: ( context,  state) {
-          if (state is ProvinceLoading) {
+      builder: (context, state) {
+        if (state is ProvinceLoading) {
+          return SliverToBoxAdapter(
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          );
+        } else if (state is ProvinceLoaded) {
+          final provinceIsPopulars =
+              state.province.where((d) => d.isPopular == true).toList();
+          if (provinceIsPopulars.isEmpty) {
             return SliverToBoxAdapter(
               child: Center(
                 child: Padding(
                   padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(),
+                  child: Text(AppLocalizations.of(context)!.noPopularProvinces),
                 ),
               ),
             );
           }
-          else if (state is ProvinceLoaded) {
-            final provinceIsPopulars = state.province.where((d)=>d.isPopular==true).toList();
-            if (provinceIsPopulars.isEmpty) {
-              return SliverToBoxAdapter(
-                child: Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text(AppLocalizations.of(context)!.noPopularProvinces),
-                  ),
-                ),
-              );
-            }
-            return SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverToBoxAdapter(
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                         Text(
-                          '${AppLocalizations.of(context)!.popularProvinces} (${provinceIsPopulars.length})',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).textTheme.titleLarge?.color,
-                          ),
+          return SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${AppLocalizations.of(context)!.popularProvinces} (${provinceIsPopulars.length})',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).textTheme.titleLarge?.color,
                         ),
-                        TextButton(
-                          onPressed: () {
-                           context.read<ProvinceBloc>().add(LoadProvince(loadAll: true));
-                          },
-                          child: Text(
-                            AppLocalizations.of(context)!.seeAll,
-                            style: TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 1.2,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
                       ),
-                      itemCount: provinceIsPopulars.length,
-                      itemBuilder: (context, index) {
-                        final province = provinceIsPopulars[index];
-                        return ProvinceIsPopular(province);
-                      },
-                    ),
-                  ],
-                ),
+                      TextButton(
+                        onPressed: () {
+                          context.read<ProvinceBloc>().add(
+                            LoadProvince(loadAll: true),
+                          );
+                        },
+                        child: Text(
+                          AppLocalizations.of(context)!.seeAll,
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 1.2,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
+                    itemCount: provinceIsPopulars.length,
+                    itemBuilder: (context, index) {
+                      final province = provinceIsPopulars[index];
+                      return ProvinceIsPopular(province);
+                    },
+                  ),
+                ],
               ),
-            );
-          } else if (state is ProvinceError) {
-            return SliverToBoxAdapter(
-              child: Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text(AppLocalizations.of(context)!.errorLoadProvinces),
-                ),
+            ),
+          );
+        } else if (state is ProvinceError) {
+          return SliverToBoxAdapter(
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(AppLocalizations.of(context)!.errorLoadProvinces),
               ),
-            );
-          }
-          else {
-            return const SliverToBoxAdapter(child: SizedBox.shrink());
-          }
+            ),
+          );
+        } else {
+          return const SliverToBoxAdapter(child: SizedBox.shrink());
         }
+      },
     );
   }
 }

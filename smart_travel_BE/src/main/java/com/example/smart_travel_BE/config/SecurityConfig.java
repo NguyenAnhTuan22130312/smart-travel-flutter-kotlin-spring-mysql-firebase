@@ -88,6 +88,8 @@ public class SecurityConfig {
             "/api/v1/admin/vouchers/**",
             "/api/v1/rewards/**",
             "/api/v1/users/user/**",
+            //Compare
+            "/api/v1/compare/**",
     };
     CustomAuthEntryPoint customAuthEntryPoint;
     UserHeaderAuthenticationFilter userHeaderAuthenticationFilter;
@@ -102,6 +104,7 @@ public class SecurityConfig {
                         .requestMatchers(String.valueOf(HttpMethod.POST), "/api/v1/ai/search-image").permitAll()
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers("/verify-success.html", "/verify-fail.html","/reset-password.html").permitAll()
+                        .requestMatchers("/api/v1/payment/momo-return", "/api/v1/payment/vnpay-return").permitAll()
                         .requestMatchers("/api/v1/admin/vouchers/**").permitAll()
                         .anyRequest().authenticated()
                 )

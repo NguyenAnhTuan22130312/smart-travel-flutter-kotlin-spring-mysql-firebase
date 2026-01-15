@@ -7,23 +7,29 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:smart_travel/core/services/image_upload_service.dart';
 import 'package:smart_travel/data/data_sources/local/auth_local_data_source.dart';
+import 'package:smart_travel/data/data_sources/remote/audio_data_source.dart';
 import 'package:smart_travel/data/data_sources/remote/banner_data_source.dart';
 import 'package:smart_travel/data/data_sources/remote/destination_data_source.dart';
 import 'package:smart_travel/data/data_sources/remote/hotel_data_source.dart';
 import 'package:smart_travel/data/data_sources/remote/province_data_source.dart';
 import 'package:smart_travel/data/data_sources/remote/user_remote_datasource.dart';
+import 'package:smart_travel/data/repositories/audio_repository_impl.dart';
 import 'package:smart_travel/data/repositories/auth_repository_impl.dart';
 import 'package:smart_travel/data/repositories/banner_repository_impl.dart';
 import 'package:smart_travel/data/repositories/destination_repository_impl.dart';
 import 'package:smart_travel/data/repositories/hotel_repository_impl.dart';
 import 'package:smart_travel/data/repositories/province_repository_impl.dart';
 import 'package:smart_travel/data/repositories/user_repository_impl.dart';
+import 'package:smart_travel/domain/repositories/audio_repository.dart';
 import 'package:smart_travel/domain/repositories/auth_repository.dart';
 import 'package:smart_travel/domain/repositories/banner_repository.dart';
 import 'package:smart_travel/domain/repositories/destination_repository.dart';
 import 'package:smart_travel/domain/repositories/hotel_repository.dart';
 import 'package:smart_travel/domain/repositories/province_repository.dart';
 import 'package:smart_travel/domain/repositories/user_repository.dart';
+import 'package:smart_travel/domain/usecases/audio/add_audio_use_case.dart';
+import 'package:smart_travel/domain/usecases/audio/delete_audio_use_case.dart';
+import 'package:smart_travel/domain/usecases/audio/edit_audio_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/facebook_login_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/forgot_password_use_case.dart';
 import 'package:smart_travel/domain/usecases/auth/google_login_use_case.dart';
@@ -33,6 +39,7 @@ import 'package:smart_travel/domain/usecases/banner/create_banner_uc.dart';
 import 'package:smart_travel/domain/usecases/banner/delete_banner_uc.dart';
 import 'package:smart_travel/domain/usecases/banner/get_all_banner_use_case.dart';
 import 'package:smart_travel/domain/usecases/banner/update_banner_uc.dart';
+import 'package:smart_travel/domain/usecases/destination/CompleteVoiceUseCase.dart';
 import 'package:smart_travel/domain/usecases/destination/add_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/delete_destination_use_case.dart';
 import 'package:smart_travel/domain/usecases/destination/filter_destinations_by_category_use_case.dart';
@@ -68,6 +75,7 @@ import 'package:smart_travel/domain/usecases/user/create_user_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/update_user_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/lock_user_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/unlock_user_usecase.dart';
+import 'package:smart_travel/presentation/blocs/admin_audio/audio_bloc.dart';
 import 'package:smart_travel/presentation/blocs/admin_invoice/admin_invoice_bloc.dart';
 import 'package:smart_travel/presentation/blocs/admin_invoice/admin_invoice_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/admin_user/admin_user_bloc.dart';
@@ -77,7 +85,6 @@ import 'package:smart_travel/presentation/blocs/banner/banner_bloc.dart';
 import 'package:smart_travel/presentation/blocs/chat/chat_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_bloc.dart';
 import 'package:smart_travel/presentation/blocs/destiantion/destination_detail_bloc.dart';
-import 'package:smart_travel/presentation/blocs/destiantion/destination_state.dart';
 import 'package:smart_travel/presentation/blocs/favorite/favorite_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
@@ -138,6 +145,7 @@ import 'data/repositories/review_repository_impl.dart';
 import 'data/repositories/reviewhtd_repository_impl.dart';
 
 import 'data/repositories/voucher_repository_impl.dart';
+import 'domain/repositories/comparison_repository.dart';
 import 'domain/repositories/review_repository.dart';
 import 'domain/repositories/reviewhtd_repository.dart';
 import 'domain/repositories/voucher_repository.dart';
@@ -161,6 +169,7 @@ import 'domain/usecases/voucher/create_voucher_uc.dart';
 import 'domain/usecases/voucher/delete_voucher_uc.dart';
 import 'domain/usecases/voucher/get_all_voucher_uc.dart';
 import 'domain/usecases/voucher/update_voucher_uc.dart';
+import 'package:smart_travel/presentation/blocs/comparison/comparison_bloc.dart';
 
 
 final sl = GetIt.instance;
@@ -248,6 +257,17 @@ Future<void> init() async {
     ),
   );
 
+  sl.registerLazySingleton(() => ComparisonRepository(sl()));
+
+  // 2. Bloc
+  // Bloc này cần 3 cái repo: ComparisonRepo, TourRepo, HotelRepo
+  // Đảm bảo TourRepository và HotelRepository ĐÃ ĐƯỢC đăng ký ở đâu đó phía trên rồi nhé
+  sl.registerFactory(() => ComparisonBloc(
+    comparisonRepository: sl(),
+    tourRepository: sl(),
+    hotelRepository: sl(),
+  ));
+
   sl.registerLazySingleton<ProvinceRepository>(
     () => ProvinceRepositoryImpl(provinceDataSource: sl(), networkInfo: sl()),
   );
@@ -301,6 +321,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpdateDestinationUseCase(sl()));
   sl.registerLazySingleton(() => DeleteDestinationUseCase(sl()));
   sl.registerLazySingleton(() => GetWeatherUseCase(sl()));
+  sl.registerLazySingleton(() => CompleteVoiceUseCase(sl()));
 
   sl.registerLazySingleton(() => GetAllProvinceUseCase(sl()));
   sl.registerLazySingleton(() => ProvinceDetailUseCase(sl()));
@@ -344,15 +365,16 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpdateBannerUc(sl()));
   sl.registerLazySingleton(() => DeleteBannerUc(sl()));
 
+  // VOUCHERS
 
-// VOUCHERS
-
-  sl.registerFactory(() => VoucherBloc(
-    getAllVoucherUc: sl(),
-    createVoucherUc: sl(),
-    updateVoucherUc: sl(),
-    deleteVoucherUc: sl(),
-  ));
+  sl.registerFactory(
+    () => VoucherBloc(
+      getAllVoucherUc: sl(),
+      createVoucherUc: sl(),
+      updateVoucherUc: sl(),
+      deleteVoucherUc: sl(),
+    ),
+  );
 
   sl.registerLazySingleton(() => GetAllVoucherUc(sl()));
   sl.registerLazySingleton(() => CreateVoucherUc(sl()));
@@ -360,16 +382,11 @@ Future<void> init() async {
   sl.registerLazySingleton(() => DeleteVoucherUc(sl()));
 
   sl.registerLazySingleton<VoucherRepository>(
-        () => VoucherRepositoryImpl(
-      voucherDataSource: sl(),
-      networkInfo: sl(),
-    ),
+    () => VoucherRepositoryImpl(voucherDataSource: sl(), networkInfo: sl()),
   );
 
   sl.registerLazySingleton<VoucherDataSource>(
-        () => VoucherDataSourceImpl(
-      dioClient: sl(),
-    ),
+    () => VoucherDataSourceImpl(dioClient: sl()),
   );
 
   sl.registerLazySingleton<ImageUploadService>(() => ImageUploadService(sl()));
@@ -399,6 +416,7 @@ Future<void> init() async {
       updateDestinationUseCase: sl(),
       deleteDestinationUseCase: sl(),
       getWeatherUseCase: sl(),
+      completeVoiceUseCase: sl(),
     ),
   );
 
@@ -441,6 +459,36 @@ Future<void> init() async {
       createBannerUseCase: sl(),
       deleteBannerUseCase: sl(),
       updateBannerUseCase: sl(),
+    ),
+  );
+  // --- AUDIO ---
+  // Đăng ký Data Source
+  sl.registerLazySingleton<AudioDataSource>(
+        () => AudioDataSourceImpl(dioClient: sl()),
+  );
+
+  // Đăng ký Repository
+  sl.registerLazySingleton<AudioRepository>(
+        () => AudioRepositoryImpl(
+      remoteDataSource: sl(),
+      networkInfo: sl(),
+    ),
+  );
+
+  // --- AUDIO USE CASES ---
+  sl.registerLazySingleton(() => AddAudioUseCase(sl()));
+  sl.registerLazySingleton(() => EditAudioUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteAudioUseCase(sl()));
+
+  // Bloc audio
+  // ---  BLOC ADMIN AUDIO ---
+  sl.registerFactory(
+    () => AudioBloc(
+      updateDestinationUseCase: sl(),
+      getAllDestinationsUseCase: sl(),
+      addAudioUseCase: sl(),
+      editAudioUseCase: sl(),
+      deleteAudioUseCase: sl(),
     ),
   );
 
@@ -492,8 +540,6 @@ Future<void> init() async {
     ),
   );
 
-
-
   sl.registerFactory(
     () => AdminUserBloc(
       getUserList: sl(),
@@ -513,157 +559,152 @@ Future<void> init() async {
     ),
   );
 
-
   // ==================== INVOICE ====================
   sl.registerLazySingleton<InvoiceRemoteDataSource>(
-        () => InvoiceRemoteDataSourceImpl(dioClient: sl<DioClient>()),
+    () => InvoiceRemoteDataSourceImpl(dioClient: sl<DioClient>()),
   );
 
   // Repository
   sl.registerLazySingleton<InvoiceRepository>(
-        () => InvoiceRepositoryImpl(sl<InvoiceRemoteDataSource>()),
+    () => InvoiceRepositoryImpl(sl<InvoiceRemoteDataSource>()),
   );
 
   // UseCase
   sl.registerFactory<GetActiveInvoicesUseCase>(
-        () => GetActiveInvoicesUseCase(sl<InvoiceRepository>()),
+    () => GetActiveInvoicesUseCase(sl<InvoiceRepository>()),
   );
 
   // Bloc vẫn factory
   sl.registerFactory<InvoiceBloc>(
-        () => InvoiceBloc(sl<GetActiveInvoicesUseCase>()),
+    () => InvoiceBloc(sl<GetActiveInvoicesUseCase>()),
   );
 
   // Transaction History UseCase
   sl.registerLazySingleton<GetTransactionHistoryUseCase>(
-        () => GetTransactionHistoryUseCase(sl<InvoiceRepository>()),
+    () => GetTransactionHistoryUseCase(sl<InvoiceRepository>()),
   );
 
   // Transaction Bloc
   sl.registerFactory<TransactionBloc>(
-        () => TransactionBloc(sl<GetTransactionHistoryUseCase>()),
+    () => TransactionBloc(sl<GetTransactionHistoryUseCase>()),
   );
 
   // Refund UseCase
   sl.registerLazySingleton<GetRefundedInvoicesUseCase>(
-        () => GetRefundedInvoicesUseCase(sl<InvoiceRepository>()),
+    () => GetRefundedInvoicesUseCase(sl<InvoiceRepository>()),
   );
 
   // Refund Bloc
   sl.registerFactory<RefundBloc>(
-        () => RefundBloc(sl<GetRefundedInvoicesUseCase>()),
+    () => RefundBloc(sl<GetRefundedInvoicesUseCase>()),
   );
 
   // Review UseCase
   sl.registerLazySingleton<GetReviewableInvoicesUseCase>(
-        () => GetReviewableInvoicesUseCase(sl<InvoiceRepository>()),
+    () => GetReviewableInvoicesUseCase(sl<InvoiceRepository>()),
   );
 
   // Review Bloc
   sl.registerFactory<ReviewBloc>(
-        () => ReviewBloc(sl<GetReviewableInvoicesUseCase>()),
+    () => ReviewBloc(sl<GetReviewableInvoicesUseCase>()),
   );
 
   // Search UseCase
   sl.registerLazySingleton<SearchActiveInvoicesUseCase>(
-        () => SearchActiveInvoicesUseCase(sl<InvoiceRepository>()),
+    () => SearchActiveInvoicesUseCase(sl<InvoiceRepository>()),
   );
 
   // Search Bloc
   sl.registerFactory<SearchBloc>(
-        () => SearchBloc(sl<SearchActiveInvoicesUseCase>()),
+    () => SearchBloc(sl<SearchActiveInvoicesUseCase>()),
   );
 
   // Cancel UseCase
   sl.registerLazySingleton<CancelBookingUseCase>(
-        () => CancelBookingUseCase(sl<InvoiceRepository>()),
+    () => CancelBookingUseCase(sl<InvoiceRepository>()),
   );
 
   // Cancel Bloc
-  sl.registerFactory<CancelBloc>(
-        () => CancelBloc(sl<CancelBookingUseCase>()),
-  );
+  sl.registerFactory<CancelBloc>(() => CancelBloc(sl<CancelBookingUseCase>()));
 
   sl.registerLazySingleton<GetInvoiceDetailUseCase>(
-        () => GetInvoiceDetailUseCase(sl<InvoiceRepository>()),
+    () => GetInvoiceDetailUseCase(sl<InvoiceRepository>()),
   );
 
   sl.registerFactory<DetailBloc>(
-        () => DetailBloc(sl<GetInvoiceDetailUseCase>()),
+    () => DetailBloc(sl<GetInvoiceDetailUseCase>()),
   );
   sl.registerFactory(() => StatisticsBloc(repository: sl()));
 
-
   // Review DataSource
   sl.registerLazySingleton<ReviewRemoteDataSource>(
-        () => ReviewRemoteDataSourceImpl(sl<DioClient>()),
+    () => ReviewRemoteDataSourceImpl(sl<DioClient>()),
   );
 
   // Review Repository
   sl.registerLazySingleton<ReviewRepository>(
-        () => ReviewRepositoryImpl(sl<ReviewRemoteDataSource>()),
+    () => ReviewRepositoryImpl(sl<ReviewRemoteDataSource>()),
   );
 
   // Submit Review UseCase
   sl.registerLazySingleton<SubmitReviewUseCase>(
-        () => SubmitReviewUseCase(sl<ReviewRepository>()),
+    () => SubmitReviewUseCase(sl<ReviewRepository>()),
   );
 
   // Submit Review Bloc
   sl.registerFactory<SubmitReviewBloc>(
-        () => SubmitReviewBloc(sl<SubmitReviewUseCase>()),
+    () => SubmitReviewBloc(sl<SubmitReviewUseCase>()),
   );
 
   // ReviewHtd Remote DataSource
   sl.registerLazySingleton<ReviewHtdRemoteDataSource>(
-        () => ReviewHtdRemoteDataSourceImpl(dioClient: sl<DioClient>()),
+    () => ReviewHtdRemoteDataSourceImpl(dioClient: sl<DioClient>()),
   );
 
   // ReviewHtd Repository
   sl.registerLazySingleton<ReviewHtdRepository>(
-        () => ReviewHtdRepositoryImpl(sl<ReviewHtdRemoteDataSource>()),
+    () => ReviewHtdRepositoryImpl(sl<ReviewHtdRemoteDataSource>()),
   );
 
   // Get ReviewHtd UseCase
   sl.registerLazySingleton<GetReviewHtdUseCase>(
-        () => GetReviewHtdUseCase(sl<ReviewHtdRepository>()),
+    () => GetReviewHtdUseCase(sl<ReviewHtdRepository>()),
   );
 
   // ReviewHtd Bloc
   sl.registerFactory<ReviewHtdBloc>(
-        () => ReviewHtdBloc(sl<GetReviewHtdUseCase>()),
+    () => ReviewHtdBloc(sl<GetReviewHtdUseCase>()),
   );
 
   sl.registerLazySingleton<GetAdminInvoicesUseCase>(
-        () => GetAdminInvoicesUseCase(sl<InvoiceRepository>()),
+    () => GetAdminInvoicesUseCase(sl<InvoiceRepository>()),
   );
 
   sl.registerFactory<AdminInvoiceBloc>(
-        () => AdminInvoiceBloc(sl<GetAdminInvoicesUseCase>()),
+    () => AdminInvoiceBloc(sl<GetAdminInvoicesUseCase>()),
   );
 
   sl.registerLazySingleton<GetAdminInvoiceDetailUseCase>(
-        () => GetAdminInvoiceDetailUseCase(sl<InvoiceRepository>()),
+    () => GetAdminInvoiceDetailUseCase(sl<InvoiceRepository>()),
   );
 
   sl.registerFactory<AdminInvoiceDetailBloc>(
-        () => AdminInvoiceDetailBloc(sl<GetAdminInvoiceDetailUseCase>()),
+    () => AdminInvoiceDetailBloc(sl<GetAdminInvoiceDetailUseCase>()),
   );
 
-
   sl.registerLazySingleton<AdminCheckInUseCase>(
-        () => AdminCheckInUseCase(sl<InvoiceRepository>()),
+    () => AdminCheckInUseCase(sl<InvoiceRepository>()),
   );
 
   sl.registerLazySingleton<AdminCheckOutUseCase>(
-        () => AdminCheckOutUseCase(sl<InvoiceRepository>()),
+    () => AdminCheckOutUseCase(sl<InvoiceRepository>()),
   );
 
   sl.registerLazySingleton<AdminApproveRefundUseCase>(
-        () => AdminApproveRefundUseCase(sl<InvoiceRepository>()),
+    () => AdminApproveRefundUseCase(sl<InvoiceRepository>()),
   );
 
   sl.registerLazySingleton<AdminCancelOrderUseCase>(
-        () => AdminCancelOrderUseCase(sl<InvoiceRepository>()),
+    () => AdminCancelOrderUseCase(sl<InvoiceRepository>()),
   );
 }

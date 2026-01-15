@@ -113,7 +113,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             // Hiển thị lỗi
             final snackBar =  SnackBar(
               elevation: 0,
-              behavior: SnackBarBehavior.floating,
+              behavior: SnackBarBehavior.fixed,
               backgroundColor: Colors.transparent,
               content: AwesomeSnackbarContent(
                 title: 'Lỗi',

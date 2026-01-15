@@ -6,14 +6,22 @@ class UserLevelModel extends UserLevel {
     required super.experiencePoints,
     super.nextLevelAt,
     required super.progressPercentage,
+    required super.isLevelUp,
+    required super.earnedExp,
+    required super.serverTime,
   });
 
   factory UserLevelModel.fromJson(Map<String, dynamic> json) {
     return UserLevelModel(
       currentLevel: json['currentLevel'] as String,
-      experiencePoints: json['experiencePoints'] as int,
+      experiencePoints: (json['experiencePoints'] as num?)?.toInt() ?? 0,
       nextLevelAt: json['nextLevelAt'] as int?,
-      progressPercentage: (json['progressPercentage'] as num).toDouble(),
+      progressPercentage: (json['progressPercentage'] as num?)?.toDouble() ?? 0.0,
+      isLevelUp: json['isLevelUp'] ?? false,
+      earnedExp: (json['earnedExp'] as num?)?.toInt() ?? 0,
+      serverTime: json['serverTime'] != null
+          ? DateTime.parse(json['serverTime'])
+          : DateTime.now(),
     );
   }
 
@@ -23,6 +31,9 @@ class UserLevelModel extends UserLevel {
       'experiencePoints': experiencePoints,
       'nextLevelAt': nextLevelAt,
       'progressPercentage': progressPercentage,
+      'isLevelUp': isLevelUp,
+      'earnedExp' : earnedExp,
+      'serverTime': serverTime,
     };
   }
 }

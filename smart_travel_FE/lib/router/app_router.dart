@@ -3,10 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/presentation/blocs/adminTour/tour_bloc.dart';
 import 'package:smart_travel/presentation/blocs/adminTour/tour_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/adminTour/tour_event.dart';
+import 'package:smart_travel/presentation/blocs/admin_audio/audio_bloc.dart';
+import 'package:smart_travel/presentation/blocs/admin_audio/audio_event.dart';
 import 'package:smart_travel/presentation/blocs/admin_user/admin_user_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/hotel/hotel_bloc.dart';
 import 'package:smart_travel/presentation/screens/admin/admin_dashboard.dart';
+import 'package:smart_travel/presentation/screens/admin/audio/admin_audio_screen.dart';
 import 'package:smart_travel/presentation/screens/admin/banner/banner_management_screen.dart';
 import 'package:smart_travel/presentation/screens/admin/hotel/hotel_management_screen.dart';
 import 'package:smart_travel/presentation/screens/admin/destination/destination_management_screen.dart';
@@ -78,6 +81,13 @@ class AppRouter {
           builder: (_) => BlocProvider(
             create: (_) => di.sl<AdminInvoiceBloc>()..add(LoadAdminInvoices()),
             child: const AdminInvoiceScreen(),
+          ),
+        );
+      case RouteNames.adminAudio:
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => di.sl<AudioBloc>()..add(LoadAudioDestinations()),
+            child: const AdminAudioScreen(),
           ),
         );
     /// USER

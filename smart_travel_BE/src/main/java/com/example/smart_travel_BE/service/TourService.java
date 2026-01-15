@@ -1,10 +1,7 @@
 package com.example.smart_travel_BE.service;
 
 import com.example.smart_travel_BE.dto.tour.response.*;
-import com.example.smart_travel_BE.entity.Tour;
-import com.example.smart_travel_BE.entity.TourImage;
-import com.example.smart_travel_BE.entity.TourSchedule;
-import com.example.smart_travel_BE.entity.User;
+import com.example.smart_travel_BE.entity.*;
 import com.example.smart_travel_BE.exception.AppException;
 import com.example.smart_travel_BE.mapper.TourMapper;
 import com.example.smart_travel_BE.dto.tour.request.*;
@@ -18,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -205,28 +203,37 @@ public class TourService {
      * (ADMIN) Lấy ra tất cả Tour + sreach+ phân trang
      */
     public Page<TourSummaryResponse> getTours(
-            String keyword,
-            Long destinationId,
-            Boolean isActive,
-            int page,
-            int size,
-            String sortBy,
-            String sortDir
+            String keyword, Long destinationId, Boolean isActive,
+            int page, int size, String sortBy, String sortDir
     ) {
-        Specification<Tour> spec = Specification.where(
-                        TourSpecification.nameContains(keyword))
+        // 1. Lấy thông tin user hiện tại từ SecurityContext
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Long currentUserId = null;
+        boolean isTourAdmin = false;
+
+        if (auth != null && auth.getPrincipal() instanceof User user) {
+            currentUserId = user.getId();
+            // Kiểm tra xem có phải là ADMINTOUR không
+            isTourAdmin = auth.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMINTOUR"));
+        }
+
+        // 2. Tạo Specification cơ bản
+        Specification<Tour> spec = Specification.where(TourSpecification.nameContains(keyword))
                 .and(TourSpecification.byDestination(destinationId))
                 .and(TourSpecification.isActive(isActive));
 
-        Sort sort = Sort.by(
-                "desc".equalsIgnoreCase(sortDir) ? Sort.Direction.DESC : Sort.Direction.ASC,
-                sortBy == null ? "createdAt" : sortBy
-        );
+        // 3. NẾU LÀ ADMINTOUR: Chỉ cho phép thấy Tour do mình tạo (Owner)
+        if (isTourAdmin && currentUserId != null) {
+            final Long finalId = currentUserId;
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("owner").get("id"), finalId));
+        }
 
+        Sort sort = Sort.by("desc".equalsIgnoreCase(sortDir) ? Sort.Direction.DESC : Sort.Direction.ASC,
+                sortBy == null ? "createdAt" : sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        return tourRepository.findAll(spec, pageable)
-                .map(tourMapper::toAdminSummary);
+        return tourRepository.findAll(spec, pageable).map(tourMapper::toAdminSummary);
     }
 
     /**
@@ -234,40 +241,54 @@ public class TourService {
      */
     @Transactional
     public TourDetailResponse createTour(CreateTourRequest req) {
-        String currentUserEmail = getCurrentUserEmail();
-
-        User owner = userRepository.findByEmail(currentUserEmail).orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người quản lý!"));
+        User owner = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Tour tour = new Tour();
-        tour.setName(req.getName());
-        tour.setDescription(req.getDescription());
-        tour.setPricePerPerson(req.getPricePerPerson());
-        tour.setDurationDays(req.getDurationDays());
-        tour.setDurationNights(req.getDurationNights());
-        tour.setMinPeople(req.getMinPeople());
-        tour.setMaxPeople(req.getMaxPeople());
-        tour.setIsActive(true);
+        mapRequestToEntity(req, tour); // Dùng hàm dùng chung để tránh lặp code
         tour.setOwner(owner);
+        tour.setIsActive(true);
 
-        tour.setDestination(
-                destinationRepository.findById(req.getDestinationId())
-                        .orElseThrow(() -> new NoSuchElementException("Destination not found"))
-        );
+        // Xử lý Destination
+        Destination dest = destinationRepository.findById(req.getDestinationId())
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy điểm đến"));
+        tour.setDestination(dest);
 
-        tour.setIncluded(toJson(req.getIncluded()));
-        tour.setExcluded(toJson(req.getExcluded()));
+        // Lưu Tour trước để lấy ID cho Images và Schedules
+        Tour savedTour = tourRepository.save(tour);
 
-        tourRepository.save(tour);
+        // Lưu Images & Schedules bằng cách gán List để tận dụng Cascade.ALL
+        if (req.getImages() != null) {
+            List<TourImage> images = req.getImages().stream().map(imgReq -> {
+                TourImage img = new TourImage();
+                img.setTour(savedTour);
+                img.setImageUrl(imgReq.getImageUrl());
+                img.setIsPrimary(Boolean.TRUE.equals(imgReq.getIsPrimary()));
+                img.setDisplayOrder(imgReq.getDisplayOrder());
+                return img;
+            }).toList();
+            tourImageRepository.saveAll(images);
+        }
 
-        saveImages(tour, req.getImages());
-        saveSchedules(tour, req.getSchedules());
+        if (req.getSchedules() != null) {
+            List<TourSchedule> schedules = req.getSchedules().stream().map(sReq -> {
+                TourSchedule s = new TourSchedule();
+                s.setTour(savedTour);
+                s.setDayNumber(sReq.getDayNumber());
+                s.setTitle(sReq.getTitle());
+                s.setActivities(sReq.getActivities());
+                s.setMeals(sReq.getMeals());
+                s.setAccommodation(sReq.getAccommodation());
+                return s;
+            }).toList();
+            tourScheduleRepository.saveAll(schedules);
+        }
 
-        return tourMapper.toDetail(tour);
+        return tourMapper.toDetail(savedTour);
     }
 
     @Transactional(readOnly = true)
     public TourDetailResponse getDetail(Long id) {
-        Tour tour = tourRepository.findById(id)
+        Tour tour = tourRepository.findWithDetailById(id)
                 .orElseThrow(() -> new RuntimeException("Tour not found"));
 
         TourDetailResponse dto = tourMapper.toDetail(tour);
@@ -290,52 +311,63 @@ public class TourService {
     // ================= UPDATE =================
     @Transactional
     public TourDetailResponse updateTour(Long id, UpdateTourRequest req) {
-
-        Tour tour = tourRepository.findById(id)
+        Tour tour = tourRepository.findWithDetailById(id)
                 .orElseThrow(() -> new NoSuchElementException("Tour not found"));
 
+        // 1. Kiểm tra quyền sở hữu
+        validateTourOwnership(tour);
+
+        // 2. Cập nhật thông tin cơ bản
         if (req.getName() != null) tour.setName(req.getName());
         if (req.getDescription() != null) tour.setDescription(req.getDescription());
         if (req.getPricePerPerson() != null)
             tour.setPricePerPerson(BigDecimal.valueOf(req.getPricePerPerson()));
         if (req.getDurationDays() != null) tour.setDurationDays(req.getDurationDays());
         if (req.getDurationNights() != null) tour.setDurationNights(req.getDurationNights());
+
+        // Đảm bảo có 2 dòng này để cập nhật số lượng khách
         if (req.getMinPeople() != null) tour.setMinPeople(req.getMinPeople());
         if (req.getMaxPeople() != null) tour.setMaxPeople(req.getMaxPeople());
+
         if (req.getIsActive() != null) tour.setIsActive(req.getIsActive());
 
-        // ===== SCHEDULE =====
-        if (req.getSchedules() != null) {
-            // Xóa schedule cũ
-            tour.getSchedules().clear();
+        // 3. Cập nhật HÌNH ẢNH (Update Images)
+        if (req.getImages() != null && !req.getImages().isEmpty()) {
+            // Xóa sạch list ảnh cũ (Hibernate sẽ xóa các bản ghi này trong DB nhờ orphanRemoval)
+            tour.getImages().clear();
 
-            List<TourSchedule> newSchedules = req.getSchedules().stream()
-                    .map(s -> {
-                        TourSchedule ts = new TourSchedule();
-                        ts.setDayNumber(s.getDayNumber());
-                        ts.setTitle(s.getTitle());
-                        ts.setAccommodation(s.getAccommodation());
-                        ts.setActivities(s.getActivities());
-                        ts.setMeals(s.getMeals());
-                        ts.setTour(tour);
-                        return ts;
-                    })
-                    .toList();
-
-            tour.getSchedules().addAll(newSchedules);
+            // Thêm list ảnh mới từ Request
+            req.getImages().forEach(imgReq -> {
+                TourImage img = new TourImage();
+                img.setTour(tour);
+                img.setImageUrl(imgReq.getImageUrl());
+                img.setIsPrimary(Boolean.TRUE.equals(imgReq.getIsPrimary()));
+                img.setDisplayOrder(imgReq.getDisplayOrder());
+                tour.getImages().add(img);
+            });
         }
 
-        // ===== INCLUDED / EXCLUDED =====
-        if (req.getIncluded() != null)
-            tour.setIncluded(toJson(req.getIncluded()));
+        // 4. Cập nhật LỊCH TRÌNH (Update Schedules)
+        if (req.getSchedules() != null && !req.getSchedules().isEmpty()) {
+            tour.getSchedules().clear();
+            req.getSchedules().forEach(sReq -> {
+                TourSchedule s = new TourSchedule();
+                s.setTour(tour);
+                s.setDayNumber(sReq.getDayNumber());
+                s.setTitle(sReq.getTitle());
+                s.setActivities(sReq.getActivities());
+                s.setMeals(sReq.getMeals());
+                s.setAccommodation(sReq.getAccommodation());
+                tour.getSchedules().add(s);
+            });
+        }
 
-        if (req.getExcluded() != null)
-            tour.setExcluded(toJson(req.getExcluded()));
+        // 5. Cập nhật JSON (Included/Excluded)
+        if (req.getIncluded() != null) tour.setIncluded(toJson(req.getIncluded()));
+        if (req.getExcluded() != null) tour.setExcluded(toJson(req.getExcluded()));
 
-        tourRepository.save(tour);
         return tourMapper.toDetail(tour);
     }
-
 
     public void updateStatus(Long id, Boolean isActive) {
         Tour tour = tourRepository.findById(id)
@@ -492,17 +524,29 @@ public class TourService {
         }
     }
 
-    // Hàm bổ trợ lấy Email người dùng đang đăng nhập
-    private String getCurrentUserEmail() {
-        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("Người dùng chưa xác thực!");
+    private void validateTourOwnership(Tour tour) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) auth.getPrincipal();
+
+        boolean isOwner = tour.getOwner().getId().equals(currentUser.getId());
+        boolean isSuperAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMINTOUR"));
+
+        if (!isOwner && !isSuperAdmin) {
+            throw new RuntimeException("Bạn không có quyền thao tác trên Tour này!");
         }
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof User) {
-            return ((User) principal).getEmail();
-        }
-        return authentication.getName();
+    }
+
+    private void mapRequestToEntity(CreateTourRequest req, Tour tour) {
+        tour.setName(req.getName());
+        tour.setDescription(req.getDescription());
+        tour.setPricePerPerson(req.getPricePerPerson());
+        tour.setDurationDays(req.getDurationDays());
+        tour.setDurationNights(req.getDurationNights());
+        tour.setMinPeople(req.getMinPeople());
+        tour.setMaxPeople(req.getMaxPeople());
+        tour.setIncluded(toJson(req.getIncluded()));
+        tour.setExcluded(toJson(req.getExcluded()));
     }
 
 }

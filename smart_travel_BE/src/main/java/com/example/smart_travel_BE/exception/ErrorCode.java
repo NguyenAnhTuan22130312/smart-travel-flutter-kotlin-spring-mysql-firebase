@@ -108,6 +108,7 @@ public enum ErrorCode {
     FILE_TYPE_NOT_SUPPORTED(1115, "Chỉ hỗ trợ JPG, PNG, WebP, GIF", HttpStatus.BAD_REQUEST),
     IMAGE_UPLOAD_FAILED_ERROR(1116, "Upload ảnh thất bại", HttpStatus.INTERNAL_SERVER_ERROR),
     IMAGE_NOT_FOUND(1117, "Hình ảnh không tồn tài", HttpStatus.NOT_FOUND),
+    AUDIO_ALREADY_EXISTS(1118, "Địa điểm này đã có nội dung thuyết minh, vui lòng sử dụng chức năng chỉnh sửa", HttpStatus.BAD_REQUEST),
 
     ///BANNER
     BANNER_NAME_BLANK(1080, "Tên banner không được để trống", HttpStatus.BAD_REQUEST),
@@ -122,7 +123,9 @@ public enum ErrorCode {
     CANNOT_CHANGE_ADMIN_ROLE(1091, "Không thể thay đổi role của ADMINTOUR/ADMINHOTEL", HttpStatus.FORBIDDEN),
     NO_WRITE_PERMISSION(1092, "Bạn chỉ có quyền xem, không có quyền chỉnh sửa", HttpStatus.FORBIDDEN),
     CANNOT_MODIFY_HIGHER_ROLE(1093, "Không thể chỉnh sửa tài khoản có role cao hơn hoặc bằng bạn", HttpStatus.FORBIDDEN),
-    REVIEW_SPAM_DETECTED(1019,"spam it thoi", HttpStatus.BAD_REQUEST), DESTINATION_NOT_FOUND(1019,  "khong thay destination" ,HttpStatus.NOT_FOUND ),
+    COOLDOWN_ACTIVE(1009, "Vui lòng đợi 3 phút để tiếp tục nhận EXP tại địa điểm này", HttpStatus.BAD_REQUEST),
+    REVIEW_SPAM_DETECTED(1019,"spam it thoi", HttpStatus.BAD_REQUEST),
+    DESTINATION_NOT_FOUND(1019,  "khong thay destination" ,HttpStatus.NOT_FOUND ),
     REFUND_NOT_PENDING(1050,"status not in pending" , HttpStatus.BAD_REQUEST ),
     INVALID_BOOKING_TYPE(1051, "Chỉ áp dụng check-in cho đơn đặt phòng khách sạn",HttpStatus.BAD_REQUEST),
     INVALID_STATUS(1052, "Đơn hàng phải ở trạng thái ACTIVE để check-in",HttpStatus.BAD_REQUEST),;

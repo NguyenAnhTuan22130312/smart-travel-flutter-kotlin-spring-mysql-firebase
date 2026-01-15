@@ -4,14 +4,17 @@ import 'package:dio/dio.dart';
 class ChatRepository {
   final Dio _dio;
 
+  // Lưu ý: Nếu chạy trên máy ảo Android thì dùng 10.0.2.2
+  // Nếu chạy trên máy thật thì phải dùng IP LAN (ví dụ: 192.168.1.x)
   final String baseUrl = "http://10.0.2.2:8080";
 
   ChatRepository(this._dio);
 
+  /// Gửi tin nhắn Text thông thường
   Future<String> sendMessage(String message) async {
     try {
       final response = await _dio.post(
-        '$baseUrl/api/v1/chat', // 👈 Thêm baseUrl vào đây
+        '$baseUrl/api/v1/chat',
         data: {
           "message": message
         },
@@ -22,16 +25,20 @@ class ChatRepository {
           },
         ),
       );
-      return response.data['reply'];
+      // Giả sử API trả về json: { "reply": "Nội dung trả lời..." }
+      return response.data['reply'] ?? "Không có phản hồi";
     } catch (e) {
-      throw Exception("Lỗi kết nối AI: $e");
+      throw Exception("Lỗi kết nối Chat AI: $e");
     }
   }
 
-  Future<String> sendImageToAI(File imageFile) async {
+  /// Gửi ảnh lên server Python/Java để nhận diện
+  /// Trả về Map<String, dynamic> để Bloc parse thành Model
+  Future<Map<String, dynamic>> sendImageToAI(File imageFile) async {
     try {
       String fileName = imageFile.path.split('/').last;
 
+      // 1. Tạo FormData (Multipart) chuẩn cho Dio
       FormData formData = FormData.fromMap({
         "file": await MultipartFile.fromFile(
           imageFile.path,
@@ -39,38 +46,28 @@ class ChatRepository {
         ),
       });
 
+      // 2. Gọi API
       final response = await _dio.post(
-        '$baseUrl/api/v1/ai/search-image', // 👈 Quan trọng: Phải có baseUrl ở đây
+        '$baseUrl/api/v1/ai/search-image',
         data: formData,
+        // Dio tự động set Content-Type là multipart/form-data khi thấy FormData
       );
 
-      final data = response.data;
-
-      // Xử lý dữ liệu trả về (giữ nguyên logic cũ)
-      if (data['success'] == true) {
-        String aiDetected = data['ai_detected'] ?? "Lạ";
-        String category = data['mapped_category'] ?? "Không rõ";
-        List<dynamic> places = data['data'] ?? [];
-
-        StringBuffer buffer = StringBuffer();
-        if (places.isNotEmpty) {
-          buffer.writeln("Tìm thấy ${places.length} địa điểm phù hợp:");
-          for (var place in places) {
-            buffer.writeln("- ${place['name']} (${place['provinceName']})");
-          }
-        } else {
-          buffer.writeln("Không tìm thấy địa điểm nào trong dữ liệu.");
-        }
-
-        return buffer.toString();
+      // 3. Trả về dữ liệu gốc (JSON Map)
+      // Bloc sẽ dùng dữ liệu này để map sang AIDestinationResponse
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
       } else {
-        return "AI không nhận diện được ảnh này.";
+        throw Exception("Server trả về lỗi: ${response.statusCode}");
       }
 
     } catch (e) {
-      // In lỗi ra console để dễ debug
       print("Lỗi upload ảnh: $e");
-      throw Exception("Lỗi gửi ảnh: $e");
+      // Trả về Map lỗi để UI xử lý nhẹ nhàng hơn là crash app
+      return {
+        "success": false,
+        "message": "Lỗi kết nối đến server AI: $e"
+      };
     }
   }
 }

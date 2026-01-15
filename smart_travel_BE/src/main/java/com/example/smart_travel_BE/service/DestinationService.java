@@ -8,28 +8,33 @@ import com.example.smart_travel_BE.dto.destination.response.DestinationDetailRes
 import com.example.smart_travel_BE.dto.destination.response.DestinationFeaturedResponse;
 import com.example.smart_travel_BE.dto.destination.response.DestinationImageResponse;
 import com.example.smart_travel_BE.dto.destination.response.DestinationResponse;
-import com.example.smart_travel_BE.entity.Destination;
-import com.example.smart_travel_BE.entity.DestinationImage;
-import com.example.smart_travel_BE.entity.Province;
+import com.example.smart_travel_BE.dto.user.request.UpdateLevelRequest;
+import com.example.smart_travel_BE.dto.user.response.LevelResponse;
+import com.example.smart_travel_BE.entity.*;
 import com.example.smart_travel_BE.exception.AppException;
 import com.example.smart_travel_BE.exception.ErrorCode;
 import com.example.smart_travel_BE.mapper.DestinationMapper;
 import com.example.smart_travel_BE.repository.DestinationImageRepository;
 import com.example.smart_travel_BE.repository.DestinationRepository;
 import com.example.smart_travel_BE.repository.ProvinceRepository;
+import com.example.smart_travel_BE.repository.UserProfileRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,8 +47,9 @@ public class DestinationService {
     private final ProvinceRepository provinceRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final DestinationImageRepository imageRepository;
-    private  final  CloudinaryService cloudinaryService;
-
+    private final CloudinaryService cloudinaryService;
+    private final UserProfileRepository userProfileRepository;
+    private final UserService userService;
 
 
     /**
@@ -55,6 +61,7 @@ public class DestinationService {
                 .map(destinationMapper::toDestinationDetailResponse)
                 .collect(Collectors.toList());
     }
+
     /**
      * Lấy danh sách địa điểm nổi bật
      */
@@ -64,6 +71,7 @@ public class DestinationService {
         return destinations.stream().map(destinationMapper::toDestinationDetailResponse)
                 .collect(Collectors.toList());
     }
+
     /**
      * Lấy danh sách địa điểm nổi bật
      */
@@ -76,6 +84,7 @@ public class DestinationService {
                 .map(destinationMapper::toDestinationDetailResponse)
                 .collect(Collectors.toList());
     }
+
     /**
      * Xem chi tiết địa điểm
      */
@@ -87,7 +96,7 @@ public class DestinationService {
         destination.setViewCount(destination.getViewCount() + 1);
         destinationRepository.save(destination);
 
-        return  destinationMapper.toDestinationDetailResponse(destination);
+        return destinationMapper.toDestinationDetailResponse(destination);
     }
 
 
@@ -96,7 +105,7 @@ public class DestinationService {
      */
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    public DestinationDetailResponse createDestination(DestinationCreateRequest request,  List<MultipartFile> images) {
+    public DestinationDetailResponse createDestination(DestinationCreateRequest request, List<MultipartFile> images) {
         // Kiểm tra tỉnh/thành tồn tại
         Province province = provinceRepository.findById(request.getProvinceId())
                 .orElseThrow(() -> new AppException(ErrorCode.PROVINCE_NOT_EXISTED));
@@ -233,6 +242,7 @@ public class DestinationService {
             }
         }
     }
+
     // === THÊM ẢNH RIÊNG ===
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
@@ -240,7 +250,7 @@ public class DestinationService {
         Destination destination = destinationRepository.findById(destinationId)
                 .orElseThrow(() -> new AppException(ErrorCode.DESTINATION_NOT_EXISTED));
 
-       String imageUrl;
+        String imageUrl;
         try {
             imageUrl = cloudinaryService.uploadFile(file, "destinations");
         } catch (IOException e) {
@@ -304,7 +314,6 @@ public class DestinationService {
     }
 
 
-
     private void handleDestinationImageFiles(Destination destination, List<MultipartFile> imageFiles) {
 
         // Nếu không upload ảnh mới → giữ nguyên ảnh cũ
@@ -362,6 +371,121 @@ public class DestinationService {
         log.info("Total images after update = {}", keptImages.size());
     }
 
+    // voice guide
+    @Transactional
+    public LevelResponse completeVoiceGuide(Long destinationId) {
+        // 1. Lấy thông tin User và Profile
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) authentication.getPrincipal();
 
+        Destination destination = destinationRepository.findById(destinationId)
+                .orElseThrow(() -> new AppException(ErrorCode.DESTINATION_NOT_EXISTED));
 
+        UserProfile profile = userProfileRepository.findByUser(currentUser)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        // 2. KIỂM TRA COOLDOWN (3 phút)
+        LocalDateTime now = LocalDateTime.now();
+        // Khởi tạo Map nếu null (phòng trường hợp Builder không khởi tạo)
+        if (profile.getLastEarnedAt() == null) profile.setLastEarnedAt(new HashMap<>());
+
+        LocalDateTime lastEarned = profile.getLastEarnedAt().get(destinationId);
+
+        if (lastEarned != null) {
+            long secondsPassed = java.time.Duration.between(lastEarned, now).toSeconds();
+            if (secondsPassed < 180) { // 3 phút = 180 giây
+                long secondsRemaining = 180 - secondsPassed;
+                log.warn("User {} bị chặn do cooldown. Còn lại {} giây.", currentUser.getEmail(), secondsRemaining);
+                // Bạn có thể trả về lỗi hoặc thông báo thời gian còn lại
+                throw new AppException(ErrorCode.COOLDOWN_ACTIVE);
+            }
+        }
+
+        // 3. RANDOM EXP: [20, 50]
+        long reward = 20 + (long) (Math.random() * (50 - 20 + 1));
+
+        // 4. CẬP NHẬT DỮ LIỆU
+        Long currentExp = (profile.getExperiencePoints() != null) ? profile.getExperiencePoints() : 0L;
+        Long newTotalExp = currentExp + reward;
+
+        profile.setExperiencePoints(newTotalExp);
+        profile.getLastEarnedAt().put(destinationId, now); // Cập nhật thời điểm nhận điểm mới nhất
+
+        // Vẫn lưu vào Listened (Thành tựu khám phá)
+        profile.getListenedDestinationIds().add(destinationId);
+
+        userProfileRepository.save(profile);
+
+        // 5. Cập nhật Level
+        UpdateLevelRequest updateLevelRequest = new UpdateLevelRequest();
+        updateLevelRequest.setExperiencePoints(newTotalExp);
+
+        LevelResponse response = userService.updateUserLevel(updateLevelRequest);
+        response.setEarnedExp(reward); // GÁN CON SỐ RANDOM VÀO ĐÂY
+        response.setServerTime(LocalDateTime.now());
+
+        log.info("User {} nhận {} EXP tại {}. Tổng mới: {}",
+                currentUser.getEmail(), reward, destination.getName(), newTotalExp);
+
+        return response;
+    }
+
+    // ADMIN AUDIO GUIDE
+    @Transactional
+    public DestinationResponse updateAudioScript(Long destinationId, String newAudioScript) {
+        // 1. Kiểm tra địa điểm có tồn tại không
+        Destination destination = destinationRepository.findById(destinationId)
+                .orElseThrow(() -> new AppException(ErrorCode.DESTINATION_NOT_EXISTED));
+
+        // 2. Cập nhật nội dung thuyết minh
+        // Nếu newAudioScript là null hoặc rỗng, có thể hiểu là Admin muốn xóa audio
+        destination.setAudioScript(newAudioScript);
+
+        // 3. Lưu vào database
+        destinationRepository.save(destination);
+
+        log.info("Admin đã cập nhật Audio Script cho địa điểm: {} (ID: {})",
+                destination.getName(), destinationId);
+
+        // 4. Trả về kết quả (map qua DTO)
+        return destinationMapper.toDestinationResponse(destination);
+    }
+
+    // ADMIN ADD AUDIO GUIDE
+    @Transactional
+    public DestinationResponse addAudioScript(Long destinationId, String audioScript) {
+        Destination destination = destinationRepository.findById(destinationId)
+                .orElseThrow(() -> new AppException(ErrorCode.DESTINATION_NOT_EXISTED));
+
+        // Kiểm tra nếu đã có audio rồi thì báo lỗi hoặc yêu cầu dùng chức năng Update
+        if (destination.getAudioScript() != null && !destination.getAudioScript().isEmpty()) {
+            throw new AppException(ErrorCode.AUDIO_ALREADY_EXISTS); // Bạn cần định nghĩa thêm ErrorCode này
+        }
+
+        destination.setAudioScript(audioScript);
+        destinationRepository.save(destination);
+
+        log.info("Admin đã thêm mới Audio cho: {}", destination.getName());
+        return destinationMapper.toDestinationResponse(destination);
+    }
+
+    // ADMIN DELETE AUDIO GUIDE
+    @Transactional
+    public DestinationResponse deleteAudioScript(Long destinationId) {
+        // 1. Kiểm tra địa điểm có tồn tại không
+        Destination destination = destinationRepository.findById(destinationId)
+                .orElseThrow(() -> new AppException(ErrorCode.DESTINATION_NOT_EXISTED));
+
+        // 2. Xóa nội dung thuyết minh (đặt về null)
+        destination.setAudioScript(null);
+
+        // 3. Lưu vào database
+        destinationRepository.saveAndFlush(destination);
+
+        log.info("Admin đã xóa Audio Script của địa điểm: {} (ID: {})",
+                destination.getName(), destinationId);
+
+        // 4. Trả về kết quả đã cập nhật
+        return destinationMapper.toDestinationResponse(destination);
+    }
 }

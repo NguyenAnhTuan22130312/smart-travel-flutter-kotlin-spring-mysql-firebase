@@ -29,7 +29,7 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
     @EntityGraph(attributePaths = {"images", "destination"})
     Page<Tour> findAll(Specification<Tour> spec, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"images", "destination", "schedules"})
+    @EntityGraph(attributePaths = {"destination"})
     Optional<Tour> findWithDetailById(Long id);
 }
 

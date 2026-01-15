@@ -1,5 +1,6 @@
 class ApiConstants {
   static const String baseUrl = 'http://10.0.2.2:8080/api/v1';
+  // static const String baseUrl = 'http://171.227.91.66:8080/api/v1';
 
   //Auth
   static const String register = '/auth/register';
@@ -28,6 +29,7 @@ class ApiConstants {
   static const String addDestination = '/destination';
   static const String updateDestination = '/destination/';
   static const String deleteDestination = '/destination/';
+  static const String completeVoice = '/destination/';
 
   //Province
   static const String provinceAll = '/province/all';
