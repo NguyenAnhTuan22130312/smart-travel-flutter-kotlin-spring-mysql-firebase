@@ -67,25 +67,22 @@ public class PaymentController {
     @GetMapping("/vnpay-return")
     public void vnpayReturn(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
-            // 1. Logic Auto Success (như bạn đã viết)
             String resultMsg = paymentService.handleVnPayReturn(request);
 
-            // Lấy ra bookingId để trả về cho App biết đơn nào
-            String vnp_TxnRef = request.getParameter("vnp_TxnRef"); // Đây là paymentId
+            String vnp_TxnRef = request.getParameter("vnp_TxnRef");
 
             String deepLink = "smarttravel://payment-result?status=success&paymentId=" + vnp_TxnRef;
 
             response.sendRedirect(deepLink);
 
         } catch (Exception e) {
-            // Dù lỗi cũng redirect về App nhưng báo fail
             response.sendRedirect("smarttravel://payment-result?status=failed&msg=" + e.getMessage());
         }
     }
 
     @GetMapping("/momo-return")
     public ResponseEntity<String> momoReturn(@RequestParam Map<String, String> params) {
-        log.info("---- KHÁCH HÀNG ĐÃ QUAY VỀ TỪ MOMO ----");
+        log.info("KHÁCH HÀNG ĐÃ QUAY VỀ TỪ MOMO");
         try {
             String message = paymentService.handleMoMoReturn(params);
             return ResponseEntity.ok(message);
@@ -97,13 +94,11 @@ public class PaymentController {
 
     @PostMapping("/momo-ipn")
     public ResponseEntity<?> momoIpn(@RequestBody Map<String, Object> ipnData) {
-        // MoMo IPN là Server-to-Server, sử dụng POST và gửi JSON body
         try {
             log.info("MoMo IPN received: {}", ipnData);
             return null;
         } catch (Exception e) {
             log.error("Lỗi khi xử lý MoMo IPN: {}", e.getMessage());
-            // Trả về lỗi 500 để MoMo có thể thử lại
             return ResponseEntity.status(500).body("Error processing IPN: " + e.getMessage());
         }
     }

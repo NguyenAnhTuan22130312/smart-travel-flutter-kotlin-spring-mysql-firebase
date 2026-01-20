@@ -29,7 +29,6 @@ public class AIService {
     @Value("${ai.service.url}")
     private String pythonServiceUrl;
 
-    // 🔥 1. BỘ TỪ ĐIỂN DỊCH (Quan trọng: Phải khớp với Code Python và DB của bạn)
     private static final Map<String, String> CATEGORY_MAP = new HashMap<>();
 
     static {

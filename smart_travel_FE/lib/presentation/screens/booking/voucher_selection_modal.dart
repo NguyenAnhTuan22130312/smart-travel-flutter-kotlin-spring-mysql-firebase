@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:dio/dio.dart'; // Để catch DioException
-import 'package:smart_travel/core/network/dio_client.dart'; // Import DioClient
+import 'package:dio/dio.dart';
+import 'package:smart_travel/core/network/dio_client.dart';
 import 'package:smart_travel/domain/entities/voucher.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
-import 'package:smart_travel/injection_container.dart' as di; // Import Dependency Injection
+import 'package:smart_travel/injection_container.dart' as di;
 
 class VoucherSelectionModal extends StatefulWidget {
   final int userId;
@@ -18,11 +18,7 @@ class VoucherSelectionModal extends StatefulWidget {
 class _VoucherSelectionModalState extends State<VoucherSelectionModal> with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  // SỬA 1: Lấy DioClient từ Injection (đã có sẵn Token)
   final DioClient _dioClient = di.sl<DioClient>();
-
-  // Không cần hardcode IP nữa vì DioClient đã config BaseURL
-  // final String _baseUrl = 'http://10.0.2.2:8080/api/v1';
 
   List<dynamic> _myVouchers = [];
   List<dynamic> _redeemableVouchers = [];
@@ -41,19 +37,15 @@ class _VoucherSelectionModalState extends State<VoucherSelectionModal> with Sing
     setState(() => _isLoading = true);
 
     try {
-      // --- GIAI ĐOẠN 1: LẤY DANH SÁCH VOUCHER (QUAN TRỌNG) ---
 
-      // 1. Lấy voucher của tôi
       print("Step 1: Gọi API My Vouchers...");
       final myVouchersRes = await _dioClient.get(
         '/rewards/my-vouchers?userId=${widget.userId}',
       );
 
-      // 2. Lấy voucher có thể đổi
       print("Step 2: Gọi API Available Rewards...");
       final availableRes = await _dioClient.get('/rewards/available');
 
-      // --- HIỂN THỊ DỮ LIỆU NGAY LẬP TỨC ---
       if (mounted) {
         setState(() {
           _myVouchers = (myVouchersRes.data is List) ? myVouchersRes.data : [];
@@ -62,29 +54,19 @@ class _VoucherSelectionModalState extends State<VoucherSelectionModal> with Sing
         });
       }
 
-      // --- GIAI ĐOẠN 2: LẤY ĐIỂM (KHÔNG QUAN TRỌNG, CHẠY SAU) ---
-      // ... đoạn trên giữ nguyên
-
-      // --- GIAI ĐOẠN 2: LẤY ĐIỂM ---
       print("Step 3: Gọi API User Profile (Lấy điểm)...");
       try {
         final profileRes = await _dioClient.get('/users/user/${widget.userId}');
 
-        // IN RA ĐỂ KIỂM TRA CẤU TRÚC JSON (Quan trọng)
         print("Step 3 JSON Data: ${profileRes.data}");
 
         if (mounted && profileRes.data != null) {
           setState(() {
-            // LOGIC CŨ (SAI):
-            // _currentPoints = profileRes.data['experiencePoints'] ?? 0;
 
-            // LOGIC MỚI (THỬ 1 TRONG 2 CÁCH SAU TÙY VÀO JSON CỦA BẠN):
-
-            // CÁCH 1: Nếu JSON lồng nhau (User -> userProfile -> points)
             if (profileRes.data['userProfile'] != null) {
               _currentPoints = profileRes.data['experiencePoints'] ?? 0;
             }
-            // CÁCH 2: Nếu JSON phẳng (Backend đã map sẵn ra ngoài)
+
             else {
               _currentPoints = profileRes.data['experiencePoints'] ?? 0;
             }
@@ -97,8 +79,7 @@ class _VoucherSelectionModalState extends State<VoucherSelectionModal> with Sing
       }
 
     } catch (e, stackTrace) {
-      // Chỉ khi Step 1 hoặc 2 lỗi thì mới báo lỗi chung
-      print("----------- LỖI CHÍNH -----------");
+
       print("Error: $e");
       print("StackTrace: $stackTrace");
 
@@ -118,33 +99,25 @@ class _VoucherSelectionModalState extends State<VoucherSelectionModal> with Sing
     }
 
     try {
-      // --- SỬA TẠI ĐÂY ---
-      // Backend đang dùng @RequestParam nên phải truyền tham số lên URL
-      // Thay vì dùng data: {...}, ta nối chuỗi query string:
       await _dioClient.post(
         '/rewards/redeem?userId=${widget.userId}&voucherId=$voucherId',
       );
-      // -------------------
-
-      // Sau khi đổi xong thì load lại data để cập nhật điểm và danh sách
       await _fetchAllData();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Đổi quà thành công!"), backgroundColor: Colors.green));
-        _tabController.animateTo(0); // Chuyển về tab kho voucher
+        _tabController.animateTo(0);
       }
 
     } catch (e) {
       String msg = "Đổi quà thất bại";
       if (e is DioException && e.response != null) {
-        // Backend trả về lỗi (ví dụ: Không đủ điểm, Voucher hết hạn...)
         msg = e.response?.data['message'] ?? msg;
       }
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
     }
   }
 
-  // ... (Phần UI build giữ nguyên như cũ) ...
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -185,11 +158,7 @@ class _VoucherSelectionModalState extends State<VoucherSelectionModal> with Sing
     );
   }
 
-  // Copy lại 2 hàm _buildMyVouchersTab và _buildRedeemTab từ code cũ vào đây
-  // Nhớ import Intl để dùng NumberFormat
-
   Widget _buildMyVouchersTab() {
-    // ... (Code cũ của bạn)
     if (_myVouchers.isEmpty) {
       return _buildEmptyState("Bạn chưa có voucher nào.\nQua tab 'Đổi Thưởng' để săn quà nhé!");
     }
@@ -200,9 +169,6 @@ class _VoucherSelectionModalState extends State<VoucherSelectionModal> with Sing
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final item = _myVouchers[index];
-
-        // --- CHÚ Ý: Cấu trúc JSON có thể thay đổi do @JsonIgnoreProperties ---
-        // item['voucher'] bây giờ sẽ sạch sẽ hơn
         final voucher = item['voucher'];
         final bool isUsed = item['isUsed'] ?? false;
 
@@ -243,7 +209,6 @@ class _VoucherSelectionModalState extends State<VoucherSelectionModal> with Sing
   }
 
   Widget _buildRedeemTab() {
-    // ... (Code cũ của bạn)
     return Column(
       children: [
         Container(

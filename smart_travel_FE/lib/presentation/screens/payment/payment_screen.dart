@@ -211,9 +211,6 @@ class PaymentScreen extends StatelessWidget {
   }
 }
 
-// =========================================================
-// CLASS WEBVIEW ĐÃ ĐƯỢC CHỈNH SỬA (Sửa UserAgent + Logic bắt URL)
-// =========================================================
 class PaymentWebView extends StatefulWidget {
   final String url;
 
@@ -233,9 +230,8 @@ class _PaymentWebViewState extends State<PaymentWebView> {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
 
-    // --- QUAN TRỌNG: Giả lập Desktop (Windows) để MoMo hiện QR Code ---
       ..setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36")
-    // ----------------------------------------------------------------
+
 
       ..setNavigationDelegate(
         NavigationDelegate(
@@ -244,9 +240,6 @@ class _PaymentWebViewState extends State<PaymentWebView> {
           onNavigationRequest: (NavigationRequest request) {
             print(">>> WebView URL: ${request.url}");
 
-            // --- LOGIC BẮT KẾT QUẢ THANH TOÁN ---
-            // Kiểm tra xem URL có chứa dấu hiệu của việc "Thanh toán xong" không
-            // Bất kể Backend trả về 127.0.0.1 hay 10.0.2.2
             if (request.url.contains("127.0.0.1") ||
                 request.url.contains("localhost") ||
                 request.url.contains("10.0.2.2") ||
@@ -256,7 +249,6 @@ class _PaymentWebViewState extends State<PaymentWebView> {
               print(">>> PHÁT HIỆN URL TRẢ VỀ: ${request.url}");
               _handlePaymentResult(request.url);
 
-              // QUAN TRỌNG: Chặn không cho WebView tải tiếp (tránh lỗi connection refused trắng trang)
               return NavigationDecision.prevent;
             }
 
@@ -270,10 +262,8 @@ class _PaymentWebViewState extends State<PaymentWebView> {
   void _handlePaymentResult(String url) {
     final uri = Uri.parse(url);
 
-    // 1. Lấy kết quả từ MoMo (resultCode = 0 là thành công)
     final momoResultCode = uri.queryParameters['resultCode'];
 
-    // 2. Lấy kết quả từ VNPay (vnp_ResponseCode = 00 là thành công)
     final vnpResponseCode = uri.queryParameters['vnp_ResponseCode'];
 
     bool isSuccess = false;
@@ -292,7 +282,6 @@ class _PaymentWebViewState extends State<PaymentWebView> {
             duration: Duration(seconds: 3),
           )
       );
-      // Quay về màn hình chính, xóa hết lịch sử đặt tour để tránh back lại
       Navigator.of(context).popUntil((route) => route.isFirst);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -302,7 +291,7 @@ class _PaymentWebViewState extends State<PaymentWebView> {
             duration: Duration(seconds: 3),
           )
       );
-      Navigator.of(context).pop(); // Đóng WebView, quay lại màn chọn thanh toán
+      Navigator.of(context).pop(); 
     }
   }
 
