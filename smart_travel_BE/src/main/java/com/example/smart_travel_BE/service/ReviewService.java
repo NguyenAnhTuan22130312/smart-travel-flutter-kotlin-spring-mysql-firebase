@@ -34,19 +34,99 @@ public class ReviewService {
     private  final DestinationRepository destinationRepository;
     private final ReviewMapper reviewMapper;
 
+//    @Transactional
+//    public Review createInvoiceReview(ReviewRequest request) {
+//
+//        User user = getCurrentUser();
+//        // Tìm Invoice theo invoiceNumber
+//        Invoice invoice = invoiceRepository.findByInvoiceNumber(request.getInvoiceNumber())
+//                .orElseThrow(() -> new AppException(ErrorCode.INVOICE_NOT_FOUND));
+//
+//        Booking booking = invoice.getBooking();
+//
+//        // Tạo Review
+//        Review review = Review.builder()
+//                .user(user)  // lấy từ booking
+//                .rating(request.getRating())
+//                .comment(request.getComment())
+//                .isApproved(false)
+//                .likesCount(0)
+//                .createdAt(LocalDateTime.now())
+//                .updatedAt(LocalDateTime.now())
+//                .build();
+//
+//        // Set id theo bookingType
+//        if ("HOTEL".equalsIgnoreCase(booking.getBookingType())) {
+//            review.setHotelId(booking.getHotelId());
+//        } else if ("TOUR".equalsIgnoreCase(booking.getBookingType())) {
+//            review.setTourId(booking.getTourId());
+//        }
+//
+//        review = reviewRepository.save(review);
+//        if (review.getImages() != null) {
+//            review.getImages().size();
+//        }
+//
+//        // Upload ảnh nếu có
+//        if (request.getImages() != null && !request.getImages().isEmpty()) {
+//            List<ReviewImage> images = new ArrayList<>();
+//            for (MultipartFile file : request.getImages()) {
+//                try {
+//                    String imageUrl = cloudinaryService.uploadFile(file, "reviews");
+//                    ReviewImage image = ReviewImage.builder()
+//                            .review(review)
+//                            .imageUrl(imageUrl)
+//                            .uploadedAt(LocalDateTime.now())
+//                            .build();
+//                    images.add(image);
+//                } catch (IOException e) {
+//                    throw new AppException(ErrorCode.IMAGE_UPLOAD_FAILED);
+//                }
+//            }
+//            reviewImageRepository.saveAll(images);
+//        }
+//
+//        invoice.setReviewed(true);
+//        invoiceRepository.save(invoice);
+//
+//
+//        return review;
+//    }
+
     @Transactional
     public Review createInvoiceReview(ReviewRequest request) {
+        User currentUser = getCurrentUser();
 
-        User user = getCurrentUser();
-        // Tìm Invoice theo invoiceNumber
         Invoice invoice = invoiceRepository.findByInvoiceNumber(request.getInvoiceNumber())
                 .orElseThrow(() -> new AppException(ErrorCode.INVOICE_NOT_FOUND));
 
         Booking booking = invoice.getBooking();
 
-        // Tạo Review
+        if (!currentUser.getId().equals(booking.getUser().getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        Destination destination = null;
+
+        if ("HOTEL".equalsIgnoreCase(booking.getBookingType())) {
+            Hotel hotel = invoiceRepository.findHotelWithImagesById(booking.getHotelId()).orElse(null);
+            if (hotel != null) {
+                destination = hotel.getDestination();
+            }
+        } else if ("TOUR".equalsIgnoreCase(booking.getBookingType())) {
+            Tour tour = invoiceRepository.findTourWithImagesById(booking.getTourId()).orElse(null);
+            if (tour != null) {
+                destination = tour.getDestination();
+            }
+        }
+
+        if (destination == null) {
+            throw new AppException(ErrorCode.DESTINATION_NOT_FOUND);  // nếu không lấy được destination
+        }
+
         Review review = Review.builder()
-                .user(user)  // lấy từ booking
+                .user(currentUser)
+                .destination(destination)  // ← THÊM DESTINATION TỪ HOTEL/TOUR
                 .rating(request.getRating())
                 .comment(request.getComment())
                 .isApproved(false)
@@ -55,7 +135,6 @@ public class ReviewService {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        // Set id theo bookingType
         if ("HOTEL".equalsIgnoreCase(booking.getBookingType())) {
             review.setHotelId(booking.getHotelId());
         } else if ("TOUR".equalsIgnoreCase(booking.getBookingType())) {
@@ -63,11 +142,7 @@ public class ReviewService {
         }
 
         review = reviewRepository.save(review);
-        if (review.getImages() != null) {
-            review.getImages().size();
-        }
 
-        // Upload ảnh nếu có
         if (request.getImages() != null && !request.getImages().isEmpty()) {
             List<ReviewImage> images = new ArrayList<>();
             for (MultipartFile file : request.getImages()) {
@@ -88,7 +163,6 @@ public class ReviewService {
 
         invoice.setReviewed(true);
         invoiceRepository.save(invoice);
-
 
         return review;
     }
