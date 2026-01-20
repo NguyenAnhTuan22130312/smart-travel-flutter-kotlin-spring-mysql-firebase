@@ -265,7 +265,9 @@ import 'package:smart_travel/presentation/theme/app_colors.dart';
           }
         },
         builder: (context, state) {
-          if (state is AdminTourLoading) {
+          if (state is AdminTourLoading ||
+              state is AdminTourDeleteLoading ||
+              state is AdminTourDeleteSuccess) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -300,6 +302,29 @@ import 'package:smart_travel/presentation/theme/app_colors.dart';
                 // Phần thanh phân trang cố định ở dưới cùng danh sách
                 _buildPagination(state.currentPage, state.totalPages),
               ],
+            );
+          }
+
+          if (state is AdminTourError || state is AdminTourDeleteError) {
+            String msg = "Đã có lỗi xảy ra";
+            if(state is AdminTourError) msg = state.message;
+            if(state is AdminTourDeleteError) msg = state.message;
+
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                  const SizedBox(height: 12),
+                  Text(msg, textAlign: TextAlign.center, style: const TextStyle(color: Colors.red)),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.refresh),
+                    label: const Text("Tải lại danh sách"),
+                    onPressed: () => context.read<AdminTourBloc>().add(const LoadAdminTours(page: 0)),
+                  )
+                ],
+              ),
             );
           }
 
@@ -801,10 +826,12 @@ import 'package:smart_travel/presentation/theme/app_colors.dart';
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               onPressed: () {
-                Navigator.pop(context); // đóng dialog
-                context.read<AdminTourBloc>().add(
-                  DeleteAdminTour(tourId),
-                );
+                // 1. Lấy reference của Bloc trước khi đóng Dialog
+                final tourBloc = context.read<AdminTourBloc>();
+                // 2. Đóng dialog
+                Navigator.pop(context);// đóng dialog
+                // 3. Gọi event xóa
+                tourBloc.add(DeleteAdminTour(tourId));
               },
               child: const Text('Xoá'),
             ),
