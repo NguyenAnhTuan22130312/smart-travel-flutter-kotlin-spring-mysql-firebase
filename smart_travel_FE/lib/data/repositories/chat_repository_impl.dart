@@ -6,7 +6,8 @@ class ChatRepository {
 
   // Lưu ý: Nếu chạy trên máy ảo Android thì dùng 10.0.2.2
   // Nếu chạy trên máy thật thì phải dùng IP LAN (ví dụ: 192.168.1.x)
-  final String baseUrl = "http://10.0.2.2:8080";
+  // final String baseUrl = "http://10.0.2.2:8080";
+  final String baseUrl = "http://27.68.111.184:8080";
 
   ChatRepository(this._dio);
 
