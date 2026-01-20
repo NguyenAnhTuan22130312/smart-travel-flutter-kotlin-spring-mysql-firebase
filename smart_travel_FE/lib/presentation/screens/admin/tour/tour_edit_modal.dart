@@ -420,7 +420,7 @@ class _AdminTourUpdateModalState extends State<AdminTourUpdateModal> {
               children: [
                 Icon(Icons.add_photo_alternate_outlined, color: primaryColor, size: 30),
                 const SizedBox(height: 4),
-                Text('Tải thêm ảnh từ thiết bị', style: TextStyle(color: primaryColor, fontWeight: FontWeight.w600)),
+                Text('Thêm ảnh', style: TextStyle(color: primaryColor, fontWeight: FontWeight.w600)),
               ],
             ),
           ),
@@ -751,4 +751,4 @@ String? validateMaxPeople(
   }
 
   return null;
-}
+} 
