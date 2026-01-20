@@ -32,18 +32,16 @@ class _BookingScreenState extends State<BookingScreen> {
   // State cho Tour
   DateTime _startDate = DateTime.now().add(const Duration(days: 1));
 
-  // State cho Hotel (Check-in / Check-out)
+  // State cho Hotel
   DateTimeRange? _dateRange;
 
   int _numberOfPeople = 1;
-  int _numberOfRooms = 1; // State cho phòng khách sạn
+  int _numberOfRooms = 1;
 
-  // --- STATE CHO VOUCHER (Mới thêm) ---
-  double _discountAmount = 0; // Số tiền được giảm
-  bool _isCheckingVoucher = false; // Loading khi check
-  bool _isVoucherApplied = false; // Đã áp dụng chưa
+  double _discountAmount = 0;
+  bool _isCheckingVoucher = false;
+  bool _isVoucherApplied = false;
 
-  // --- LOGIC MỚI: MỞ MODAL & CẢNH BÁO TIỀN ÂM ---
   void _openVoucherModal() async {
     // 1. Lấy user ID từ Profile Bloc (như đã làm trước đó)
     final profileState = context.read<ProfileBloc>().state;
@@ -120,8 +118,6 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
-
-  // HÀM GỌI API CHECK MÃ (Giữ nguyên logic cũ của bạn)
   Future<void> _checkCoupon() async {
     final code = _couponController.text.trim();
     if (code.isEmpty) return;
@@ -161,7 +157,6 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
-  // --- (Các hàm chọn ngày, modal số lượng... GIỮ NGUYÊN) ---
   Future<void> _handleDateSelection(BuildContext context) async {
     if (widget.args.bookingType == 'TOUR') {
       final DateTime? picked = await showDatePicker(
@@ -284,8 +279,6 @@ class _BookingScreenState extends State<BookingScreen> {
   Widget _buildBookingForm(BuildContext context, BookingState state) {
     final bool isTour = widget.args.bookingType == 'TOUR';
     final formatter = NumberFormat('#,###');
-
-    // ... (Phần tính toán giá GIỮ NGUYÊN)
     double totalPrice = 0;
     if (isTour) {
       totalPrice = widget.args.price * _numberOfPeople;
@@ -308,7 +301,6 @@ class _BookingScreenState extends State<BookingScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ... (Phần Ảnh & Thông tin GIỮ NGUYÊN)
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: Image.network(
@@ -366,8 +358,6 @@ class _BookingScreenState extends State<BookingScreen> {
                 ),
                 const SizedBox(height: 16),
               ],
-
-              // --- UI MÃ GIẢM GIÁ (ĐÃ UPDATE NÚT CHỌN) ---
               Row(
                 children: [
                   Expanded(
@@ -407,11 +397,10 @@ class _BookingScreenState extends State<BookingScreen> {
                   )
                 ],
               ),
-              // ---------------------------------
+
 
               const SizedBox(height: 32),
 
-              // ... (Phần Giá & Button GIỮ NGUYÊN)
               _buildPriceDetailRow('Tạm tính', '${formatter.format(totalPrice)} VND'),
               const SizedBox(height: 8),
               if (_discountAmount > 0)

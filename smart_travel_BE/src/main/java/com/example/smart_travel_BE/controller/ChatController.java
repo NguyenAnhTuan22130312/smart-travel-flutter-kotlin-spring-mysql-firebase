@@ -2,9 +2,7 @@ package com.example.smart_travel_BE.controller;
 
 import com.example.smart_travel_BE.dto.chat.request.ChatRequest;
 import com.example.smart_travel_BE.dto.chat.response.ChatResponse;
-import com.example.smart_travel_BE.service.DeepSeekChatService;
 import com.example.smart_travel_BE.service.GeminiChatService;
-import com.example.smart_travel_BE.service.HuggingFaceChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,16 +13,10 @@ import org.springframework.web.bind.annotation.*;
 public class ChatController {
 
     private final GeminiChatService geminiChatService;
-    private final HuggingFaceChatService chatService; // Thêm cái mới
-    private final DeepSeekChatService deepSeekChatService;
 
-    // SỬA CHỖ NÀY:
     @PostMapping
     public ResponseEntity<ChatResponse> askAI(@RequestBody ChatRequest request) {
-        // Lấy message từ object ChatRequest
-        String reply = geminiChatService.sendMessage(request.getMessage());
-
-        // Trả về object ChatResponse chuẩn JSON
-        return ResponseEntity.ok(new ChatResponse(reply));
+        ChatResponse response = geminiChatService.processUserMessage(request.getMessage());
+        return ResponseEntity.ok(response);
     }
 }

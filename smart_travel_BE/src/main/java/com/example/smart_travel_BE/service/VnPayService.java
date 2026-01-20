@@ -36,7 +36,6 @@ public class VnPayService {
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
         vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
 
-        // --- SỬA LOGIC TẠO HASH & QUERY STRING ---
         List<String> fieldNames = new ArrayList<>(vnp_Params.keySet());
         Collections.sort(fieldNames);
 
@@ -49,13 +48,11 @@ public class VnPayService {
             String fieldValue = vnp_Params.get(fieldName);
 
             if ((fieldValue != null) && (fieldValue.length() > 0)) {
-                // Build Hash Data
+
                 hashData.append(fieldName);
                 hashData.append('=');
-                // Lưu ý: VNPay yêu cầu URLEncode cả trong phần Hash
                 hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
 
-                // Build Query URL
                 query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII));
                 query.append('=');
                 query.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
@@ -67,7 +64,6 @@ public class VnPayService {
             }
         }
 
-        // Debug Log: In ra console để kiểm tra
         System.out.println(">>> Raw Hash Data: " + hashData.toString());
 
         String queryUrl = query.toString();

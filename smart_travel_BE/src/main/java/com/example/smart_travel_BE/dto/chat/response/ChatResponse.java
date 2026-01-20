@@ -1,10 +1,16 @@
 package com.example.smart_travel_BE.dto.chat.response;
 
+import com.example.smart_travel_BE.dto.chat.RecommendationDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data @NoArgsConstructor @AllArgsConstructor public class ChatResponse {
+import java.util.List;
 
-    private String reply;
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ChatResponse {
+    private String message;
+    private List<RecommendationDTO> recommendations;
 }

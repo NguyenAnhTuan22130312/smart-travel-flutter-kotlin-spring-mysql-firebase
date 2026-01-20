@@ -1,13 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:smart_travel/data/repositories/chat_repository_impl.dart'; // Đảm bảo import đúng repo của bạn
 import 'package:smart_travel/domain/entities/chat_message.dart';
 import '../../../data/models/ai/ai_destination_response.dart';
+import '../../../data/repositories/chat_repository_impl.dart';
 import 'chat_event.dart';
 import 'chat_state.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final ChatRepository chatRepository;
-
   List<ChatMessage> _messages = [];
 
   ChatBloc(this.chatRepository) : super(ChatInitial()) {
@@ -15,8 +14,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<SendImageEvent>(_onSendImage);
   }
 
+  // --- 1. XỬ LÝ GỬI ẢNH (Code bạn đã ổn, chỉ chỉnh lại chút cho gọn) ---
   Future<void> _onSendImage(SendImageEvent event, Emitter<ChatState> emit) async {
-    // 1. Hiển thị tin nhắn user
     _messages.insert(0, ChatMessage(
       text: "[Đã gửi 1 hình ảnh...]",
       isUser: true,
@@ -25,12 +24,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(ChatLoaded(messages: List.from(_messages), isTyping: true));
 
     try {
-      // 2. Gọi API (Lưu ý: Repository phải trả về Map<String, dynamic>)
       final response = await chatRepository.sendImageToAI(event.imageFile);
 
-      // 3. Xử lý kết quả trả về từ Python
       if (response['success'] == true) {
-        // Parse list địa điểm
+        // Parse list
         List<dynamic> rawData = response['data'] ?? [];
         List<AIDestinationResponse> suggestions = rawData
             .map((json) => AIDestinationResponse.fromJson(json))
@@ -38,34 +35,28 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
         String aiType = response['mapped_category'] ?? "Địa điểm";
 
-        // Thêm tin nhắn AI kèm recommendations
         _messages.insert(0, ChatMessage(
-          text: "AI nhận diện đây là: **$aiType**. Dưới đây là một số gợi ý phù hợp:",
+          text: "AI nhận diện: **$aiType**. Gợi ý cho bạn:",
           isUser: false,
           timestamp: DateTime.now(),
-          recommendations: suggestions, // Gắn list vào đây
+          recommendations: suggestions, // <--- LIST CARD TỪ ẢNH
         ));
       } else {
-        // Trường hợp AI không tìm thấy gì
         _messages.insert(0, ChatMessage(
-          text: response['message'] ?? "AI không nhận diện được ảnh này.",
+          text: response['message'] ?? "Không nhận diện được.",
           isUser: false,
           timestamp: DateTime.now(),
         ));
       }
-
       emit(ChatLoaded(messages: List.from(_messages), isTyping: false));
     } catch (e) {
-      _messages.insert(0, ChatMessage(
-        text: "Lỗi kết nối: $e",
-        isUser: false,
-        timestamp: DateTime.now(),
-      ));
-      emit(ChatLoaded(messages: List.from(_messages), isTyping: false));
+      _handleError(e, emit);
     }
   }
 
+  // --- 2. XỬ LÝ CHAT TEXT (SỬA LẠI HOÀN TOÀN) ---
   Future<void> _onSendMessage(SendMessageEvent event, Emitter<ChatState> emit) async {
+    // UI: Hiện tin nhắn user
     _messages.insert(0, ChatMessage(
       text: event.message,
       isUser: true,
@@ -74,21 +65,37 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(ChatLoaded(messages: List.from(_messages), isTyping: true));
 
     try {
-      // Giả sử sendMessage vẫn trả về String
-      final reply = await chatRepository.sendMessage(event.message);
+      // Gọi API (Trả về Map chứa message + list)
+      final responseData = await chatRepository.sendMessage(event.message);
+
+      String replyText = responseData['message'] ?? "Không có nội dung";
+      List<dynamic> rawRecs = responseData['recommendations'] ?? [];
+
+      // Parse List DTO
+      List<AIDestinationResponse> suggestions = rawRecs
+          .map((json) => AIDestinationResponse.fromJson(json))
+          .toList();
+
+      // UI: Hiện tin nhắn AI kèm List Cards (nếu có)
       _messages.insert(0, ChatMessage(
-        text: reply,
+        text: replyText,
         isUser: false,
         timestamp: DateTime.now(),
+        recommendations: suggestions, // <--- LIST CARD TỪ TEXT CHAT
       ));
+
       emit(ChatLoaded(messages: List.from(_messages), isTyping: false));
     } catch (e) {
-      _messages.insert(0, ChatMessage(
-        text: "Xin lỗi, tôi đang gặp sự cố kết nối.",
-        isUser: false,
-        timestamp: DateTime.now(),
-      ));
-      emit(ChatLoaded(messages: List.from(_messages), isTyping: false));
+      _handleError(e, emit);
     }
+  }
+
+  void _handleError(dynamic e, Emitter<ChatState> emit) {
+    _messages.insert(0, ChatMessage(
+      text: "Lỗi kết nối: $e",
+      isUser: false,
+      timestamp: DateTime.now(),
+    ));
+    emit(ChatLoaded(messages: List.from(_messages), isTyping: false));
   }
 }
