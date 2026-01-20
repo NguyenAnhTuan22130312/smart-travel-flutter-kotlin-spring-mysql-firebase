@@ -9,7 +9,6 @@ import java.util.Formatter;
 
 public class MoMoConfig {
 
-    // --- Thông tin bạn cung cấp ---
     public static final String PARTNER_CODE = "MOMO";
     public static final String ACCESS_KEY = "F8BBA842ECF85";
     public static final String SECRET_KEY = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
@@ -17,7 +16,6 @@ public class MoMoConfig {
     public static final String REDIRECT_URL = "http://10.0.2.2:8080/api/v1/payment/momo-return";
     public static final String IPN_URL = "https://google.com";
 
-    // Hàm tạo chữ ký HMAC SHA256
     public static String signHmacSHA256(String data, String secretKey) {
         try {
             Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
@@ -25,7 +23,6 @@ public class MoMoConfig {
             sha256_HMAC.init(secret_key);
             byte[] hash = sha256_HMAC.doFinal(data.getBytes(StandardCharsets.UTF_8));
 
-            // Convert byte array to hex string
             Formatter formatter = new Formatter();
             for (byte b : hash) {
                 formatter.format("%02x", b);

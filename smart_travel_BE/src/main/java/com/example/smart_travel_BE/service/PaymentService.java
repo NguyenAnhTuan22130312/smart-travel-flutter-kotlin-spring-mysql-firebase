@@ -22,13 +22,13 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor // Tự động inject các dependency (final)
-public class PaymentService { // Đây là class, không phải interface
+@RequiredArgsConstructor
+public class PaymentService {
 
     private final BookingRepository bookingRepository;
     private final PaymentRepository paymentRepository;
-    private final VnPayService vnPayService; // Inject VnPayService
-    private final MoMoService moMoService; // Sẽ thêm sau
+    private final VnPayService vnPayService;
+    private final MoMoService moMoService;
     private final InvoiceRepository invoiceRepository;
 
 
@@ -42,7 +42,6 @@ public class PaymentService { // Đây là class, không phải interface
             throw new AppException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
-        // 1. Tạo hoặc lấy Payment
         Payment payment = paymentRepository.findByBooking_Id(booking.getId()).orElse(null);
         if (payment == null) {
             payment = new Payment();
@@ -57,7 +56,6 @@ public class PaymentService { // Đây là class, không phải interface
         payment.setUpdatedAt(LocalDateTime.now());
         Payment savedPayment = paymentRepository.save(payment);
 
-        // 2. Gọi cổng thanh toán để lấy link
         String paymentUrl;
         if ("VNPAY".equalsIgnoreCase(request.getPaymentMethod())) {
             paymentUrl = vnPayService.createPaymentUrl(savedPayment, httpServletRequest);
@@ -67,19 +65,16 @@ public class PaymentService { // Đây là class, không phải interface
             throw new AppException(ErrorCode.PAYMENT_METHOD_NOT_SUPPORTED);
         }
 
-        // 3. Update Payment
         savedPayment.setStatus("COMPLETED");
         savedPayment.setPayment_status("DONE");
         savedPayment.setPaidAt(LocalDateTime.now());
         savedPayment.setTransactionId("AUTO_SUCCESS_" + System.currentTimeMillis());
         paymentRepository.save(savedPayment);
 
-        // 4. Update Booking
         booking.setStatus("ACTIVE");
         booking.setUpdatedAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
-        // 5. Create Invoice nếu chưa có
         Invoice invoice = invoiceRepository.findByBooking_Id(booking.getId()).orElse(null);
         if (invoice == null) {
             invoice = new Invoice();
@@ -92,8 +87,6 @@ public class PaymentService { // Đây là class, không phải interface
             invoice.setReviewed(false);
             invoiceRepository.save(invoice);
         }
-
-        // 6. Trả link cho FE
         return new PaymentUrlResponse(paymentUrl);
     }
 
@@ -144,7 +137,6 @@ public class PaymentService { // Đây là class, không phải interface
 
     @Transactional
     public String handleVnPayReturn(HttpServletRequest request) {
-        // 1. Lấy mã đơn hàng (TxnRef) từ tham số VNPay trả về
         String vnp_TxnRef = request.getParameter("vnp_TxnRef");
 
         if (vnp_TxnRef == null) {
@@ -161,28 +153,22 @@ public class PaymentService { // Đây là class, không phải interface
         payment.setStatus("COMPLETED");
         payment.setPayment_status("DONE");
         payment.setPaidAt(LocalDateTime.now());
-        // Lấy mã giao dịch của VNPay (nếu có), nếu hủy thì có thể null hoặc chuỗi khác
         String transactionNo = request.getParameter("vnp_TransactionNo");
         payment.setTransactionId(transactionNo != null ? transactionNo : "TEST_TRANS_ID");
 
         paymentRepository.save(payment);
-
-        // Cập nhật trạng thái Booking
         Booking booking = payment.getBooking();
         booking.setStatus("ACTIVE");
         bookingRepository.save(booking);
 
-        // 4. Tạo Invoice (Auto tạo hóa đơn)
         Invoice invoice = invoiceRepository.findByBooking_Id(booking.getId()).orElse(null);
         if (invoice == null) {
             invoice = new Invoice();
             invoice.setBooking(booking);
-            // Tạo mã hóa đơn unique
             invoice.setInvoiceNumber("INV-VNPAY-" + booking.getId() + "-" + System.currentTimeMillis());
             invoice.setTotalAmount(booking.getFinalPrice());
             invoice.setTaxAmount(BigDecimal.ZERO);
             invoice.setIssueDate(LocalDate.now());
-            // Note lại là tạo do test
             invoice.setItemDetails("{\"note\": \"Invoice created via VNPay Return (Auto-Success Mode)\"}");
             invoice.setReviewed(false);
             invoiceRepository.save(invoice);

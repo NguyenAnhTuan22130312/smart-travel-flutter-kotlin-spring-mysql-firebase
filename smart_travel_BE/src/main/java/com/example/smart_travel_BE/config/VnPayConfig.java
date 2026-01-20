@@ -51,7 +51,7 @@ public class VnPayConfig {
         }
 
         if ("0:0:0:0:0:0:0:1".equals(ipAddress) || "127.0.0.1".equals(ipAddress)) {
-            ipAddress = "118.69.183.92"; // IP test hợp lệ cho sandbox VNPay
+            ipAddress = "118.69.183.92";
         }
         return ipAddress;
     }

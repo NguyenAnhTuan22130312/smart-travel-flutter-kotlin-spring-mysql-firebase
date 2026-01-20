@@ -103,7 +103,6 @@ class _ChatViewState extends State<ChatView> {
               },
             ),
           ),
-          // Input box giữ nguyên
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 5, offset: const Offset(0, -2))]),
@@ -128,7 +127,6 @@ class _ChatViewState extends State<ChatView> {
   }
 
   Widget _buildMessageBubble(ChatMessage msg) {
-    // 1. Nếu là User hoặc text thường (không có gợi ý)
     if (msg.recommendations == null || msg.recommendations!.isEmpty) {
       return Align(
         alignment: msg.isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -157,11 +155,10 @@ class _ChatViewState extends State<ChatView> {
       );
     }
 
-    // 2. Nếu có danh sách gợi ý (Hiển thị đẹp)
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Bubble text giới thiệu
+        // Bubble text
         Align(
           alignment: Alignment.centerLeft,
           child: Container(
@@ -171,7 +168,7 @@ class _ChatViewState extends State<ChatView> {
             child: Text(msg.text, style: const TextStyle(color: Colors.black87, fontSize: 15)),
           ),
         ),
-        // List Card nằm ngang
+        // List Card
         SizedBox(
           height: 240,
           child: ListView.builder(

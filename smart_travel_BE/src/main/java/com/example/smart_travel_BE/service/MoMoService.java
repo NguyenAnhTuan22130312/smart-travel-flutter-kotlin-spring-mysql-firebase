@@ -33,18 +33,14 @@ public class MoMoService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final PaymentRepository paymentRepository; // Cần inject để lưu kết quả trả về
+    private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
     private final InvoiceRepository invoiceRepository;
 
     public String createPaymentUrl(Payment payment, HttpServletRequest httpServletRequest) {
         long amount = payment.getAmount().longValue();
 
-        // --- SỬA LỖI TRÙNG ĐƠN HÀNG TẠI ĐÂY ---
-        // Format: PaymentID_Timestamp (Ví dụ: 15_170123456789)
-        // Đảm bảo mỗi lần bấm thanh toán là một mã duy nhất trên hệ thống MoMo
         String orderId = payment.getId() + "_" + System.currentTimeMillis();
-        // --------------------------------------
 
         String requestId = UUID.randomUUID().toString();
 
@@ -57,7 +53,7 @@ public class MoMoService {
         String requestType = "captureWallet";
         String extraData = "";
 
-        // 1. Tạo rawSignature
+        // Tạo rawSignature
         String rawSignature = "accessKey=" + accessKey +
                 "&amount=" + amount +
                 "&extraData=" + extraData +
@@ -69,10 +65,10 @@ public class MoMoService {
                 "&requestId=" + requestId +
                 "&requestType=" + requestType;
 
-        // 2. Ký chữ ký
+        // Ký chữ ký
         String signature = MoMoConfig.signHmacSHA256(rawSignature, secretKey);
 
-        // 3. Tạo body request
+        // Tạo body request
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("partnerCode", partnerCode);
         requestBody.put("accessKey", accessKey);
@@ -88,7 +84,7 @@ public class MoMoService {
         requestBody.put("lang", "vi");
         requestBody.put("storeId", "SmartTravelBE");
 
-        // 4. Gửi request
+        // Gửi request
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
@@ -97,7 +93,6 @@ public class MoMoService {
             String responseJson = restTemplate.postForObject(MoMoConfig.MOMO_API_URL, entity, String.class);
             Map<String, Object> responseMap = objectMapper.readValue(responseJson, Map.class);
 
-            // Log response để debug nếu cần
             System.out.println("MoMo Response: " + responseJson);
 
             String payUrl = (String) responseMap.get("payUrl");
@@ -116,38 +111,28 @@ public class MoMoService {
         }
     }
 
-    /**
-     * Xử lý khi người dùng thanh toán xong và quay lại App (Redirect)
-     */
-    // Trong MoMoService.java
     @Transactional
     public String handleMoMoReturn(Map<String, String> params) {
         String orderId = params.get("orderId");
 
-        // 1. Parse ID
         long paymentId = Long.parseLong(orderId.split("_")[0]);
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_FOUND));
 
-        // 2. CHECK QUAN TRỌNG: Nếu đơn hàng đã xong rồi thì dừng luôn
-        // Để tránh việc IPN và Redirect cùng chạy gây lỗi trùng Invoice
         if ("COMPLETED".equals(payment.getStatus())) {
             return "Giao dịch đã hoàn tất trước đó.";
         }
 
-        // 3. Nếu chưa xong -> Cập nhật Payment
         payment.setStatus("COMPLETED");
         payment.setPayment_status("DONE");
         payment.setPaidAt(LocalDateTime.now());
         payment.setTransactionId(params.get("transId"));
         paymentRepository.save(payment);
 
-        // 4. Cập nhật Booking
         Booking booking = payment.getBooking();
         booking.setStatus("ACTIVE");
         bookingRepository.save(booking);
 
-        // 5. TẠO INVOICE (Đây là cái bạn đang cần)
         Invoice invoice = new Invoice();
         invoice.setBooking(booking);
         invoice.setInvoiceNumber("INV-" + booking.getId() + "-" + System.currentTimeMillis());
@@ -159,7 +144,3 @@ public class MoMoService {
         return "Success";
     }
 }
-    /**
-     * Xử lý IPN (Server gọi Server)
-     */
-
