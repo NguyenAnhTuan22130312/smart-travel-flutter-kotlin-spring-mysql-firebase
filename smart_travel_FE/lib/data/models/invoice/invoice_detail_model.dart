@@ -2,88 +2,105 @@ import 'package:smart_travel/domain/entities/invoice_detail.dart';
 
 class InvoiceDetailModel {
   final int bookingId;
-  final String invoiceNumber;
-  final String bookingType;
-  final String status;
-  final String createdAt;
-  final String updatedAt;
+  final String? invoiceNumber; // Có thể null
+  final String? bookingType;
+  final String? status;
+  final String? createdAt;
+  final String? updatedAt;
   final int? hotelId;
   final int? tourId;
-  final String serviceName;
+  final String? serviceName;
   final String? roomTypeName;
-  final List<String> roomAmenities;
-  final String thumbnailUrl;
-  final String startDate;
-  final String endDate;
+  final List<String>? roomAmenities; // List có thể null
+  final String? thumbnailUrl;
+  final String? startDate;
+  final String? endDate;
   final int nights;
   final int numberOfPeople;
   final String? specialRequests;
   final double totalPrice;
   final double discountAmount;
   final double finalPrice;
-  final String paymentStatus;
+  final String? paymentStatus;
   final double taxAmount;
-  final String customerName;
-  final String customerPhone;
-  final String customerEmail;
+  final String? customerName;
+  final String? customerPhone;
+  final String? customerEmail;
   final bool reviewed;
 
   InvoiceDetailModel({
     required this.bookingId,
-    required this.invoiceNumber,
-    required this.bookingType,
-    required this.status,
-    required this.createdAt,
-    required this.updatedAt,
+    this.invoiceNumber,
+    this.bookingType,
+    this.status,
+    this.createdAt,
+    this.updatedAt,
     this.hotelId,
     this.tourId,
-    required this.serviceName,
+    this.serviceName,
     this.roomTypeName,
-    required this.roomAmenities,
-    required this.thumbnailUrl,
-    required this.startDate,
-    required this.endDate,
-    required this.nights,
+    this.roomAmenities,
+    this.thumbnailUrl,
+    this.startDate,
+    this.endDate,
+    required this.nights,         // Int thường ít khi null, nhưng nếu cần có thể để default = 0
     required this.numberOfPeople,
     this.specialRequests,
-    required this.totalPrice,
+    required this.totalPrice,     // Tiền bạc nên để required hoặc default 0
     required this.discountAmount,
     required this.finalPrice,
-    required this.paymentStatus,
+    this.paymentStatus,
     required this.taxAmount,
-    required this.customerName,
-    required this.customerPhone,
-    required this.customerEmail,
+    this.customerName,
+    this.customerPhone,
+    this.customerEmail,
     required this.reviewed,
   });
 
   factory InvoiceDetailModel.fromJson(Map<String, dynamic> json) {
     return InvoiceDetailModel(
-      bookingId: json['bookingId'] as int,
-      invoiceNumber: json['invoiceNumber'] as String,
-      bookingType: json['bookingType'] as String,
-      status: json['status'] as String,
-      createdAt: json['createdAt'] as String,
-      updatedAt: json['updatedAt'] as String,
+      // int: Dùng (json['...'] as int?) ?? 0 để an toàn
+      bookingId: json['bookingId'] as int? ?? 0,
+
+      // String: Dùng as String?
+      invoiceNumber: json['invoiceNumber'] as String?,
+      bookingType: json['bookingType'] as String?,
+      status: json['status'] as String?,
+      createdAt: json['createdAt'] as String?,
+      updatedAt: json['updatedAt'] as String?,
+
       hotelId: json['hotelId'] as int?,
       tourId: json['tourId'] as int?,
-      serviceName: json['serviceName'] as String,
+
+      serviceName: json['serviceName'] as String?,
       roomTypeName: json['roomTypeName'] as String?,
-      roomAmenities: List<String>.from(json['roomAmenities'] ?? []),
-      thumbnailUrl: json['thumbnailUrl'] as String,
-      startDate: json['startDate'] as String,
-      endDate: json['endDate'] as String,
-      nights: json['nights'] as int,
-      numberOfPeople: json['numberOfPeople'] as int,
+
+      // List: Kiểm tra null trước khi map
+      roomAmenities: json['roomAmenities'] != null
+          ? List<String>.from(json['roomAmenities'])
+          : [],
+
+      thumbnailUrl: json['thumbnailUrl'] as String?,
+      startDate: json['startDate'] as String?,
+      endDate: json['endDate'] as String?,
+
+      nights: json['nights'] as int? ?? 0,
+      numberOfPeople: json['numberOfPeople'] as int? ?? 1,
+
       specialRequests: json['specialRequests'] as String?,
-      totalPrice: (json['totalPrice'] as num).toDouble(),
-      discountAmount: (json['discountAmount'] as num).toDouble(),
-      finalPrice: (json['finalPrice'] as num).toDouble(),
-      paymentStatus: json['paymentStatus'] as String,
-      taxAmount: (json['taxAmount'] as num).toDouble(),
-      customerName: json['customerName'] as String,
-      customerPhone: json['customerPhone'] as String,
-      customerEmail: json['customerEmail'] as String,
+
+      // Double: Cast an toàn từ num?
+      totalPrice: (json['totalPrice'] as num?)?.toDouble() ?? 0.0,
+      discountAmount: (json['discountAmount'] as num?)?.toDouble() ?? 0.0,
+      finalPrice: (json['finalPrice'] as num?)?.toDouble() ?? 0.0,
+
+      paymentStatus: json['paymentStatus'] as String?,
+      taxAmount: (json['taxAmount'] as num?)?.toDouble() ?? 0.0,
+
+      customerName: json['customerName'] as String?,
+      customerPhone: json['customerPhone'] as String?,
+      customerEmail: json['customerEmail'] as String?,
+
       reviewed: json['reviewed'] as bool? ?? false,
     );
   }
@@ -91,30 +108,30 @@ class InvoiceDetailModel {
   InvoiceDetail toEntity() {
     return InvoiceDetail(
       bookingId: bookingId,
-      invoiceNumber: invoiceNumber,
-      bookingType: bookingType,
-      status: status,
-      createdAt: createdAt,
-      updatedAt: updatedAt,
+      invoiceNumber: invoiceNumber ?? "Unknown", // Nếu Entity yêu cầu non-null thì phải có default value ở đây
+      bookingType: bookingType ?? "SERVICE",
+      status: status ?? "UNKNOWN",
+      createdAt: createdAt ?? "",
+      updatedAt: updatedAt ?? "",
       hotelId: hotelId,
       tourId: tourId,
-      serviceName: serviceName,
+      serviceName: serviceName ?? "Dịch vụ",
       roomTypeName: roomTypeName,
-      roomAmenities: roomAmenities,
-      thumbnailUrl: thumbnailUrl,
-      startDate: startDate,
-      endDate: endDate,
+      roomAmenities: roomAmenities ?? [],
+      thumbnailUrl: thumbnailUrl ?? "", // Entity có thể cần string rỗng thay vì null để đỡ check UI
+      startDate: startDate ?? "",
+      endDate: endDate ?? "",
       nights: nights,
       numberOfPeople: numberOfPeople,
       specialRequests: specialRequests,
       totalPrice: totalPrice,
       discountAmount: discountAmount,
       finalPrice: finalPrice,
-      paymentStatus: paymentStatus,
+      paymentStatus: paymentStatus ?? "UNPAID",
       taxAmount: taxAmount,
-      customerName: customerName,
-      customerPhone: customerPhone,
-      customerEmail: customerEmail,
+      customerName: customerName ?? "Khách hàng",
+      customerPhone: customerPhone ?? "",
+      customerEmail: customerEmail ?? "",
       reviewed: reviewed,
     );
   }

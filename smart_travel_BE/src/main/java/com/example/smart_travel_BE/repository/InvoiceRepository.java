@@ -20,7 +20,6 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
 
     Optional<Invoice> findByBooking_Id(Long bookingId);
 
-    // 1. Giữ nguyên tên method cũ (dùng cho chi tiết đơn)
     @Query("""
         SELECT b FROM Booking b
         LEFT JOIN FETCH b.invoice i
@@ -120,8 +119,8 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     """)
     List<Booking> findTransactionHistory(
             @Param("userId") Long userId,
-            @Param("typeFilter") String typeFilter,      // ALL / TOUR / HOTEL
-            @Param("statusFilter") String statusFilter  // PENDING / ACTIVE / v.v.
+            @Param("typeFilter") String typeFilter,
+            @Param("statusFilter") String statusFilter
     );
 
     @Query("""

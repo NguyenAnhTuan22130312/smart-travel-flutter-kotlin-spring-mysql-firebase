@@ -8,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/admin/vouchers")
@@ -38,8 +40,8 @@ public class AdminVoucherController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteVoucher(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteVoucher(@PathVariable Long id) {
         adminVoucherService.deleteVoucher(id);
-        return ResponseEntity.ok("Xóa Voucher thành công");
+        return ResponseEntity.noContent().build();
     }
 }

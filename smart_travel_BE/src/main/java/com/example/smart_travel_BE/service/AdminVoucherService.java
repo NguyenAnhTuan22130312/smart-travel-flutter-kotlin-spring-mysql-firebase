@@ -66,9 +66,20 @@ public class AdminVoucherService {
 
     @Transactional
     public void deleteVoucher(Long id) {
-        if (!voucherRepository.existsById(id)) {
-            throw new RuntimeException("Không tìm thấy Voucher để xóa");
-        }
-        voucherRepository.deleteById(id);
+        // 1. Tìm voucher
+        Voucher voucher = voucherRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Voucher để xóa"));
+
+        // 2. Kiểm tra xem có nên xóa cứng không (nếu muốn)
+        // Nếu muốn giữ lịch sử, ta chỉ cần tắt kích hoạt:
+        voucher.setIsActive(false);
+
+        // Hoặc nếu bạn có trường 'deleted', hãy set nó là true
+        // voucher.setDeleted(true);
+
+        // 3. Lưu lại thay đổi
+        voucherRepository.save(voucher);
+
+        // KHÔNG GỌI voucherRepository.deleteById(id); NỮA
     }
 }

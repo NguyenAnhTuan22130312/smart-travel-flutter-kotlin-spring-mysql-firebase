@@ -121,7 +121,7 @@ public class PaymentService { // Đây là class, không phải interface
         paymentRepository.save(payment);
 
 
-        booking.setStatus("CONFIRMED");
+        booking.setStatus("ACTIVE");
         booking.setUpdatedAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
@@ -169,7 +169,7 @@ public class PaymentService { // Đây là class, không phải interface
 
         // Cập nhật trạng thái Booking
         Booking booking = payment.getBooking();
-        booking.setStatus("CONFIRMED");
+        booking.setStatus("ACTIVE");
         bookingRepository.save(booking);
 
         // 4. Tạo Invoice (Auto tạo hóa đơn)
