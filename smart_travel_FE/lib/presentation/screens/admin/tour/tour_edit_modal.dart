@@ -51,6 +51,7 @@ class _AdminTourUpdateModalState extends State<AdminTourUpdateModal> {
   late TextEditingController nightsCtrl;
   late TextEditingController maxPeopleCtrl;
   late TextEditingController minPeopleCtrl;
+  late List images;
   bool isActive = true;
 
   // ===== DESCRIPTION =====
@@ -83,6 +84,7 @@ class _AdminTourUpdateModalState extends State<AdminTourUpdateModal> {
     maxPeopleCtrl = TextEditingController(text: t.maxPeople.toString());
     minPeopleCtrl = TextEditingController(text: t.minPeople.toString());
     isActive = t.isActive;
+    images = List.from(widget.tour.images);
 
     // ===== DESCRIPTION =====
     try {
@@ -163,7 +165,7 @@ class _AdminTourUpdateModalState extends State<AdminTourUpdateModal> {
       "isActive": isActive,
 
       // --- QUAN TRỌNG: Gửi lại danh sách ảnh cũ để BE không xóa nhầm ---
-      "images": widget.tour.images.map((img) => {
+      "images": images.map((img) => {
         "id": img.id,
         "imageUrl": img.imageUrl,
         "isPrimary": img.id == selectedPrimaryImageId,
@@ -432,8 +434,7 @@ class _AdminTourUpdateModalState extends State<AdminTourUpdateModal> {
           runSpacing: 12,
           children: [
             // --- ẢNH CŨ (SERVER) ---
-            ...widget.tour.images.map((img) {
-              final isPrimary = img.isPrimary == true;
+            ...images.map((img) {
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -468,7 +469,18 @@ class _AdminTourUpdateModalState extends State<AdminTourUpdateModal> {
                     right: -5,
                     child: InkWell(
                       onTap: () {
-                        _showErrorSnackBar("Tính năng xóa ảnh đang được cập nhật");
+                        if (img.id == selectedPrimaryImageId) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Không thể xoá ảnh đang làm ảnh bìa"),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
+                        setState(() {
+                          images.removeWhere((e) => e.id == img.id);
+                        });
                       },
                       child: Container(padding: const EdgeInsets.all(4), decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle), child: const Icon(Icons.close, size: 14, color: Colors.white)),
                     ),

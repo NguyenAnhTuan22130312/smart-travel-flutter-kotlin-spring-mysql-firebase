@@ -380,9 +380,12 @@ public class TourService {
     @Transactional
     public void deleteTour(Long id) {
         try {
-            tourImageRepository.deleteByTourId(id);
-            tourScheduleRepository.deleteByTourId(id);
-            tourRepository.deleteById(id);
+            Tour tour = tourRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Tour not found"));
+
+            // Thay vì xóa vĩnh viễn, ta chỉ ẩn nó đi
+            tour.setIsActive(false);
+            tourRepository.save(tour);
         } catch (Exception e) {
             throw e;
         }
