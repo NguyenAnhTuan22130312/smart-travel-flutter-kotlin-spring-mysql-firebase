@@ -2,16 +2,16 @@ import 'package:smart_travel/domain/entities/admin_invoice_detail.dart';
 
 class AdminInvoiceDetailModel {
   final int bookingId;
-  final String invoiceNumber;
-  final String status;
-  final String createdAt;
-  final String updatedAt;
+  final String? invoiceNumber; // Cho phép null
+  final String? status;
+  final String? createdAt;
+  final String? updatedAt;
   final int? hotelId;
   final int? tourId;
-  final String serviceName;
+  final String? serviceName;
   final String? roomTypeName;
-  final String startDate;
-  final String endDate;
+  final String? startDate;
+  final String? endDate;
   final int numberOfPeople;
   final int? numberOfRooms;
   final String? specialRequests;
@@ -19,24 +19,24 @@ class AdminInvoiceDetailModel {
   final double totalPrice;
   final double discountAmount;
   final double finalPrice;
-  final String paymentStatus;
+  final String? paymentStatus;
   final double taxAmount;
-  final String customerName;
-  final String customerPhone;
-  final String customerEmail;
+  final String? customerName;
+  final String? customerPhone;
+  final String? customerEmail;
 
   AdminInvoiceDetailModel({
     required this.bookingId,
-    required this.invoiceNumber,
-    required this.status,
-    required this.createdAt,
-    required this.updatedAt,
+    this.invoiceNumber,
+    this.status,
+    this.createdAt,
+    this.updatedAt,
     this.hotelId,
     this.tourId,
-    required this.serviceName,
+    this.serviceName,
     this.roomTypeName,
-    required this.startDate,
-    required this.endDate,
+    this.startDate,
+    this.endDate,
     required this.numberOfPeople,
     this.numberOfRooms,
     this.specialRequests,
@@ -44,54 +44,66 @@ class AdminInvoiceDetailModel {
     required this.totalPrice,
     required this.discountAmount,
     required this.finalPrice,
-    required this.paymentStatus,
+    this.paymentStatus,
     required this.taxAmount,
-    required this.customerName,
-    required this.customerPhone,
-    required this.customerEmail,
+    this.customerName,
+    this.customerPhone,
+    this.customerEmail,
   });
 
   factory AdminInvoiceDetailModel.fromJson(Map<String, dynamic> json) {
     return AdminInvoiceDetailModel(
-      bookingId: json['bookingId'] as int,
-      invoiceNumber: (json['invoiceNumber'] as String?) ?? "Không có mã đơn",
-      status: json['status'] as String,
-      createdAt: json['createdAt'] as String,
-      updatedAt: json['updatedAt'] as String,
+      // int: Dùng as int? ?? 0
+      bookingId: json['bookingId'] as int? ?? 0,
+
+      // String: Dùng as String? (không cần ?? ở đây để giữ nguyên null nếu muốn check ở UI)
+      invoiceNumber: json['invoiceNumber'] as String?,
+      status: json['status'] as String?,
+      createdAt: json['createdAt'] as String?,
+      updatedAt: json['updatedAt'] as String?,
+
       hotelId: json['hotelId'] as int?,
       tourId: json['tourId'] as int?,
-      serviceName: json['serviceName'] as String,
+
+      serviceName: json['serviceName'] as String?,
       roomTypeName: json['roomTypeName'] as String?,
-      startDate: json['startDate'] as String,
-      endDate: json['endDate'] as String,
-      numberOfPeople: json['numberOfPeople'] as int,
+      startDate: json['startDate'] as String?,
+      endDate: json['endDate'] as String?,
+
+      numberOfPeople: json['numberOfPeople'] as int? ?? 1,
       numberOfRooms: json['numberOfRooms'] as int?,
+
       specialRequests: json['specialRequests'] as String?,
       cancellationReason: json['cancellationReason'] as String?,
-      totalPrice: (json['totalPrice'] as num).toDouble(),
-      discountAmount: (json['discountAmount'] as num).toDouble(),
-      finalPrice: (json['finalPrice'] as num).toDouble(),
-      paymentStatus: json['paymentStatus'] as String,
-      taxAmount: (json['taxAmount'] as num).toDouble(),
-      customerName: json['customerName'] as String,
-      customerPhone: json['customerPhone'] as String,
-      customerEmail: json['customerEmail'] as String,
+
+      // Double: Cast an toàn từ num?
+      totalPrice: (json['totalPrice'] as num?)?.toDouble() ?? 0.0,
+      discountAmount: (json['discountAmount'] as num?)?.toDouble() ?? 0.0,
+      finalPrice: (json['finalPrice'] as num?)?.toDouble() ?? 0.0,
+
+      paymentStatus: json['paymentStatus'] as String?,
+      taxAmount: (json['taxAmount'] as num?)?.toDouble() ?? 0.0,
+
+      customerName: json['customerName'] as String?,
+      customerPhone: json['customerPhone'] as String?,
+      customerEmail: json['customerEmail'] as String?,
     );
   }
 
+  // Map sang Entity: Tại đây chúng ta điền giá trị mặc định để Entity (Domain Layer) luôn sạch
   AdminInvoiceDetail toEntity() {
     return AdminInvoiceDetail(
       bookingId: bookingId,
-      invoiceNumber: invoiceNumber,
-      status: status,
-      createdAt: createdAt,
-      updatedAt: updatedAt,
+      invoiceNumber: invoiceNumber ?? "---", // Nếu null thì hiện ---
+      status: status ?? "UNKNOWN",
+      createdAt: createdAt ?? "",
+      updatedAt: updatedAt ?? "",
       hotelId: hotelId,
       tourId: tourId,
-      serviceName: serviceName,
+      serviceName: serviceName ?? "Dịch vụ không tên",
       roomTypeName: roomTypeName,
-      startDate: startDate,
-      endDate: endDate,
+      startDate: startDate ?? "",
+      endDate: endDate ?? "",
       numberOfPeople: numberOfPeople,
       numberOfRooms: numberOfRooms,
       specialRequests: specialRequests,
@@ -99,11 +111,11 @@ class AdminInvoiceDetailModel {
       totalPrice: totalPrice,
       discountAmount: discountAmount,
       finalPrice: finalPrice,
-      paymentStatus: paymentStatus,
+      paymentStatus: paymentStatus ?? "UNPAID",
       taxAmount: taxAmount,
-      customerName: customerName,
-      customerPhone: customerPhone,
-      customerEmail: customerEmail,
+      customerName: customerName ?? "Khách hàng ẩn danh", // Tránh null name
+      customerPhone: customerPhone ?? "",
+      customerEmail: customerEmail ?? "",
     );
   }
 }

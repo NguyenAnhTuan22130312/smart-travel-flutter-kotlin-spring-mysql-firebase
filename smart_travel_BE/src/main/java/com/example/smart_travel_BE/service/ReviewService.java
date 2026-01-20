@@ -201,7 +201,7 @@ public class ReviewService {
                 .rating(request.getRating())
                 .comment(request.getComment())
                 .destination(destination)
-                .isApproved(false)
+                .isApproved(true)
                 .likesCount(0)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())

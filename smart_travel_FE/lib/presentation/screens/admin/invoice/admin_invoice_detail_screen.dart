@@ -450,7 +450,7 @@ class AdminInvoiceDetailScreen extends StatelessWidget {
 
                       final confirm = await _confirm(
                         "Check-in",
-                        "Check-in $selectedRooms phòng cho khách?",
+                        "Check-in phòng $selectedRooms cho khách?",
                       );
                       if (!confirm) return;
 
