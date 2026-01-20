@@ -40,7 +40,7 @@ jwt:
 
 gemini:
   api:
-    key: AIzaSyByhyquvR8fcPDcXfRmDeGXQZdJo39-9Wg
+    key: AIzaSyDnpMZ-DHrqwnT1NUoapupybriEh8KSiZc
 
 huggingface:
   api:
