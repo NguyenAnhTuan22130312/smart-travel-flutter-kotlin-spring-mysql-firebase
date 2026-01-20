@@ -25,7 +25,7 @@ class MyInvoicesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         extendBody: false, // ← Thêm dòng này (kéo body lên phía sau status bar)
-        backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light.copyWith(
           statusBarColor: Colors.transparent,
@@ -33,7 +33,7 @@ class MyInvoicesScreen extends StatelessWidget {
         ),
         child: Column(
           children: [
-            CustomAppBar(titleKey: 'my_invoices'),
+            CustomAppBar(titleKey: 'my_invoices', ),
 
             // THANH SEARCH CÓ ĐỔ BÓNG ĐẸP
             Container(

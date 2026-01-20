@@ -39,13 +39,17 @@ class CustomAppBar extends StatelessWidget {
     final String title = titleMap[titleKey] ?? titleKey;
 
     return Container(
-      color: AppColors.primary,
+
+      decoration: BoxDecoration(
+        gradient: AppColors.mainGradient,
+      ),
       padding: EdgeInsets.fromLTRB(
         16,
         MediaQuery.of(context).padding.top + 10,
         16,
         16,
       ),
+
       child: centerTitle
           ? _buildCenterTitle(context, title)
           : _buildLeadingTitle(context, title),
@@ -114,7 +118,7 @@ class CustomAppBar extends StatelessWidget {
 
   static const _titleStyle = TextStyle(
     color: Colors.white,
-    fontSize: 18,
+    fontSize: 21,
     fontWeight: FontWeight.w600,
   );
 

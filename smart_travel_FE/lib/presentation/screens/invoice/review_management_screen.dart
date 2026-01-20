@@ -19,7 +19,7 @@ class ReviewManagementScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light.copyWith(
           statusBarColor: Colors.transparent,
@@ -29,7 +29,9 @@ class ReviewManagementScreen extends StatelessWidget {
           children: [
             // HEADER XANH
             Container(
-              color: AppColors.primary,
+              decoration: BoxDecoration(
+                gradient: AppColors.mainGradient,
+              ),
               padding: EdgeInsets.fromLTRB(
                 10,
                 MediaQuery.of(context).padding.top + 5,

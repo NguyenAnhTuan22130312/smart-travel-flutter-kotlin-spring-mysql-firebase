@@ -41,7 +41,7 @@ class _ComparisonSelectionSheetState extends State<ComparisonSelectionSheet> wit
     return BlocProvider(
       create: (context) => di.sl<ComparisonBloc>()..add(LoadTourSelectionList()),
 
-      // 2. 🔥 QUAN TRỌNG: Dùng Builder để tạo context mới
+      // 2. QUAN TRỌNG: Dùng Builder để tạo context mới
       child: Builder(
           builder: (context) {
             // Từ đây trở xuống, biến 'context' này đã nhìn thấy ComparisonBloc
@@ -62,7 +62,7 @@ class _ComparisonSelectionSheetState extends State<ComparisonSelectionSheet> wit
                     unselectedLabelColor: Colors.grey,
                     indicatorColor: AppColors.primary,
                     onTap: (index) {
-                      // 🔥 Sửa lỗi ở đây: context này bây giờ đã hợp lệ
+                      // Sửa lỗi ở đây: context này bây giờ đã hợp lệ
                       final bloc = context.read<ComparisonBloc>();
                       if (index == 0) bloc.add(LoadTourSelectionList());
                       else bloc.add(LoadHotelSelectionList());
