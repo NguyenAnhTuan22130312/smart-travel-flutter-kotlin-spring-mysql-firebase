@@ -252,42 +252,12 @@ class _AdminTourManagementScreenState
             Navigator.pop(context); // chỉ pop bottom sheet
             _deleteFromDetail = false;
           }
-          showNiceSnackBar(context, 'Đã xoá tour thành công');
-          context.read<AdminTourBloc>().add(const LoadAdminTours(page: 0));
-        }
-
-        if (state is AdminTourDeleteError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
-        }
-
-        if (state is AdminTourError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
-        }
-      },
-      builder: (context, state) {
-        if (state is AdminTourLoading ||
-            state is AdminTourDeleteLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (state is AdminTourLoaded) {
-          final tours = state.tours.where((t) {
-            final matchSearch = t.name
-                .toLowerCase()
-                .contains(_searchController.text.toLowerCase());
-            final matchStatus =
-                _statusFilter == 'all' ||
-                    (_statusFilter == 'active' && t.isActive) ||
-                    (_statusFilter == 'inactive' && !t.isActive);
-            return matchSearch && matchStatus;
-          }).toList();
-
-          if (tours.isEmpty && state.currentPage == 0) {
-            return const Center(child: Text('Không có tour'));
+        },
+        builder: (context, state) {
+          if (state is AdminTourLoading ||
+              state is AdminTourDeleteLoading ||
+              state is AdminTourDeleteSuccess) {
+            return const Center(child: CircularProgressIndicator());
           }
 
           return Column(
@@ -331,32 +301,30 @@ class _AdminTourManagementScreenState
           );
         }
 
-        return const SizedBox();
-      },
-    );
-  }
+          if (state is AdminTourError || state is AdminTourDeleteError) {
+            String msg = "Đã có lỗi xảy ra";
+            if(state is AdminTourError) msg = state.message;
+            if(state is AdminTourDeleteError) msg = state.message;
 
-  // ============================ CARD ============================
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                  const SizedBox(height: 12),
+                  Text(msg, textAlign: TextAlign.center, style: const TextStyle(color: Colors.red)),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.refresh),
+                    label: const Text("Tải lại danh sách"),
+                    onPressed: () => context.read<AdminTourBloc>().add(const LoadAdminTours(page: 0)),
+                  )
+                ],
+              ),
+            );
+          }
 
-  Widget _buildTourCard(AdminTourModel tourModel) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: () {
-          context.read<AdminTourDetailBloc>().add(LoadAdminTourDetail(tourModel.id));
-          _openTourDetail();
+          return const SizedBox();
         },
         child: Padding(
           padding: const EdgeInsets.all(12.0),
@@ -810,85 +778,17 @@ class _AdminTourManagementScreenState
               '$label:',
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
-          ),
-          Expanded(child: Text(value)),
-        ],
-      ),
-    );
-  }
-
-  void _confirmDeleteTour({
-    required BuildContext context,
-    required int tourId,
-    required String tourName,
-  }) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Xoá tour'),
-        content: Text('Bạn có chắc muốn xoá "$tourName"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Huỷ'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () {
-              // 1. Lấy reference của Bloc trước khi đóng Dialog
-              final tourBloc = context.read<AdminTourBloc>();
-              // 2. Đóng dialog
-              Navigator.pop(context);// đóng dialog
-              // 3. Gọi event xóa
-              tourBloc.add(DeleteAdminTour(tourId));
-            },
-            child: const Text('Xoá'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPagination(int currentPage, int totalPages) {
-    if (totalPages <= 1) return const SizedBox.shrink();
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 24, top: 12),
-      height: 50,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 20,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _pageNavButton(
-            icon: Icons.chevron_left_rounded,
-            isEnabled: currentPage > 0,
-            onTap: () => context.read<AdminTourBloc>().add(LoadAdminTours(page: currentPage - 1)),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text.rich(
-              TextSpan(
-                style: const TextStyle(color: Color(0xFF2D3E50), fontSize: 14),
-                children: [
-                  const TextSpan(text: "Trang "),
-                  TextSpan(
-                    text: "${currentPage + 1}",
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent),
-                  ),
-                  TextSpan(text: " / $totalPages"),
-                ],
-              ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () {
+                // 1. Lấy reference của Bloc trước khi đóng Dialog
+                final tourBloc = context.read<AdminTourBloc>();
+                // 2. Đóng dialog
+                Navigator.pop(context);// đóng dialog
+                // 3. Gọi event xóa
+                tourBloc.add(DeleteAdminTour(tourId));
+              },
+              child: const Text('Xoá'),
             ),
           ),
           _pageNavButton(

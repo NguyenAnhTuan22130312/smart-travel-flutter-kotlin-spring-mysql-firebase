@@ -68,8 +68,7 @@ class AdminTourBloc extends Bloc<AdminTourEvent, AdminTourState> {
 
       emit(AdminTourDeleteSuccess());
 
-      final tours = await getAdminTours();
-      emit(AdminTourLoaded(tours));
+      add(const LoadAdminTours(page: 0));
     } catch (e) {
       emit(AdminTourDeleteError(e.toString()));
     }
