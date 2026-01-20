@@ -290,8 +290,8 @@ public class InvoiceService {
     }
 
     public List<ActiveInvoiceResponse> getTransactionHistory(
-            String typeFilter,     // "ALL", "TOUR", "HOTEL"
-            String statusFilter) { // "PENDING", "ACTIVE", ...
+            String typeFilter,
+            String statusFilter) {
 
         User curUser = getCurrentUser();
 

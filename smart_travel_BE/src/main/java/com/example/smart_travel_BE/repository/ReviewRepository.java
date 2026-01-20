@@ -23,9 +23,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             @Param("userId") Long userId,
             @Param("destinationId") Long destinationId);
 
-    // src/main/java/com/example/smart_travel_BE/repository/ReviewRepository.java
-
-// ... các method cũ
 
     // API 1: Lấy đánh giá Hotel
     @Query("""

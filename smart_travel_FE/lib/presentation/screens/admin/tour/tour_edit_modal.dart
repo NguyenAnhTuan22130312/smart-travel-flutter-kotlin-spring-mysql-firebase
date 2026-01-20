@@ -26,6 +26,7 @@ class AdminTourUpdateModal extends StatefulWidget {
 
 class _AdminTourUpdateModalState extends State<AdminTourUpdateModal> {
   final _formKey = GlobalKey<FormState>();
+  int? selectedPrimaryImageId;
 
   // Colors & Styles
   final Color primaryColor = const Color(0xFF0066CC); // Màu chủ đạo (Xanh dương)
@@ -69,6 +70,11 @@ class _AdminTourUpdateModalState extends State<AdminTourUpdateModal> {
   void initState() {
     super.initState();
     final t = widget.tour;
+    selectedPrimaryImageId =
+        widget.tour.images.firstWhere(
+              (e) => e.isPrimary == true,
+          orElse: () => widget.tour.images.first,
+        ).id;
 
     nameCtrl = TextEditingController(text: t.name);
     priceCtrl = TextEditingController(text: t.pricePerPerson.toString());
@@ -160,7 +166,7 @@ class _AdminTourUpdateModalState extends State<AdminTourUpdateModal> {
       "images": widget.tour.images.map((img) => {
         "id": img.id,
         "imageUrl": img.imageUrl,
-        "isPrimary": img.isPrimary,
+        "isPrimary": img.id == selectedPrimaryImageId,
         "displayOrder": img.displayOrder,
       }).toList(),
 
@@ -337,7 +343,7 @@ class _AdminTourUpdateModalState extends State<AdminTourUpdateModal> {
                           ),
                           child: loading
                               ? const CircularProgressIndicator(color: Colors.white)
-                              : const Text('CẬP NHẬT TOÀN BỘ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                              : const Text('CẬP NHẬT', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                         ),
                       );
                     },
@@ -433,19 +439,29 @@ class _AdminTourUpdateModalState extends State<AdminTourUpdateModal> {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      _showErrorSnackBar("Vui lòng chọn ảnh chính trong danh sách chi tiết");
+                      setState(() {
+                        selectedPrimaryImageId = img.id;
+                      });
                     },
                     child: Container(
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
-                        border: isPrimary ? Border.all(color: Colors.green, width: 3) : Border.all(color: Colors.grey[300]!),
-                        image: DecorationImage(image: NetworkImage(img.imageUrl), fit: BoxFit.cover),
+                        border: Border.all(
+                          color: selectedPrimaryImageId == img.id
+                              ? Colors.green
+                              : Colors.grey[300]!,
+                          width: selectedPrimaryImageId == img.id ? 3 : 1,
+                        ),
+                        image: DecorationImage(
+                          image: NetworkImage(img.imageUrl),
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                   ),
-                  if (isPrimary)
+                  if (selectedPrimaryImageId == img.id)
                     Positioned(bottom: 0, left: 0, right: 0, child: Container(color: Colors.green, padding: const EdgeInsets.all(2), child: const Text('ẢNH BÌA', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
                   Positioned(
                     top: -5,
