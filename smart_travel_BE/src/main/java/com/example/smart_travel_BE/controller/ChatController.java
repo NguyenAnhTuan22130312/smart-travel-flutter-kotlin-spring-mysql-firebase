@@ -22,7 +22,7 @@ public class ChatController {
     @PostMapping
     public ResponseEntity<ChatResponse> askAI(@RequestBody ChatRequest request) {
         // Lấy message từ object ChatRequest
-        String reply = chatService.sendMessage(request.getMessage());
+        String reply = geminiChatService.sendMessage(request.getMessage());
 
         // Trả về object ChatResponse chuẩn JSON
         return ResponseEntity.ok(new ChatResponse(reply));

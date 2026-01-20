@@ -144,7 +144,7 @@ public class MoMoService {
 
         // 4. Cập nhật Booking
         Booking booking = payment.getBooking();
-        booking.setStatus("CONFIRMED");
+        booking.setStatus("ACTIVE");
         bookingRepository.save(booking);
 
         // 5. TẠO INVOICE (Đây là cái bạn đang cần)
