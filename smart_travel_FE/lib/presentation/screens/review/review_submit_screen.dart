@@ -50,8 +50,9 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Đánh giá trải nghiệm"),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.mainGradient),
+        ),
       ),
       body: BlocProvider(
         create: (_) => di.sl<SubmitReviewBloc>(),

@@ -14,8 +14,8 @@ dependencies:
   dio_cookie_manager: ^2.0.0
   cookie_jar: ^3.0.1
   path_provider: ^2.1.0   # để lưu cookie vào bộ nhớ thiết bị
-  flutter_tts: ^4.2.2        # Nâng lên bản này để khớp với intl 0.19.0 và Flutter 3.7
-  confetti: ^0.8.0           # Nâng lên bản này để tương thích tốt hơn
+  flutter_tts: ^4.2.2 #Đọc nội dung bằng giọng nói
+  confetti: ^0.8.0           # Hiệu ứng pháo giấy
   flutter:
     sdk: flutter
 
@@ -33,21 +33,21 @@ dependencies:
   # Functional Programming
   dartz: ^0.10.1
 
-  shared_preferences: ^2.2.3
+  shared_preferences: ^2.2.3 #Lưu dữ liệu nhẹ
 
   # Security
-  flutter_secure_storage: ^9.0.0
+  flutter_secure_storage: ^9.0.0 #Lưu dữ liệu bảo mật
 
   # UI
-  awesome_snackbar_content: ^0.1.3
+  awesome_snackbar_content: ^0.1.3 #Snackbar có icon & animation
   lottie: ^2.6.0
   cupertino_icons: ^1.0.8
-  intl: ^0.19.0
-  webview_flutter: ^4.13.0
+  intl: ^0.19.0 #Đa ngôn ngữ
+  webview_flutter: ^4.13.0 #Hiển thị website trong app
 
-  flutter_quill: ^10.7.0
+  flutter_quill: ^10.7.0 #Rich Text Editor
   # Để chuyển đổi dữ liệu sang HTML gửi lên server
-  vsc_quill_delta_to_html: ^1.0.0
+  vsc_quill_delta_to_html: ^1.0.0 #Chuyển Quill thành HTML
 
   # Firebase
   firebase_auth: ^4.17.8
@@ -57,14 +57,14 @@ dependencies:
   flutter_facebook_auth: ^6.0.3
 
   # Image Picker for Avatar Upload
-  image_picker: ^1.0.7
+  image_picker: ^1.0.7 #image_picker
   #logo
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.13.1 #Tạo icon app cho Android & iOS
 
 
   # Maps & Location
-  google_maps_flutter: ^2.7.0
-  url_launcher: ^6.2.1
+  google_maps_flutter: ^2.7.0 #Hiển thị Google Map
+  url_launcher: ^6.2.1  #Mở: Trình duyệt Google Maps
   flutter_localizations:
     sdk: flutter
 
@@ -73,8 +73,8 @@ dependencies:
   flutter_markdown: ^0.6.14
 
 
-  fl_chart: ^0.68.0
-  flutter_screenutil: ^5.9.0
+  fl_chart: ^0.68.0 #Vẽ biểu đồ
+  flutter_screenutil: ^5.9.0 #Responsive UI
   google_fonts: ^6.1.0
   material_design_icons_flutter: ^7.0.7296
 
