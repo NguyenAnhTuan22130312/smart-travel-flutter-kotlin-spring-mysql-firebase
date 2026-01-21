@@ -4,11 +4,10 @@ import '../../../data/models/ai/ai_destination_response.dart'; // Import model
 
 class ChatRepository {
   final Dio _dio;
-  final String baseUrl = "http://10.0.2.2:8080"; // Hoặc IP LAN
+  final String baseUrl = "http://27.68.111.184:8080"; // Hoặc IP LAN
 
   ChatRepository(this._dio);
 
-  /// SỬA LẠI: Trả về Map chứa message và recommendations
   Future<Map<String, dynamic>> sendMessage(String message) async {
     try {
       final response = await _dio.post(

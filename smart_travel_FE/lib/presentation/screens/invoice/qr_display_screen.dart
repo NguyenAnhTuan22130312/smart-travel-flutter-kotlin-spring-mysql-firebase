@@ -19,7 +19,9 @@ class QRDisplayScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: AppColors.primary,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.mainGradient),
+        ),
         foregroundColor: Colors.white,
         title: const Text("Phiếu thanh toán QR"),
         leading: IconButton(

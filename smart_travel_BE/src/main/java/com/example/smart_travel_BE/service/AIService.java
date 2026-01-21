@@ -71,7 +71,6 @@ public class AIService {
             if (aiResult != null && aiResult.containsKey("type")) {
                 String aiType = (String) aiResult.get("type"); // Ví dụ: BEACH
 
-                // 🔥 2. DỊCH TỪ KHÓA: Tiếng Anh -> Tiếng Việt
                 String dbCategory = CATEGORY_MAP.getOrDefault(aiType, aiType);
 
                 System.out.println("AI tìm thấy: " + aiType + " -> Đang tìm trong DB category: " + dbCategory);
