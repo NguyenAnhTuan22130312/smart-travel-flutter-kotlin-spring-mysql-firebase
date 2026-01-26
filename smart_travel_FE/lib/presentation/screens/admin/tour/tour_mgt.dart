@@ -81,8 +81,7 @@ class _AdminTourManagementScreenState
     context.read<AdminTourBloc>().add(LoadAdminTours());
   }
 
-  // ⭐ 1. Kiểm tra User có phải là Admin Tour không
-  // Bạn hãy thay đổi chuỗi "ADMINTOUR" thành role thực tế trong DB của bạn
+  // 1. Kiểm tra User có phải là Admin Tour không
   bool _isStrictTourAdmin() {
     final authState = context.read<AuthBloc>().state;
     String? role;
