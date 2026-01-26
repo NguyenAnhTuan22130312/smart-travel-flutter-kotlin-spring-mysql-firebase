@@ -8,7 +8,6 @@ import 'package:smart_travel/presentation/screens/tour/tour_detail_screen.dart';
 import 'package:smart_travel/presentation/widgets/tour/tour_card.dart';
 import 'package:smart_travel/presentation/widgets/tour/tour_sort_button.dart';
 import 'package:smart_travel/presentation/widgets/tour/tour_filter_button.dart';
-// 1. IMPORT CÁC THÀNH PHẦN GIỐNG HOTEL
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
 import 'package:smart_travel/router/route_names.dart';
 import '../../theme/app_colors.dart';
@@ -63,7 +62,7 @@ class _TourListScreenState extends State<TourListScreen> {
     context.read<TourBloc>().add(LoadToursEvent(params));
   }
 
-  // 2. HÀM ĐIỀU HƯỚNG BOTTOM MENU (GIỐNG HOTEL)
+  // 2. HÀM ĐIỀU HƯỚNG BOTTOM MENU 
   void _onNavItemTapped(int index) {
     if (index == _selectedIndex) return;
     switch (index) {
@@ -74,7 +73,7 @@ class _TourListScreenState extends State<TourListScreen> {
     }
   }
 
-  // 3. UI PHÂN TRANG (GIỐNG HOTEL)
+  // 3. UI PHÂN TRANG 
   Widget _buildPaginationControls(int currentPage, int totalPages) {
     if (totalPages <= 1) return const SizedBox.shrink();
 
@@ -191,7 +190,6 @@ class _TourListScreenState extends State<TourListScreen> {
     );
   }
 
-  // TỔ CHỨC LẠI HEADER CHO GIỐNG HOTEL
   Widget _buildTopBar() {
     return Container(
       padding: const EdgeInsets.all(16),
