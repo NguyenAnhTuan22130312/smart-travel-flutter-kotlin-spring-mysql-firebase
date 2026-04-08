@@ -282,8 +282,8 @@ class _AdminTourUpdateModalState extends State<AdminTourUpdateModal> {
                     child: Column(
                       children: [
                         QuillSimpleToolbar(
-                          controller: quillCtrl,
-                          configurations: const QuillSimpleToolbarConfigurations(
+                          configurations:  QuillSimpleToolbarConfigurations(
+                            controller: quillCtrl,
                             showFontFamily: false,
                             showFontSize: false,
                           ),
@@ -296,8 +296,8 @@ class _AdminTourUpdateModalState extends State<AdminTourUpdateModal> {
                             color: Colors.white,
                           ),
                           child: QuillEditor.basic(
-                            controller: quillCtrl,
-                            configurations: const QuillEditorConfigurations(
+                            configurations:  QuillEditorConfigurations(
+                              controller: quillCtrl,
                               padding: EdgeInsets.all(12),
                             ),
                           ),

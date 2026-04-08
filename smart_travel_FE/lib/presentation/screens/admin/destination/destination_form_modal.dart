@@ -476,10 +476,8 @@ class _DestinationFormModalState extends State<DestinationFormModal> {
   }
 
   Widget _buildProvinceDropdown() {
-    // Demo: Bạn cần dùng BlocBuilder để lấy list province thật
     return BlocConsumer<ProvinceBloc, ProvinceState>(
-      listener: (context, state) {
-      },
+      listener: (context, state) {},
       builder: (context, state) {
         if (state is ProvinceLoading) {
           return const Center(
@@ -487,33 +485,67 @@ class _DestinationFormModalState extends State<DestinationFormModal> {
           );
         }
         if (state is ProvinceLoaded) {
-          final provinces = state.province; // <-- danh sách ProvinceEntity
+          final provinces = state.province;
+
+          // DEBUG: In ra để kiểm tra dữ liệu
+          print("=== Province Data Debug ===");
+          for (var p in provinces) {
+            print("ID: ${p.id}, Name: ${p.name}");
+          }
+
+          // Lọc bỏ các province có id null
+          final validProvinces = provinces.where((p) => p.id != null).toList();
+
+          // Sử dụng Map để loại bỏ trùng lặp theo id
+          final uniqueProvincesMap = <int, dynamic>{};
+          for (var p in validProvinces) {
+            if (!uniqueProvincesMap.containsKey(p.id)) {
+              uniqueProvincesMap[p.id] = p;
+            }
+          }
+
+          // Chuyển Map thành List
+          final uniqueProvinces = uniqueProvincesMap.values.toList();
+
+          print("Original count: ${provinces.length}");
+          print("Unique count: ${uniqueProvinces.length}");
+
+          // Kiểm tra xem _selectedProvinceId có tồn tại trong danh sách không
+          bool isValidValue = uniqueProvinces.any((p) => p.id == _selectedProvinceId);
+
+          // Nếu _selectedProvinceId không hợp lệ, đặt lại thành null
+          if (_selectedProvinceId != null && !isValidValue) {
+            print("Warning: _selectedProvinceId $_selectedProvinceId not found in unique provinces");
+            // Có thể set lại sau
+          }
+
           return DropdownButtonFormField<int>(
             isExpanded: true,
-            value: _selectedProvinceId,
+            value: isValidValue ? _selectedProvinceId : null,
+            hint: const Text("Chọn tỉnh thành"),
             decoration: InputDecoration(
               labelText: "Tỉnh thành *",
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-
-            items:
-                provinces.map((p) {
-                  return DropdownMenuItem<int>(
-                    value: p.id,
-                    child: Text(p.name),
-                  );
-                }).toList(),
-
+            items: uniqueProvinces.map((p) {
+              return DropdownMenuItem<int>(
+                value: p.id,
+                child: Text(p.name ?? 'Không có tên'),
+              );
+            }).toList(),
             onChanged: (v) {
               setState(() {
                 _selectedProvinceId = v;
+                print("Selected province ID: $v");
               });
             },
           );
         }
-
+        if (state is ProvinceError) {
+          return Text("Lỗi: ${state.message}");
+        }
         return const Text("Không thể tải tỉnh thành");
       },
     );
@@ -633,8 +665,8 @@ class _DestinationFormModalState extends State<DestinationFormModal> {
       child: Column(
         children: [
           QuillSimpleToolbar(
-            controller: _quillCtrl,
-            configurations: const QuillSimpleToolbarConfigurations(
+            configurations: QuillSimpleToolbarConfigurations(
+              controller: _quillCtrl,
               showFontFamily: false,
               showSearchButton: false,
               showInlineCode: false,
@@ -644,8 +676,9 @@ class _DestinationFormModalState extends State<DestinationFormModal> {
           SizedBox(
             height: 200,
             child: QuillEditor.basic(
-              controller: _quillCtrl,
-              configurations: const QuillEditorConfigurations(
+              configurations:  QuillEditorConfigurations(
+                controller: _quillCtrl,
+
                 padding: EdgeInsets.all(12),
                 placeholder: 'Nhập mô tả...',
               ),

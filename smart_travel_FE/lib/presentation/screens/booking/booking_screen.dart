@@ -251,7 +251,7 @@ class _BookingScreenState extends State<BookingScreen> {
       create: (context) => di.sl<BookingBloc>(),
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.args.bookingType == 'TOUR' ? 'Đặt Tour' : 'Đặt Khách sạn'),
+          title: Text(widget.args.bookingType == 'TOUR' ? 'Đặt Tour' : 'Đặt Homestay'),
           backgroundColor: AppColors.background,
           elevation: 0,
           foregroundColor: AppColors.textGray,

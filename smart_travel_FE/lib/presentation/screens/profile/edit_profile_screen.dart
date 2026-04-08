@@ -116,6 +116,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Chỉnh sửa hồ sơ'),
         flexibleSpace: Container(
@@ -129,7 +130,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             final snackBar = SnackBar(
               elevation: 0,
               behavior: SnackBarBehavior.floating,
-              backgroundColor: Colors.transparent,
+              backgroundColor: AppColors.background,
               content: AwesomeSnackbarContent(
                 title: 'Thành công',
                 message: state.message,

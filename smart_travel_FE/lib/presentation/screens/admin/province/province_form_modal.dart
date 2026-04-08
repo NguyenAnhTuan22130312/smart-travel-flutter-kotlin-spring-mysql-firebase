@@ -367,17 +367,14 @@ class _ProvinceFormModalState extends State<ProvinceFormModal> {
             children: [
               // THANH CÔNG CỤ (Toolbar)
               QuillSimpleToolbar(
-                controller: _quillController,
-                configurations: const QuillSimpleToolbarConfigurations(
+                configurations:  QuillSimpleToolbarConfigurations(
+                  controller: _quillController,
                   showFontFamily: false, // Tắt bớt mấy cái không cần
                   showSearchButton: false,
                   showInlineCode: false,
                   showAlignmentButtons: false,
                   showDividers: false,
                   showQuote: false,
-                  showClipboardCut: false,
-                  showClipboardCopy: false,
-                  showClipboardPaste: false,
                   showIndent: false,
                 ),
               ),
@@ -387,8 +384,8 @@ class _ProvinceFormModalState extends State<ProvinceFormModal> {
               SizedBox(
                 height: 200, // Cần set chiều cao cố định hoặc dùng Expanded nếu cha cho phép
                 child: QuillEditor.basic(
-                  controller: _quillController,
-                  configurations: const QuillEditorConfigurations(
+                  configurations:  QuillEditorConfigurations(
+                    controller: _quillController,
                     padding: EdgeInsets.all(16),
                     placeholder: 'Nhập mô tả bài viết, chèn ảnh...',
                   ),

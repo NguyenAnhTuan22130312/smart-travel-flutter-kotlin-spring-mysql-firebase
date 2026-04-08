@@ -328,7 +328,6 @@ class _ProvinceDetailScreenState extends State<ProvinceDetailScreen> {
         readOnlyController = QuillController(
           document: Document.fromJson(jsonDesc),
           selection: const TextSelection.collapsed(offset: 0),
-          readOnly: true, //chỉ đọc
         );
       } else {
         // Nếu null hoặc rỗng
@@ -339,7 +338,6 @@ class _ProvinceDetailScreenState extends State<ProvinceDetailScreen> {
       readOnlyController = QuillController(
         document: Document()..insert(0, _province!.description ?? ''),
         selection: const TextSelection.collapsed(offset: 0),
-        readOnly: true,
       );
     }
     return SliverToBoxAdapter(
@@ -370,8 +368,8 @@ class _ProvinceDetailScreenState extends State<ProvinceDetailScreen> {
                 ],
               ),
               child: QuillEditor.basic(
-                controller: readOnlyController, // Controller đã tạo ở trên
-                configurations: const QuillEditorConfigurations(
+                configurations:  QuillEditorConfigurations(
+                  controller: readOnlyController, // Controller đã tạo ở trên
                   // Cấu hình hiển thị
                   showCursor: false,     // Ẩn con trỏ
                   enableInteractiveSelection: false, // Tắt chọn text (tuỳ chọn)

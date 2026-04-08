@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_travel/l10n/app_localizations.dart';
 import 'package:smart_travel/presentation/blocs/banner/banner_bloc.dart';
 import 'package:smart_travel/presentation/blocs/banner/banner_event.dart';
 import 'package:smart_travel/presentation/blocs/banner/banner_state.dart';
@@ -22,7 +23,6 @@ import 'package:smart_travel/presentation/screens/tour/tour_list_screen.dart';
 import 'package:smart_travel/presentation/screens/booking/booking_args.dart';
 import 'package:smart_travel/router/route_names.dart';
 import '../../theme/app_colors.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:smart_travel/presentation/screens/chat/ai_chat_screen.dart';
 import 'package:smart_travel/router/route_names.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
@@ -98,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: AppColors.background,
       body: RefreshableScrollView(
         slivers: [
           _buildAppBar(),

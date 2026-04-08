@@ -55,16 +55,14 @@ class _DestinationManagementScreenState extends State<DestinationManagementScree
         readOnlyController = QuillController(
           document: Document.fromJson(jsonDesc),
           selection: const TextSelection.collapsed(offset: 0),
-          readOnly: true,
         );
       } else {
-        readOnlyController = QuillController.basic()..readOnly = true;
+        readOnlyController = QuillController.basic();
       }
     } catch (e) {
       readOnlyController = QuillController(
         document: Document()..insert(0, destination.description ?? ''),
         selection: const TextSelection.collapsed(offset: 0),
-        readOnly: true,
       );
     }
 
@@ -154,11 +152,13 @@ class _DestinationManagementScreenState extends State<DestinationManagementScree
                     const Text("Mô tả:", style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     QuillEditor.basic(
-                      controller: readOnlyController,
-                      configurations: const QuillEditorConfigurations(
+                      configurations: QuillEditorConfigurations(
+                        controller: readOnlyController,
                         showCursor: false,
                         enableInteractiveSelection: false,
-                        sharedConfigurations: QuillSharedConfigurations(locale: Locale('vi')),
+                        sharedConfigurations: const QuillSharedConfigurations(
+                          locale: Locale('vi'),
+                        ),
                       ),
                     ),
 

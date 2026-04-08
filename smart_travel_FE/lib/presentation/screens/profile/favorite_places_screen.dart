@@ -20,7 +20,7 @@ class FavoritePlacesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: AppColors.background,
       body: BlocBuilder<FavoriteBloc, FavoriteState>(
         builder: (context, state) {
           final favorites = state.favoriteItems; // Lấy danh sách từ Bloc

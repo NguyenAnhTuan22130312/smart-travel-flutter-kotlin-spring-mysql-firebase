@@ -24,8 +24,8 @@ import 'package:smart_travel/presentation/blocs/tour/tour_detail_bloc.dart';
 import 'package:smart_travel/presentation/blocs/tour/tour_bloc.dart';
 import 'dart:convert';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'injection_container.dart' as di;
+import 'l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

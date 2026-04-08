@@ -61,7 +61,6 @@ class _ProvinceManagementScreenState extends State<ProvinceManagementScreen> {
         readOnlyController = QuillController(
           document: Document.fromJson(jsonDesc),
           selection: const TextSelection.collapsed(offset: 0),
-          readOnly: true, //chỉ đọc
         );
       } else {
         // Nếu null hoặc rỗng
@@ -72,7 +71,6 @@ class _ProvinceManagementScreenState extends State<ProvinceManagementScreen> {
       readOnlyController = QuillController(
         document: Document()..insert(0, province.description ?? ''),
         selection: const TextSelection.collapsed(offset: 0),
-        readOnly: true,
       );
     }
     showDialog(
@@ -164,8 +162,8 @@ class _ProvinceManagementScreenState extends State<ProvinceManagementScreen> {
                   const SizedBox(height: 4),
                   // --- TRÌNH HIỂN THỊ QUILL
                   QuillEditor.basic(
-                    controller: readOnlyController, // Controller đã tạo ở trên
-                    configurations: const QuillEditorConfigurations(
+                    configurations:  QuillEditorConfigurations(
+                      controller: readOnlyController, // Controller đã tạo ở trên
                       // Cấu hình hiển thị
                       showCursor: false,     // Ẩn con trỏ
                       enableInteractiveSelection: false, // Tắt chọn text (tuỳ chọn)

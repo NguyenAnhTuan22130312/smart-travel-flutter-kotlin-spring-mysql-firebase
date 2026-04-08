@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_travel/l10n/app_localizations.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class AccountManagementScreen extends StatelessWidget {
   const AccountManagementScreen({Key? key}) : super(key: key);
