@@ -3,11 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/presentation/blocs/favorite/favorite_bloc.dart';
 import '../../theme/app_colors.dart';
 import 'package:smart_travel/l10n/app_localizations.dart';
+import 'package:smart_travel/domain/entities/favorite_place.dart';
 
 class FavoritePlacesScreen extends StatelessWidget {
   const FavoritePlacesScreen({Key? key}) : super(key: key);
 
-  void _deletePlace(BuildContext context, String id) {
+  void _deletePlace(BuildContext context, int id) {
     context.read<FavoriteBloc>().add(RemoveFromFavorite(id));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -89,7 +90,7 @@ class FavoritePlacesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildModernCard(BuildContext context, Map<String, dynamic> item) {
+  Widget _buildModernCard(BuildContext context, FavoritePlace item) {
     return Container(
       margin: const EdgeInsets.only(top: 16),
       decoration: BoxDecoration(
@@ -113,9 +114,9 @@ class FavoritePlacesScreen extends StatelessWidget {
                   top: Radius.circular(24),
                 ),
                 child:
-                    item['image'].toString().startsWith('http')
+                    item.image.startsWith('http')
                         ? Image.network(
-                          item['image'],
+                          item.image,
                           height: 180,
                           width: double.infinity,
                           fit: BoxFit.cover,
@@ -131,7 +132,7 @@ class FavoritePlacesScreen extends StatelessWidget {
                 top: 12,
                 right: 12,
                 child: GestureDetector(
-                  onTap: () => _showDeleteConfirmation(context, item['id']),
+                  onTap: () => _showDeleteConfirmation(context, item.id),
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
@@ -159,7 +160,7 @@ class FavoritePlacesScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    item['category'].toUpperCase(),
+                    item.category.toUpperCase(),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 10,
@@ -177,7 +178,7 @@ class FavoritePlacesScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item['name'],
+                  item.name,
                   style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
@@ -197,7 +198,7 @@ class FavoritePlacesScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      item['location'],
+                      item.location,
                       style: TextStyle(color: Colors.grey[600], fontSize: 13),
                     ),
                     const Spacer(),
@@ -207,7 +208,7 @@ class FavoritePlacesScreen extends StatelessWidget {
                       size: 18,
                     ),
                     Text(
-                      " ${item['rating']}",
+                      " ${item.rating}",
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
@@ -230,7 +231,7 @@ class FavoritePlacesScreen extends StatelessWidget {
                             style: const TextStyle(color: Colors.grey, fontSize: 11),
                           ),
                           Text(
-                            item['price'],
+                            item.price,
                             style: const TextStyle(
                               color: AppColors.primary,
                               fontSize: 18,
@@ -245,9 +246,7 @@ class FavoritePlacesScreen extends StatelessWidget {
                         Navigator.pushNamed(
                           context,
                           '/destination-detail',
-                          arguments: int.parse(
-                            item['id'].toString(),
-                          ),
+                          arguments: item.id,
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -277,7 +276,7 @@ class FavoritePlacesScreen extends StatelessWidget {
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context, String id) {
+  void _showDeleteConfirmation(BuildContext context, int id) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,

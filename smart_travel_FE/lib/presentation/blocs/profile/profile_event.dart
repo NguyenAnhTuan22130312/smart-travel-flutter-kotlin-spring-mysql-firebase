@@ -69,21 +69,21 @@ class LoadSettings extends ProfileEvent {}
 
 // Update Settings Event
 class UpdateSettings extends ProfileEvent {
-  final String? languageSettings;
+  final Map<String, dynamic>? languageSettingsMap;
   final bool? darkModeEnabled;
-  final String? notificationSettings;
+  final Map<String, dynamic>? notificationSettingsMap;
 
   const UpdateSettings({
-    this.languageSettings,
+    this.languageSettingsMap,
     this.darkModeEnabled,
-    this.notificationSettings,
+    this.notificationSettingsMap,
   });
 
   @override
   List<Object?> get props => [
-        languageSettings,
+        languageSettingsMap,
         darkModeEnabled,
-        notificationSettings,
+        notificationSettingsMap,
       ];
 }
 

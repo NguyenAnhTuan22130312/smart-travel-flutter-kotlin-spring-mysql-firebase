@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:equatable/equatable.dart';
 
 class User extends Equatable {
@@ -127,4 +128,22 @@ class UserSettings extends Equatable {
     darkModeEnabled,
     notificationSettings,
   ];
+
+  Map<String, dynamic> get parsedLanguageSettings {
+    if (languageSettings == null || languageSettings!.isEmpty) return {};
+    try {
+      return json.decode(languageSettings!);
+    } catch (_) {
+      return {};
+    }
+  }
+
+  Map<String, dynamic> get parsedNotificationSettings {
+    if (notificationSettings == null || notificationSettings!.isEmpty) return {};
+    try {
+      return json.decode(notificationSettings!);
+    } catch (_) {
+      return {};
+    }
+  }
 }

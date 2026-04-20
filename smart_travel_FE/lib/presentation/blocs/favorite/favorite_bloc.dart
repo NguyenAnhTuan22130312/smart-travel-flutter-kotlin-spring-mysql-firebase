@@ -1,13 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_travel/domain/entities/favorite_place.dart';
 
 // Event
 abstract class FavoriteEvent {}
-class AddToFavorite extends FavoriteEvent { final dynamic item; AddToFavorite(this.item); }
-class RemoveFromFavorite extends FavoriteEvent { final String id; RemoveFromFavorite(this.id); }
+class AddToFavorite extends FavoriteEvent { final FavoritePlace item; AddToFavorite(this.item); }
+class RemoveFromFavorite extends FavoriteEvent { final int id; RemoveFromFavorite(this.id); }
 
 // State
 class FavoriteState {
-  final List<dynamic> favoriteItems;
+  final List<FavoritePlace> favoriteItems;
   FavoriteState({this.favoriteItems = const []});
 }
 
@@ -16,14 +17,14 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
   FavoriteBloc() : super(FavoriteState()) {
     on<AddToFavorite>((event, emit) {
       // Kiểm tra nếu chưa có thì mới thêm vào
-      if (!state.favoriteItems.any((x) => x['id'] == event.item['id'])) {
-        final updatedList = List.from(state.favoriteItems)..add(event.item);
+      if (!state.favoriteItems.any((x) => x.id == event.item.id)) {
+        final updatedList = List<FavoritePlace>.from(state.favoriteItems)..add(event.item);
         emit(FavoriteState(favoriteItems: updatedList));
       }
     });
 
     on<RemoveFromFavorite>((event, emit) {
-      final updatedList = state.favoriteItems.where((x) => x['id'] != event.id).toList();
+      final updatedList = state.favoriteItems.where((x) => x.id != event.id).toList();
       emit(FavoriteState(favoriteItems: updatedList));
     });
   }

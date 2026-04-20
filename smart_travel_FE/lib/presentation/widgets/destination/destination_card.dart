@@ -5,6 +5,7 @@ import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
 import 'package:smart_travel/domain/entities/destinations.dart';
+import 'package:smart_travel/domain/entities/favorite_place.dart';
 import 'package:smart_travel/presentation/widgets/destination/share_to_group_bottom_sheet.dart';
 import 'package:smart_travel/router/route_names.dart';
 
@@ -57,7 +58,7 @@ class _DestinationFeaturedState extends State<DestinationCart> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -120,25 +121,25 @@ class _DestinationFeaturedState extends State<DestinationCart> {
                       BlocBuilder<FavoriteBloc, FavoriteState>(
                         builder: (context, state) {
                           final isFavorite = state.favoriteItems
-                              .any((x) => x['id'] == destination.id.toString());
+                              .any((x) => x.id == destination.id);
 
                           return GestureDetector(
                             onTap: () {
                               if (isFavorite) {
                                 context.read<FavoriteBloc>().add(
-                                  RemoveFromFavorite(destination.id.toString()),
+                                  RemoveFromFavorite(destination.id),
                                 );
                               } else {
                                 context.read<FavoriteBloc>().add(
-                                  AddToFavorite({
-                                    'id': destination.id.toString(),
-                                    'name': destination.name,
-                                    'category': destination.category ?? 'Địa điểm',
-                                    'location': destination.province?.name ?? 'Việt Nam',
-                                    'image': imageUrl,
-                                    'rating': destination.averageRating,
-                                    'price': priceText,
-                                  }),
+                                  AddToFavorite(FavoritePlace(
+                                    id: destination.id,
+                                    name: destination.name,
+                                    category: destination.category ?? 'Địa điểm',
+                                    location: destination.province?.name ?? 'Việt Nam',
+                                    image: imageUrl,
+                                    rating: destination.averageRating,
+                                    price: priceText,
+                                  )),
                                 );
                               }
                             },
@@ -251,7 +252,7 @@ class _DestinationFeaturedState extends State<DestinationCart> {
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
+                          color: AppColors.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
