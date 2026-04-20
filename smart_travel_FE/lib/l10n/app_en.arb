@@ -131,5 +131,16 @@
   "cancelled": "Cancelled",
   "noInvoices": "You have no bookings yet",
 
-  "errorLoadLevel": "Failed to load level information"
+  "errorLoadLevel": "Failed to load level information",
+  "myActivity": "My Activity",
+  "favoritePlacesList": "Favorite Places List",
+  "favoritePlaces": "Favorite Places",
+  "removedFromFavorites": "Removed from favorites",
+  "confirmDelete": "Confirm Delete",
+  "confirmDeleteFavorite": "Are you sure you want to remove this place from your favorites?",
+  "back": "Back",
+  "deleteNow": "Delete Now",
+  "noFavoritePlaces": "No favorite places yet",
+  "priceFrom": "Price from",
+  "details": "Details"
 }
