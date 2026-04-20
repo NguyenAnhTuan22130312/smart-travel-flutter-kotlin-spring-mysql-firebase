@@ -883,6 +883,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to load level information'**
   String get errorLoadLevel;
+
+  /// No description provided for @myActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'My Activity'**
+  String get myActivity;
+
+  /// No description provided for @favoritePlacesList.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite Places List'**
+  String get favoritePlacesList;
+
+  /// No description provided for @favoritePlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite Places'**
+  String get favoritePlaces;
+
+  /// No description provided for @removedFromFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed from favorites'**
+  String get removedFromFavorites;
+
+  /// No description provided for @confirmDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Delete'**
+  String get confirmDelete;
+
+  /// No description provided for @confirmDeleteFavorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove this place from your favorites?'**
+  String get confirmDeleteFavorite;
+
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
+  /// No description provided for @deleteNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Now'**
+  String get deleteNow;
+
+  /// No description provided for @noFavoritePlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'No favorite places yet'**
+  String get noFavoritePlaces;
+
+  /// No description provided for @priceFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Price from'**
+  String get priceFrom;
+
+  /// No description provided for @details.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get details;
 }
 
 class _AppLocalizationsDelegate

@@ -401,4 +401,38 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get errorLoadLevel => 'Không thể tải thông tin cấp bậc';
+
+  @override
+  String get myActivity => 'Hoạt động của tôi';
+
+  @override
+  String get favoritePlacesList => 'Danh sách địa điểm yêu thích';
+
+  @override
+  String get favoritePlaces => 'Địa điểm yêu thích';
+
+  @override
+  String get removedFromFavorites => 'Đã xóa khỏi danh sách yêu thích';
+
+  @override
+  String get confirmDelete => 'Xác nhận xóa';
+
+  @override
+  String get confirmDeleteFavorite =>
+      'Bạn có chắc chắn muốn bỏ địa điểm này khỏi danh sách yêu thích không?';
+
+  @override
+  String get back => 'Quay lại';
+
+  @override
+  String get deleteNow => 'Xóa ngay';
+
+  @override
+  String get noFavoritePlaces => 'Chưa có địa điểm yêu thích';
+
+  @override
+  String get priceFrom => 'Giá từ';
+
+  @override
+  String get details => 'Chi tiết';
 }

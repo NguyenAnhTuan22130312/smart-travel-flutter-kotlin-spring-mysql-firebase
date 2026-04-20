@@ -252,13 +252,12 @@ class _ProfileScreenState extends State<ProfileScreen> with AuthErrorHandlerMixi
                         // NEW SECTION: Danh sách yêu thích
                         _buildSection(
                           context,
-                          title:
-                              "Hoạt động của tôi", // Hoặc AppLocalizations.of(context)!.myActivity
+                          title: AppLocalizations.of(context)!.myActivity,
                           items: [
                             // Trong profile_screen.dart
                             ProfileMenuItemWidget(
                               icon: Icons.favorite_border_rounded,
-                              title: "Danh sách địa điểm yêu thích",
+                              title: AppLocalizations.of(context)!.favoritePlacesList,
                               iconColor: Colors.pinkAccent,
                               onTap: () {
                                 Navigator.push(

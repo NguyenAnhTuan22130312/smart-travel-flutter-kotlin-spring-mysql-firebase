@@ -9,6 +9,7 @@ import 'package:smart_travel/presentation/widgets/common/custom_textfield.dart';
 import 'package:smart_travel/presentation/widgets/profile/avatar_picker_widget.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
 import 'package:smart_travel/core/utils/auth_error_handler_mixin.dart';
+import 'package:smart_travel/l10n/app_localizations.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({Key? key}) : super(key: key);
@@ -119,7 +120,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> with AuthErrorHan
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Chỉnh sửa hồ sơ'),
+        title: Text(AppLocalizations.of(context)!.editProfileTitle),
         flexibleSpace: Container(
           decoration: const BoxDecoration(gradient: AppColors.mainGradient),
         ),
@@ -133,7 +134,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> with AuthErrorHan
               behavior: SnackBarBehavior.floating,
               backgroundColor: AppColors.background,
               content: AwesomeSnackbarContent(
-                title: 'Thành công',
+                title: AppLocalizations.of(context)!.success,
                 message: state.message,
                 contentType: ContentType.success,
               ),
@@ -151,7 +152,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> with AuthErrorHan
               behavior: SnackBarBehavior.floating,
               backgroundColor: Colors.transparent,
               content: AwesomeSnackbarContent(
-                title: 'Lỗi',
+                title: AppLocalizations.of(context)!.error,
                 message: state.message,
                 contentType: ContentType.failure,
               ),
@@ -189,16 +190,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> with AuthErrorHan
 
                   // Full Name
                   CustomTextField(
-                    label: 'Họ và tên',
-                    hintText: 'Nhập họ và tên',
+                    label: AppLocalizations.of(context)!.fullNameLabel,
+                    hintText: AppLocalizations.of(context)!.fullNameHint,
                     controller: _fullNameController,
                     prefixIcon: Icons.person_outline,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập họ và tên';
+                        return AppLocalizations.of(context)!.fullNameRequired;
                       }
                       if (value.length < 2 || value.length > 100) {
-                        return 'Họ tên phải từ 2-100 ký tự';
+                        return AppLocalizations.of(context)!.fullNameLength;
                       }
                       return null;
                     },
@@ -207,15 +208,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> with AuthErrorHan
 
                   // Phone
                   CustomTextField(
-                    label: 'Số điện thoại',
-                    hintText: 'Nhập số điện thoại',
+                    label: AppLocalizations.of(context)!.phoneLabel,
+                    hintText: AppLocalizations.of(context)!.phoneHint,
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
                     prefixIcon: Icons.phone_outlined,
                     validator: (value) {
                       if (value != null && value.isNotEmpty) {
                         if (!RegExp(r'^\d{10}$').hasMatch(value)) {
-                          return 'Số điện thoại phải có 10 chữ số';
+                          return AppLocalizations.of(context)!.phoneInvalid;
                         }
                       }
                       return null;
@@ -224,9 +225,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> with AuthErrorHan
                   const SizedBox(height: 16),
 
                   // Gender
-                  const Text(
-                    'Giới tính',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context)!.genderLabel,
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: Color(0xFF374151),
@@ -241,10 +242,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> with AuthErrorHan
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    items: const [
-                      DropdownMenuItem(value: 'MALE', child: Text('Nam')),
-                      DropdownMenuItem(value: 'FEMALE', child: Text('Nữ')),
-                      DropdownMenuItem(value: 'OTHER', child: Text('Khác')),
+                    items: [
+                      DropdownMenuItem(value: 'MALE', child: Text(AppLocalizations.of(context)!.genderMale)),
+                      DropdownMenuItem(value: 'FEMALE', child: Text(AppLocalizations.of(context)!.genderFemale)),
+                      DropdownMenuItem(value: 'OTHER', child: Text(AppLocalizations.of(context)!.genderOther)),
                     ],
                     onChanged: (value) {
                       setState(() {
@@ -255,9 +256,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> with AuthErrorHan
                   const SizedBox(height: 16),
 
                   // Date of Birth
-                  const Text(
-                    'Ngày sinh',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context)!.dobLabel,
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: Color(0xFF374151),
@@ -276,7 +277,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> with AuthErrorHan
                       child: Text(
                         _dateOfBirth != null
                             ? '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}'
-                            : 'Chọn ngày sinh',
+                            : AppLocalizations.of(context)!.dobPlaceholder,
                         style: TextStyle(
                           color:
                               _dateOfBirth != null ? Colors.black : Colors.grey,
@@ -287,9 +288,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> with AuthErrorHan
                   const SizedBox(height: 16),
 
                   // Bio
-                  const Text(
-                    'Giới thiệu',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context)!.bioLabel,
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: Color(0xFF374151),
@@ -300,7 +301,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> with AuthErrorHan
                     controller: _bioController,
                     maxLines: 3,
                     decoration: InputDecoration(
-                      hintText: 'Viết vài dòng về bản thân',
+                      hintText: AppLocalizations.of(context)!.bioHint,
                       prefixIcon: const Icon(Icons.description_outlined),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -324,7 +325,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> with AuthErrorHan
                     ),
                     validator: (value) {
                       if (value != null && value.length > 1000) {
-                        return 'Giới thiệu tối đa 1000 ký tự';
+                        return AppLocalizations.of(context)!.bioMax;
                       }
                       return null;
                     },
@@ -333,13 +334,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> with AuthErrorHan
 
                   // Address
                   CustomTextField(
-                    label: 'Địa chỉ',
-                    hintText: 'Nhập địa chỉ',
+                    label: AppLocalizations.of(context)!.addressLabel,
+                    hintText: AppLocalizations.of(context)!.addressHint,
                     controller: _addressController,
                     prefixIcon: Icons.home_outlined,
                     validator: (value) {
                       if (value != null && value.length > 100) {
-                        return 'Địa chỉ tối đa 100 ký tự';
+                        return AppLocalizations.of(context)!.addressMax;
                       }
                       return null;
                     },
@@ -348,13 +349,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> with AuthErrorHan
 
                   // City
                   CustomTextField(
-                    label: 'Thành phố',
-                    hintText: 'Nhập thành phố',
+                    label: AppLocalizations.of(context)!.cityLabel,
+                    hintText: AppLocalizations.of(context)!.cityHint,
                     controller: _cityController,
                     prefixIcon: Icons.location_city_outlined,
                     validator: (value) {
                       if (value != null && value.length > 50) {
-                        return 'Thành phố tối đa 50 ký tự';
+                        return AppLocalizations.of(context)!.cityMax;
                       }
                       return null;
                     },
@@ -363,13 +364,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> with AuthErrorHan
 
                   // Country
                   CustomTextField(
-                    label: 'Quốc gia',
-                    hintText: 'Nhập quốc gia',
+                    label: AppLocalizations.of(context)!.countryLabel,
+                    hintText: AppLocalizations.of(context)!.countryHint,
                     controller: _countryController,
                     prefixIcon: Icons.flag_outlined,
                     validator: (value) {
                       if (value != null && value.length > 50) {
-                        return 'Quốc gia tối đa 50 ký tự';
+                        return AppLocalizations.of(context)!.countryMax;
                       }
                       return null;
                     },
@@ -378,7 +379,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> with AuthErrorHan
 
                   // Save Button
                   PrimaryButton(
-                    text: isLoading ? 'Đang lưu...' : 'Lưu thay đổi',
+                    text: isLoading ? AppLocalizations.of(context)!.saving : AppLocalizations.of(context)!.saveChanges,
                     onPressed: isLoading ? () {} : _handleSave,
                   ),
                 ],

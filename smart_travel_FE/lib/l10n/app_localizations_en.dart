@@ -402,4 +402,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorLoadLevel => 'Failed to load level information';
+
+  @override
+  String get myActivity => 'My Activity';
+
+  @override
+  String get favoritePlacesList => 'Favorite Places List';
+
+  @override
+  String get favoritePlaces => 'Favorite Places';
+
+  @override
+  String get removedFromFavorites => 'Removed from favorites';
+
+  @override
+  String get confirmDelete => 'Confirm Delete';
+
+  @override
+  String get confirmDeleteFavorite =>
+      'Are you sure you want to remove this place from your favorites?';
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get deleteNow => 'Delete Now';
+
+  @override
+  String get noFavoritePlaces => 'No favorite places yet';
+
+  @override
+  String get priceFrom => 'Price from';
+
+  @override
+  String get details => 'Details';
 }
