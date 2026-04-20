@@ -8,6 +8,7 @@ import 'package:smart_travel/presentation/widgets/common/custom_button.dart';
 import 'package:smart_travel/presentation/widgets/common/custom_textfield.dart';
 import 'package:smart_travel/presentation/widgets/profile/avatar_picker_widget.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
+import 'package:smart_travel/core/utils/auth_error_handler_mixin.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({Key? key}) : super(key: key);
@@ -16,7 +17,7 @@ class EditProfileScreen extends StatefulWidget {
   State<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class _EditProfileScreenState extends State<EditProfileScreen> with AuthErrorHandlerMixin {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -143,19 +144,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             Navigator.pop(context);
           } else if (state is ProfileError) {
             // Check if error is related to token expiration
-            if (state.message.toLowerCase().contains('unauthorized') ||
-                state.message.toLowerCase().contains('401') ||
-                state.message.toLowerCase().contains(
-                  'phiên đăng nhập hết hạn',
-                ) ||
-                state.message.toLowerCase().contains('token')) {
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/login',
-                (route) => false,
-              );
-              return;
-            }
+            if (handleTokenExpiration(state.message)) return;
 
             final snackBar = SnackBar(
               elevation: 0,
@@ -245,7 +234,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    value: _selectedGender,
+                    initialValue: _selectedGender,
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.wc_outlined),
                       border: OutlineInputBorder(

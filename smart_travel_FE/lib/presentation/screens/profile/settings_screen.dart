@@ -8,6 +8,7 @@ import 'package:smart_travel/presentation/blocs/profile/profile_bloc.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
+import 'package:smart_travel/core/utils/auth_error_handler_mixin.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -16,7 +17,7 @@ class SettingsScreen extends StatefulWidget {
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends State<SettingsScreen> with AuthErrorHandlerMixin {
   String _selectedLanguage = 'vi';
   bool _darkModeEnabled = false;
   bool _emailNotifications = true;
@@ -125,19 +126,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ..showSnackBar(snackBar);
           } else if (state is ProfileError) {
             // Check if error is related to token expiration
-            if (state.message.toLowerCase().contains('unauthorized') ||
-                state.message.toLowerCase().contains('401') ||
-                state.message.toLowerCase().contains(
-                  'phiên đăng nhập hết hạn',
-                ) ||
-                state.message.toLowerCase().contains('token')) {
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/login',
-                (route) => false,
-              );
-              return;
-            }
+            if (handleTokenExpiration(state.message)) return;
 
             final snackBar = SnackBar(
               elevation: 0,
@@ -312,7 +301,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       subtitle: Text(AppLocalizations.of(context)!.systemDefault),
       value: _darkModeEnabled,
       onChanged: _updateDarkMode,
-      activeColor: AppColors.primary,
+      activeThumbColor: AppColors.primary,
     );
   }
 
@@ -332,7 +321,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       value: value,
       onChanged: onChanged,
-      activeColor: AppColors.primary,
+      activeThumbColor: AppColors.primary,
     );
   }
 }
