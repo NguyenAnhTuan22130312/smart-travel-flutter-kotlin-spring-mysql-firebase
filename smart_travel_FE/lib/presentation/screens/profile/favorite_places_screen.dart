@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/presentation/blocs/favorite/favorite_bloc.dart';
 import '../../theme/app_colors.dart';
+import 'package:smart_travel/l10n/app_localizations.dart';
+import 'package:smart_travel/domain/entities/favorite_place.dart';
 
 class FavoritePlacesScreen extends StatelessWidget {
   const FavoritePlacesScreen({Key? key}) : super(key: key);
 
-  void _deletePlace(BuildContext context, String id) {
+  void _deletePlace(BuildContext context, int id) {
     context.read<FavoriteBloc>().add(RemoveFromFavorite(id));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Đã xóa khỏi danh sách yêu thích"),
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.removedFromFavorites),
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.success,
       ),
@@ -48,9 +50,9 @@ class FavoritePlacesScreen extends StatelessWidget {
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: true,
                   titlePadding: const EdgeInsets.only(bottom: 14),
-                  title: const Text(
-                    "Địa điểm yêu thích",
-                    style: TextStyle(
+                  title: Text(
+                    AppLocalizations.of(context)!.favoritePlaces,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
@@ -69,7 +71,7 @@ class FavoritePlacesScreen extends StatelessWidget {
               favorites.isEmpty
                   ? SliverFillRemaining(
                     hasScrollBody: false,
-                    child: _buildEmptyState(),
+                    child: _buildEmptyState(context),
                   )
                   : SliverPadding(
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
@@ -88,7 +90,7 @@ class FavoritePlacesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildModernCard(BuildContext context, Map<String, dynamic> item) {
+  Widget _buildModernCard(BuildContext context, FavoritePlace item) {
     return Container(
       margin: const EdgeInsets.only(top: 16),
       decoration: BoxDecoration(
@@ -96,7 +98,7 @@ class FavoritePlacesScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -112,9 +114,9 @@ class FavoritePlacesScreen extends StatelessWidget {
                   top: Radius.circular(24),
                 ),
                 child:
-                    item['image'].toString().startsWith('http')
+                    item.image.startsWith('http')
                         ? Image.network(
-                          item['image'],
+                          item.image,
                           height: 180,
                           width: double.infinity,
                           fit: BoxFit.cover,
@@ -130,11 +132,11 @@ class FavoritePlacesScreen extends StatelessWidget {
                 top: 12,
                 right: 12,
                 child: GestureDetector(
-                  onTap: () => _showDeleteConfirmation(context, item['id']),
+                  onTap: () => _showDeleteConfirmation(context, item.id),
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -158,7 +160,7 @@ class FavoritePlacesScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    item['category'].toUpperCase(),
+                    item.category.toUpperCase(),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 10,
@@ -176,7 +178,7 @@ class FavoritePlacesScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item['name'],
+                  item.name,
                   style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
@@ -196,7 +198,7 @@ class FavoritePlacesScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      item['location'],
+                      item.location,
                       style: TextStyle(color: Colors.grey[600], fontSize: 13),
                     ),
                     const Spacer(),
@@ -206,7 +208,7 @@ class FavoritePlacesScreen extends StatelessWidget {
                       size: 18,
                     ),
                     Text(
-                      " ${item['rating']}",
+                      " ${item.rating}",
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
@@ -224,12 +226,12 @@ class FavoritePlacesScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            "Giá từ",
-                            style: TextStyle(color: Colors.grey, fontSize: 11),
+                          Text(
+                            AppLocalizations.of(context)!.priceFrom,
+                            style: const TextStyle(color: Colors.grey, fontSize: 11),
                           ),
                           Text(
-                            item['price'],
+                            item.price,
                             style: const TextStyle(
                               color: AppColors.primary,
                               fontSize: 18,
@@ -244,9 +246,7 @@ class FavoritePlacesScreen extends StatelessWidget {
                         Navigator.pushNamed(
                           context,
                           '/destination-detail',
-                          arguments: int.parse(
-                            item['id'].toString(),
-                          ),
+                          arguments: item.id,
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -261,9 +261,9 @@ class FavoritePlacesScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        "Chi tiết",
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      child: Text(
+                        AppLocalizations.of(context)!.details,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
@@ -276,7 +276,7 @@ class FavoritePlacesScreen extends StatelessWidget {
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context, String id) {
+  void _showDeleteConfirmation(BuildContext context, int id) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -301,7 +301,7 @@ class FavoritePlacesScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
+                        color: Colors.red.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -313,9 +313,9 @@ class FavoritePlacesScreen extends StatelessWidget {
                     const SizedBox(height: 20),
 
                     // Tiêu đề
-                    const Text(
-                      "Xác nhận xóa",
-                      style: TextStyle(
+                    Text(
+                      AppLocalizations.of(context)!.confirmDelete,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
                         color: AppColors.textGray,
@@ -325,7 +325,7 @@ class FavoritePlacesScreen extends StatelessWidget {
 
                     // Nội dung thông báo
                     Text(
-                      "Bạn có chắc chắn muốn bỏ địa điểm này khỏi danh sách yêu thích không?",
+                      AppLocalizations.of(context)!.confirmDeleteFavorite,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,
@@ -348,9 +348,9 @@ class FavoritePlacesScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            child: const Text(
-                              "Quay lại",
-                              style: TextStyle(
+                            child: Text(
+                              AppLocalizations.of(context)!.back,
+                              style: const TextStyle(
                                 color: Colors.grey,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -375,9 +375,9 @@ class FavoritePlacesScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            child: const Text(
-                              "Xóa ngay",
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                            child: Text(
+                              AppLocalizations.of(context)!.deleteNow,
+                              style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -393,7 +393,7 @@ class FavoritePlacesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -401,12 +401,12 @@ class FavoritePlacesScreen extends StatelessWidget {
           Icon(
             Icons.favorite_border_rounded,
             size: 80,
-            color: Colors.grey.withOpacity(0.3),
+            color: Colors.grey.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 16),
-          const Text(
-            "Chưa có địa điểm yêu thích",
-            style: TextStyle(color: Colors.grey, fontSize: 16),
+          Text(
+            AppLocalizations.of(context)!.noFavoritePlaces,
+            style: const TextStyle(color: Colors.grey, fontSize: 16),
           ),
         ],
       ),

@@ -15,6 +15,7 @@ import 'package:smart_travel/presentation/widgets/profile/profile_menu_item_widg
 import 'package:smart_travel/presentation/widgets/common/bottom_navigation.dart';
 import 'package:smart_travel/router/route_names.dart';
 import '../../theme/app_colors.dart';
+import 'package:smart_travel/core/utils/auth_error_handler_mixin.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -23,7 +24,7 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen> with AuthErrorHandlerMixin {
   int _selectedIndex = 5; // Profile tab index (Cá nhân)
 
   @override
@@ -98,16 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         listener: (context, state) {
           if (state is ProfileError) {
             // Check if error is related to token expiration
-            if (state.message.toLowerCase().contains('unauthorized') ||
-                state.message.toLowerCase().contains('401') ||
-                state.message.toLowerCase().contains(
-                  'phiên đăng nhập hết hạn',
-                ) ||
-                state.message.toLowerCase().contains('token')) {
-              // Redirect to login immediately without showing error
-              Navigator.pushReplacementNamed(context, '/login');
-              return;
-            }
+            if (handleTokenExpiration(state.message)) return;
 
             final snackBar = SnackBar(
               elevation: 0,
@@ -260,13 +252,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // NEW SECTION: Danh sách yêu thích
                         _buildSection(
                           context,
-                          title:
-                              "Hoạt động của tôi", // Hoặc AppLocalizations.of(context)!.myActivity
+                          title: AppLocalizations.of(context)!.myActivity,
                           items: [
                             // Trong profile_screen.dart
                             ProfileMenuItemWidget(
                               icon: Icons.favorite_border_rounded,
-                              title: "Danh sách địa điểm yêu thích",
+                              title: AppLocalizations.of(context)!.favoritePlacesList,
                               iconColor: Colors.pinkAccent,
                               onTap: () {
                                 Navigator.push(

@@ -131,5 +131,16 @@
   "cancelled": "Đã hủy",
   "noInvoices": "Bạn chưa có đặt chỗ nào",
 
-  "errorLoadLevel": "Không thể tải thông tin cấp bậc"
+  "errorLoadLevel": "Không thể tải thông tin cấp bậc",
+  "myActivity": "Hoạt động của tôi",
+  "favoritePlacesList": "Danh sách địa điểm yêu thích",
+  "favoritePlaces": "Địa điểm yêu thích",
+  "removedFromFavorites": "Đã xóa khỏi danh sách yêu thích",
+  "confirmDelete": "Xác nhận xóa",
+  "confirmDeleteFavorite": "Bạn có chắc chắn muốn bỏ địa điểm này khỏi danh sách yêu thích không?",
+  "back": "Quay lại",
+  "deleteNow": "Xóa ngay",
+  "noFavoritePlaces": "Chưa có địa điểm yêu thích",
+  "priceFrom": "Giá từ",
+  "details": "Chi tiết"
 }

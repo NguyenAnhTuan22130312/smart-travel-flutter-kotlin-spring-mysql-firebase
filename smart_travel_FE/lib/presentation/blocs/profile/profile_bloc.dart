@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_travel/domain/usecases/user/get_profile_usecase.dart';
 import 'package:smart_travel/domain/usecases/user/update_profile_usecase.dart';
@@ -118,9 +119,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(ProfileLoading());
 
     final result = await updateSettingsUseCase(
-      languageSettings: event.languageSettings,
+      languageSettings: event.languageSettingsMap != null ? json.encode(event.languageSettingsMap) : null,
       darkModeEnabled: event.darkModeEnabled,
-      notificationSettings: event.notificationSettings,
+      notificationSettings: event.notificationSettingsMap != null ? json.encode(event.notificationSettingsMap) : null,
     );
 
     result.fold(

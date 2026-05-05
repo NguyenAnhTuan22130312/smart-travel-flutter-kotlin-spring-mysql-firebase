@@ -7,6 +7,7 @@ import 'package:smart_travel/presentation/blocs/profile/profile_event.dart';
 import 'package:smart_travel/presentation/blocs/profile/profile_state.dart';
 import 'package:smart_travel/presentation/widgets/common/custom_button.dart';
 import 'package:smart_travel/presentation/theme/app_colors.dart';
+import 'package:smart_travel/core/utils/auth_error_handler_mixin.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({Key? key}) : super(key: key);
@@ -15,7 +16,7 @@ class ChangePasswordScreen extends StatefulWidget {
   State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
 }
 
-class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
+class _ChangePasswordScreenState extends State<ChangePasswordScreen> with AuthErrorHandlerMixin {
   final _formKey = GlobalKey<FormState>();
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
@@ -75,19 +76,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             Navigator.pop(context);
           } else if (state is ProfileError) {
             // Check if error is related to token expiration
-            if (state.message.toLowerCase().contains('unauthorized') ||
-                state.message.toLowerCase().contains('401') ||
-                state.message.toLowerCase().contains(
-                  'phiên đăng nhập hết hạn',
-                ) ||
-                state.message.toLowerCase().contains('token')) {
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/login',
-                (route) => false,
-              );
-              return;
-            }
+            if (handleTokenExpiration(state.message)) return;
 
             final snackBar = SnackBar(
               elevation: 0,
